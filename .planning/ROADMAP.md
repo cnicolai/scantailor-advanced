@@ -31,7 +31,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `ctest` runs the existing test suite on the Mac, and the pass/fail result of each test from this first build is committed to the repository
   4. The `-ffp-contract` setting is fixed in the build configuration and recorded. A CMake sanitizer option produces an ASan/UBSan build that runs the existing tests, and its findings are recorded, not fixed
   5. `git diff 5eaac18` (the 1.2.1 release) outside `.planning/` shows only build and launch fixes and added build settings: no deleted code paths and no change to processing behaviour
-**Plans**: TBD
+**Plans:** 7 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Tracer: Homebrew toolchain to a passing foundation_tests via CMakePresets.json; Clang warnings, frozen -ffp-contract=off, SANITIZE option, debug/asan presets
+- [ ] 01-02-PLAN.md — First full release/debug build, error classes recorded, formatting decision, one-commit-per-class compile fixes
+- [ ] 01-03-PLAN.md — Warning log and counts, arm64 and one-copy library checks, ctest records for Release and Debug, qt_tests offscreen decision
+- [ ] 01-04-PLAN.md — ASan/UBSan build, existing tests under sanitizers, findings recorded not fixed
+- [ ] 01-05-PLAN.md — Scratchpad DPR/settings-path probe, synthetic smoke pages, D-02 permission with corrected INI paths
+- [ ] 01-06-PLAN.md — User-driven smoke walkthrough (one step per message), output and project checks, SMOKE-FINDINGS.md
+- [ ] 01-07-PLAN.md — Closing check of all five success criteria from fresh trees, criterion-5 diff audit, Phase 2 baseline commit
 **UI hint**: no
 
 ### Phase 2: Golden Baselines
@@ -106,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deletion-Free macOS Build | 0/TBD | Not started | - |
+| 1. Deletion-Free macOS Build | 0/7 | Planned | - |
 | 2. Golden Baselines | 0/TBD | Not started | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
