@@ -69,6 +69,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-ffp-contract=off>")
 endif()
 
+set(SANITIZE "" CACHE STRING "Value for -fsanitize=, e.g. address,undefined. Empty disables.")
+if (SANITIZE)
+  add_compile_options(-fsanitize=${SANITIZE} -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=${SANITIZE})
+  if (SANITIZE MATCHES "address")
+    # Keep running after a finding so one run collects every report.
+    add_compile_options(-fsanitize-recover=address)
+  endif()
+endif()
+
 if (UNIX)
   option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
   option(CMAKE_INSTALL_RPATH_USE_LINK_PATH "" ON)
