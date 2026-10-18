@@ -22,6 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Deletion-Free macOS Build
+
 **Goal**: The unmodified 1.2.1 code builds as a native arm64 binary on the Mac and processes a real project end to end. The only edits are those needed to build and launch it.
 **Depends on**: Nothing (first phase)
 **Requirements**: BUILD-01, BUILD-02, BUILD-03, BUILD-04, BUILD-05, BUILD-06, BUILD-07
@@ -31,19 +32,31 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `ctest` runs the existing test suite on the Mac, and the pass/fail result of each test from this first build is committed to the repository
   4. The `-ffp-contract` setting is fixed in the build configuration and recorded. A CMake sanitizer option produces an ASan/UBSan build that runs the existing tests, and its findings are recorded, not fixed
   5. `git diff 5eaac18` (the 1.2.1 release) outside `.planning/` shows only build and launch fixes and added build settings: no deleted code paths and no change to processing behaviour
+
 **Plans:** 7 plans
 
 Plans:
+**Wave 1**
 - [ ] 01-01-PLAN.md — Tracer: Homebrew toolchain to a passing foundation_tests via CMakePresets.json; Clang warnings, frozen -ffp-contract=off, SANITIZE option, debug/asan presets
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — First full release/debug build, error classes recorded, formatting decision, one-commit-per-class compile fixes
+- [ ] 01-05-PLAN.md — Scratchpad DPR/settings-path probe, synthetic smoke pages, D-02 permission with corrected INI paths
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 01-03-PLAN.md — Warning log and counts, arm64 and one-copy library checks, ctest records for Release and Debug, qt_tests offscreen decision
 - [ ] 01-04-PLAN.md — ASan/UBSan build, existing tests under sanitizers, findings recorded not fixed
-- [ ] 01-05-PLAN.md — Scratchpad DPR/settings-path probe, synthetic smoke pages, D-02 permission with corrected INI paths
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 01-06-PLAN.md — User-driven smoke walkthrough (one step per message), output and project checks, SMOKE-FINDINGS.md
+
+**Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 01-07-PLAN.md — Closing check of all five success criteria from fresh trees, criterion-5 diff audit, Phase 2 baseline commit
+
 **UI hint**: no
 
 ### Phase 2: Golden Baselines
+
 **Goal**: A synthetic-image test suite records what the unmodified code produces for flat documents, book spreads and mixed pages, so every later change can be checked against it.
 **Depends on**: Phase 1
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, TEST-08, TEST-09, TEST-10, TEST-11
@@ -53,10 +66,12 @@ Plans:
   3. A deliberately altered output fails its comparison under the per-kind tolerance (bi-level, grey/colour, geometry) and leaves the actual and diff images on disk. Baselines change only when the update flag is passed, and a manifest next to them records the toolchain versions they were made with
   4. The baseline commit comes before every strip or cleanup commit in git history, and its source tree matches the Phase 1 code
   5. A project with non-default parameters in every stage and special characters in names is written, read back and written again with identical results. A single `ctest` command runs the whole suite offscreen with isolated settings and passes. Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it
+
 **Plans**: TBD
 **UI hint**: no
 
 ### Phase 3: Qt 6 and macOS Only
+
 **Goal**: The codebase contains only what the Mac build needs: Qt 6, macOS code paths, an English UI, no packaging and no CI. The baselines prove that output is unchanged.
 **Depends on**: Phase 2
 **Requirements**: STRIP-01, STRIP-02, STRIP-03, STRIP-04, STRIP-05, STRIP-06, STRIP-08
@@ -66,10 +81,12 @@ Plans:
   3. `.github/` contains no workflows and no Dependabot configuration, so pushing to the fork starts no CI runs
   4. The app starts with an English UI, no translation files are built or loaded, and no translation targets remain in CMake
   5. Someone following only the README can build the app on the Mac and run the test suite
+
 **Plans**: TBD
 **UI hint**: no
 
 ### Phase 4: Retina Rendering
+
 **Goal**: Everything the app draws on screen is sharp on a Retina display, and output files stay unchanged.
 **Depends on**: Phase 3
 **Requirements**: HIDPI-01, HIDPI-02, HIDPI-03, HIDPI-04, HIDPI-05, HIDPI-06
@@ -79,10 +96,12 @@ Plans:
   3. Zone masks, page badges, handles and the stage-list animation look sharp, not pixelated
   4. Dragging the window from the Retina display to a non-Retina display and back re-renders the page view and thumbnails at the right resolution without a restart
   5. On Retina the colour picker returns the colour of the pixel under the cursor, an automated test covers the sampling path, and the full `ctest` suite passes with baselines unchanged
+
 **Plans**: TBD
 **UI hint**: no
 
 ### Phase 5: Mac Menus and Shortcuts
+
 **Goal**: The app behaves like a Mac app. It has a standard application menu, Cmd shortcuts, Mac key names and native dialogs, and it works with MacBook keyboards and trackpads.
 **Depends on**: Phase 4
 **Requirements**: MAC-01, MAC-02, MAC-03, MAC-04, MAC-05, MAC-06, MAC-07, MAC-08, MAC-09, MAC-10, MAC-11
@@ -92,10 +111,12 @@ Plans:
   3. In the zone editor, Backspace or Delete removes the selected zone, and a content box can be created with a key the MacBook keyboard has. A right-click, a two-finger click and a Control-click each open the context menu
   4. When a batch run finishes, the Mac plays the system beep and no shell command runs
   5. Every open, save and folder dialog, including the relinking dialog, is the native macOS panel
+
 **Plans**: TBD
 **UI hint**: no
 
 ### Phase 6: Hardening and Cleanup
+
 **Goal**: Known safety defects are fixed, the OpenGL viewer is gone and the riskiest oversized files are split, so later feature work is safe. Output stays unchanged.
 **Depends on**: Phase 5 (menu work precedes the `MainWindow.cpp` split); Phase 4 (colour-picker test precedes OpenGL removal)
 **Requirements**: SAFE-01, SAFE-02, SAFE-03, STRIP-07, CLEAN-01, CLEAN-02, CLEAN-03, CLEAN-04, CLEAN-05
@@ -105,6 +126,7 @@ Plans:
   3. Batch-processing a project of large scans runs with a worker-thread count capped by the Mac's RAM, and Activity Monitor shows no growth in swap during the run
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
+
 **Plans**: TBD
 **UI hint**: no
 
