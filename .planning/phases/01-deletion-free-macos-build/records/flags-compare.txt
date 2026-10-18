@@ -1,0 +1,29 @@
+# Flag-set comparison: untouched configure vs. build/macos-release
+
+Left: the flag set of build/unmodified (commit 5eaac18 content, record configure.txt '## Unmodified flag set', 66 tokens).
+Right: the flag set of build/macos-release after the Task 3 commits (71 tokens). Same extraction method for both (flagset.py: option tokens of the command fields; operands of -I -isystem -iframework -F -isysroot -arch -include -idirafter kept, -o -c -MT -MF -MD dropped; build directory shown as {build}).
+
+$ diff flags-unmodified flags-macos-release
+49a50,53
+> -Wall
+> -Werror=return-type
+> -Wextra
+> -Wno-unused
+52a57
+> -ffp-contract=off
+
+## Explanation of every changed token
+
++ -Wall                 added, commit e35b498 (D-08): Clang counterpart of the GNU warning set at CMakeLists.txt:45; warning only, no code generation change.
++ -Wextra               added, commit e35b498 (D-08): same.
++ -Werror=return-type   added, commit e35b498 (D-08): turns a missing return into an error; no code generation change for code that compiles.
++ -Wno-unused           added, commit e35b498 (D-08): silences unused-variable/function warnings, as the GNU set does.
++ -ffp-contract=off     added, commit 606bea0 (D-03): freezes floating-point contraction; see fp-contract.md. This is the one added token that changes generated code, on purpose and before any baseline exists.
+
+## Tokens checked that did not change
+
+-std=gnu++17 is present on both sides (no CMP0128 effect), no extra -isystem Boost path appeared (the Boost bridge was not needed, fix-log.md '## Checked, not changed'), -O3, -DNDEBUG, -DQT_NO_DEBUG, -arch arm64 and every other -D, -I, -isystem and -f token are identical. There is no unexpected changed token (A12), so nothing was stopped for a question.
+
+## Other trees
+
+macos-debug and macos-asan were checked with the jq commands recorded in fp-contract.md '## Verification'; macos-asan additionally carries -fsanitize=address,undefined and -fsanitize-recover=address on all 408 compile commands (asan missing=0) and -fsanitize=address,undefined in 6 LINK_FLAGS lines of build/macos-asan/build.ninja; macos-release and macos-debug carry no -fsanitize token (sanitized=0).
