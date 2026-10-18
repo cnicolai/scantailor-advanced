@@ -76,6 +76,10 @@ The app builds from source and works reliably for daily scanning work on a curre
 | Run from build dir, no `.app` bundling | User's choice; bundling can come later | — Pending |
 | Synthetic test images | Keeps personal material out of the repo; deterministic fixtures | — Pending |
 | No upstream compatibility | Changes are for personal use only | — Pending |
+| Baselines before strip: first macOS build with compile fixes only, golden images from that unmodified code, then remove Qt 5/Windows/Linux | Proves the strip and later refactors changed no output | — Pending |
+| Remove OpenGL viewer | Off by default, deprecated by Apple, no Metal path | — Pending |
+| English-only UI, translations removed | User doesn't need them; less to maintain | — Pending |
+| Horizontal-layer phases | Port/hardening where each step protects the next | — Pending |
 
 ## Evolution
 
