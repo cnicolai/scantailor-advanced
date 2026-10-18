@@ -1,0 +1,160 @@
+# Configure records
+
+## Unmodified tree
+
+Tree: commit 5eaac18 content for CMakeLists.txt and src/ (git diff --quiet 5eaac18 -- CMakeLists.txt src exited 0).
+
+$ cmake -S . -B build/unmodified -G Ninja -DCMAKE_PREFIX_PATH=/opt/homebrew -DCMAKE_BUILD_TYPE=Release -DPORTABLE_VERSION=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+CMake Warning (deprecated) at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+This warning is for project developers.  Use -Wno-author or -Wno-deprecated
+to suppress it.
+
+-- The C compiler identification is AppleClang 21.0.0.21000334
+-- The CXX compiler identification is AppleClang 21.0.0.21000334
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found JPEG: /opt/homebrew/lib/libjpeg.dylib (found version "80")
+-- Found ZLIB: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libz.tbd (found version "1.2.12")
+-- Found PNG: /opt/homebrew/lib/libpng.dylib (found version "1.6.59")
+-- Found TIFF: /opt/homebrew/lib/libtiff.dylib (found version "4.7.2")
+CMake Warning (policy) at CMakeLists.txt:202 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+This warning is for project developers.  Use -Wno-author or -Wno-policy to
+suppress it.
+
+-- Found Boost: /opt/homebrew/lib/cmake/Boost-1.92.0/BoostConfig.cmake (found suitable version "1.92.0", minimum required is "1.60") found components: unit_test_framework
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Configuring done (1.6s)
+-- Generating done (0.3s)
+-- Build files have been written to: {repo}/build/unmodified
+exit status: 0
+
+## Unmodified flag set
+
+Method: sorted, de-duplicated option tokens of the command fields in build/unmodified/compile_commands.json (408 entries); operands of -I -isystem -iframework -F -isysroot -arch -include -idirafter kept, -o -c -MT -MF -MD dropped; build directory shown as {build}.
+
+-DBOOST_MULTI_INDEX_DISABLE_SERIALIZATION
+-DBOOST_TEST_DYN_LINK
+-DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK
+-DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB
+-DNDEBUG
+-DQT_CORE_LIB
+-DQT_GUI_LIB
+-DQT_NETWORK_LIB
+-DQT_NO_DEBUG
+-DQT_OPENGLWIDGETS_LIB
+-DQT_OPENGL_LIB
+-DQT_SVG_LIB
+-DQT_TESTCASE_BUILDDIR="{build}/src/qt_tests"
+-DQT_TESTCASE_SOURCEDIR="{repo}/src/qt_tests"
+-DQT_TESTLIB_LIB
+-DQT_WIDGETS_LIB
+-DQT_XML_LIB
+-I /opt/homebrew/include
+-I {build}
+-I {build}/src/app/scantailor-advanced_autogen/include
+-I {build}/src/core/core_autogen/include
+-I {build}/src/core/filters/deskew/deskew_autogen/include
+-I {build}/src/core/filters/fix_orientation/fix_orientation_autogen/include
+-I {build}/src/core/filters/output/output_autogen/include
+-I {build}/src/core/filters/page_layout/page_layout_autogen/include
+-I {build}/src/core/filters/page_split/page_split_autogen/include
+-I {build}/src/core/filters/select_content/select_content_autogen/include
+-I {build}/src/core/interaction/interaction_autogen/include
+-I {build}/src/core/tests/core_tests_autogen/include
+-I {build}/src/core/zones/zones_autogen/include
+-I {build}/src/dewarping/dewarping_autogen/include
+-I {build}/src/foundation/foundation_autogen/include
+-I {build}/src/foundation/tests/foundation_tests_autogen/include
+-I {build}/src/imageproc/imageproc_autogen/include
+-I {build}/src/imageproc/tests/imageproc_tests_autogen/include
+-I {build}/src/math/math_autogen/include
+-I {build}/src/math/tests/math_tests_autogen/include
+-I {build}/src/qt_tests/qt_tests_autogen/include
+-I {repo}/src
+-I {repo}/src/app
+-I {repo}/src/core
+-I {repo}/src/core/interaction
+-I {repo}/src/core/zones
+-I {repo}/src/dewarping
+-I {repo}/src/foundation
+-I {repo}/src/imageproc
+-I {repo}/src/math
+-I {repo}/src/qt_tests
+-O3
+-arch arm64
+-fPIC
+-fPIE
+-idirafter /opt/homebrew/include
+-iframework /opt/homebrew/lib
+-isystem /opt/homebrew/include
+-isystem /opt/homebrew/include/QtCore
+-isystem /opt/homebrew/include/QtGui
+-isystem /opt/homebrew/include/QtNetwork
+-isystem /opt/homebrew/include/QtOpenGL
+-isystem /opt/homebrew/include/QtOpenGLWidgets
+-isystem /opt/homebrew/include/QtSvg
+-isystem /opt/homebrew/include/QtTest
+-isystem /opt/homebrew/include/QtWidgets
+-isystem /opt/homebrew/include/QtXml
+-isystem /opt/homebrew/share/qt/mkspecs/macx-clang
+-std=gnu++17
+
+## Preset macos-release
+
+$ cmake --preset macos-release
+-- The C compiler identification is AppleClang 21.0.0.21000334
+-- The CXX compiler identification is AppleClang 21.0.0.21000334
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found JPEG: /opt/homebrew/lib/libjpeg.dylib (found version "80")
+-- Found ZLIB: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libz.tbd (found version "1.2.12")
+-- Found PNG: /opt/homebrew/lib/libpng.dylib (found version "1.6.59")
+-- Found TIFF: /opt/homebrew/lib/libtiff.dylib (found version "4.7.2")
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Configuring done (1.4s)
+-- Generating done (0.3s)
+-- Build files have been written to: {repo}/build/macos-release
+exit status: 0

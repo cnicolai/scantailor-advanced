@@ -1,0 +1,551 @@
+# Toolchain versions
+
+## Before install
+
+$ sw_vers
+ProductName:		macOS
+ProductVersion:		26.7
+BuildVersion:		25G229
+
+$ uname -m
+arm64
+
+$ sysctl -n hw.ncpu hw.memsize
+10
+68719476736
+
+$ xcodebuild -version
+Xcode 27.1
+Build version 27A9275
+
+$ xcrun --show-sdk-version
+27.0
+
+$ xcode-select -p
+/Applications/Xcode.app/Contents/Developer
+
+$ pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+package-id: com.apple.pkg.CLTools_Executables
+version: 27.0.0.0.1788430756
+volume: /
+location: /
+install-time: 1789023665
+
+$ clang --version
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin25.6.0
+Thread model: posix
+InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+
+$ jq --version
+jq-1.7.1-apple
+
+$ brew --version
+Homebrew 7.0.9-159-g3073d6a
+
+NOTE: `brew list --formula --versions` is recorded instead of `brew list --versions`; the plain form also lists installed casks (personal applications), which the plan's checks do not use.
+
+$ brew list --formula --versions
+abseil 20260817.0
+ada-url 4.0.0_1
+aom 3.15.2
+aria2 1.37.0_3
+at-spi2-core 2.62.1
+bdw-gc 8.2.12
+brotli 1.2.0
+c-ares 1.34.8
+ca-certificates 2026-09-25
+cairo 1.18.6
+certifi 2026.7.22_1
+cffi 2.1.1_1
+colima 0.10.3
+dav1d 1.5.4
+dbus 1.16.2_1
+deno 2.9.7
+discount 3.0.2.0
+docker 29.9.1
+docker-compose 5.6.0
+exiftool 13.55_1
+faac 2.2
+faad2 2.11.4
+ffmpeg 9.0.2_1
+flac 1.5.0
+fmt 12.2.0
+fontconfig 2.18.3
+freetype 2.15.0
+fribidi 1.0.17
+fzf 0.74.5
+gdk-pixbuf 2.44.8
+gettext 1.0
+gh 2.102.0
+ghostscript 10.08.0
+giflib 6.1.3
+glib 2.90.1
+glib-networking 2.80.1
+gmp 6.3.0
+gnupg 2.5.24_1
+gnutls 3.8.13_2
+gobject-introspection 1.86.0_5
+gpgme 2.2.0
+gpgmepp 2.2.0
+graphene 1.10.8
+graphite2 1.3.15
+gsettings-desktop-schemas 51.0
+gstreamer 1.28.8_1
+gtk+3 3.24.52_1
+gtk4 4.24.1
+guile 3.0.11
+handbrake 1.11.2_1
+harfbuzz 14.6.0
+haskell-stack 3.11.1
+hdrhistogram_c 0.12.1
+hicolor-icon-theme 0.18
+highway 1.4.0
+hledger 1.52.4
+icu4c@78 78.3
+imagemagick 7.1.2-34
+imageoptim-cli 4.0.0
+imath 3.2.3
+jansson 2.15.1
+jbig2dec 0.20
+jing-trang 20241231
+jpeg-turbo 3.2.0
+json-c 0.19
+json-glib 1.10.8
+lame 4.0
+lcdf-typetools 2.110
+leptonica 1.87.0
+libarchive 3.8.10
+libass 0.17.5_1
+libassuan 3.0.2
+libb2 0.98.1
+libbluray 1.5.0
+libcuefile r475
+libdatrie 0.2.14
+libde265 1.1.3
+libdeflate 1.26
+libdvdcss 1.6.0
+libdvdnav 7.0.0
+libdvdread 7.1.1
+libepoxy 1.5.10
+libevent 2.1.13_1
+libffi 3.8.0
+libgcrypt 1.12.4
+libgee 0.20.8
+libgpg-error 1.61
+libheif 1.23.6
+libidn 1.44
+libidn2 2.3.8
+libksba 1.8.1
+liblqr 0.4.3
+libnghttp2 1.70.0
+libnice 0.1.24
+libogg 1.3.6
+libomp 23.1.3
+libpng 1.6.59
+libpsl 0.23.3
+libreplaygain r475
+librsvg 2.63.3
+libshout 2.4.6_4
+libsndfile 1.2.2_1
+libsodium 1.0.22
+libsoup 3.8.0
+libssh2 1.11.1_7
+libtasn1 4.21.0
+libthai 0.1.30
+libtiff 4.7.2
+libtommath 1.3.0
+libtool 2.6.2
+libudfread 1.2.0
+libunibreak 8.0
+libunistring 1.5
+libusb 1.0.30
+libusrsctp 0.9.5.0_1
+libuv 1.53.0
+libvmaf 3.2.1
+libvorbis 1.3.7
+libvpx 1.17.0
+libx11 1.8.14
+libxau 1.0.12
+libxcb 1.17.0
+libxdmcp 1.1.5
+libxext 1.3.7
+libxfixes 6.0.2
+libxi 1.8.4
+libxrender 0.9.13
+libxtst 1.2.6
+libyaml 0.2.5
+lilypond 2.26.0_1
+lima 2.2.1
+little-cms2 2.19.1
+llhttp 9.4.3
+llm 0.36
+lz4 1.10.0
+lzo 2.10
+m4 1.4.21
+merve 1.2.2_4
+mlx 0.32.4
+mlx-c 0.7.0_1
+mpdecimal 4.0.1
+mpg123 1.33.7
+musepack r475
+nbytes 0.1.4
+nettle 4.0
+node 26.12.0
+npth 1.8
+nspr 4.40
+nss 3.131
+ollama 0.40.6
+omnifocus-mcp 1.1.9
+opencode 1.19.3
+opencore-amr 0.1.6
+openexr 3.5.2
+openjdk 27
+openjpeg 2.5.4_1
+openjph 0.32.0
+openssl@3 3.5.9
+openssl@4 4.0.3
+opus 1.6.1
+orc 0.4.44
+p11-kit 0.26.5
+pandoc 3.12.1
+pango 1.58.2
+pcre 8.45
+pcre2 10.49
+pdfgrep 2.2.0_3
+pdfpc 4.7.0
+pinentry 1.3.3
+pipx 1.18.2
+pixman 0.46.4
+pkgconf 3.0.9
+poppler 26.10.0
+py3cairo 1.29.2_1
+pycparser 3.11
+pydantic 2.14.1
+pygments 2.21.0
+pygobject3 3.58.1_1
+python-tk@3.12 3.12.15_1
+python@3.11 3.11.17
+python@3.12 3.12.15
+python@3.13 3.13.16
+python@3.14 3.14.8_2
+python@3.15 3.15.0
+readline 8.3.6
+ripgrep 15.2.0
+rtmpdump 2.6_2
+ruby 4.0.7_1
+sdl2-compat 2.32.74
+sdl3 3.4.18
+simdjson 5.0.5
+simdutf 9.3.2
+speex 1.2.1
+sqlite 3.54.1
+srt 1.5.7_1
+srtp 2.8.1_1
+svt-av1 4.2.0
+swiftlint 0.65.1
+taglib 2.3.2
+tcl-tk 9.1.0
+tesseract 5.5.3
+the_silver_searcher 2.2.0
+theora 1.2.0
+tlrc 1.13.1
+unbound 1.26.1_1
+utf8cpp 4.2.1
+uv 0.13.1
+uvwasi 0.0.23
+virtualenv 21.14.8
+virtualenvwrapper 6.1.1_3
+webp 1.6.0
+wget 1.25.0_2
+x264 r3222
+x265 4.3
+xcodegen 2.46.0
+xorgproto 2026.1
+xz 5.8.4
+yap 1.2.1
+yt-dlp 2026.8.19_2
+zbar 0.23.95
+zimg 3.0.6
+zstd 1.5.7_1
+
+## Formula check
+
+cmake: tap=homebrew/core deprecated=false disabled=false version=4.4.4 installed=0
+ninja: tap=homebrew/core deprecated=false disabled=false version=1.13.2 installed=0
+boost: tap=homebrew/core deprecated=false disabled=false version=1.92.0 installed=0
+qtbase: tap=homebrew/core deprecated=false disabled=false version=6.12.0 installed=0
+qtsvg: tap=homebrew/core deprecated=false disabled=false version=6.12.0 installed=0
+qttools: tap=homebrew/core deprecated=false disabled=false version=6.12.0 installed=0
+
+## After install
+
+$ brew list --formula --versions
+abseil 20260817.0
+ada-url 4.0.0_1
+aom 3.15.2
+aria2 1.37.0_3
+at-spi2-core 2.62.1
+bdw-gc 8.2.12
+boost 1.92.0
+brotli 1.2.0
+c-ares 1.34.8
+ca-certificates 2026-09-25
+cairo 1.18.6
+certifi 2026.7.22_1
+cffi 2.1.1_1
+cmake 4.4.4
+colima 0.10.3
+dav1d 1.5.4
+dbus 1.16.2_1
+deno 2.9.7
+discount 3.0.2.0
+docker 29.9.1
+docker-compose 5.6.0
+double-conversion 3.4.0
+exiftool 13.55_1
+faac 2.2
+faad2 2.11.4
+ffmpeg 9.0.2_1
+flac 1.5.0
+fmt 12.2.0
+fontconfig 2.18.3
+freetype 2.15.0
+fribidi 1.0.17
+fzf 0.74.5
+gdk-pixbuf 2.44.8
+gettext 1.0
+gh 2.102.0
+ghostscript 10.08.0
+giflib 6.1.3
+glib 2.90.1
+glib-networking 2.80.1
+gmp 6.3.0
+gnupg 2.5.24_1
+gnutls 3.8.13_2
+gobject-introspection 1.86.0_5
+gpgme 2.2.0
+gpgmepp 2.2.0
+graphene 1.10.8
+graphite2 1.3.15
+gsettings-desktop-schemas 51.0
+gstreamer 1.28.8_1
+gtk+3 3.24.52_1
+gtk4 4.24.1
+guile 3.0.11
+gumbo-parser 0.14.1
+handbrake 1.11.2_1
+harfbuzz 14.6.0
+haskell-stack 3.11.1
+hdrhistogram_c 0.12.1
+hicolor-icon-theme 0.18
+highway 1.4.0
+hledger 1.52.4
+icu4c@78 78.3
+imagemagick 7.1.2-34
+imageoptim-cli 4.0.0
+imath 3.2.3
+jansson 2.15.1
+jbig2dec 0.20
+jing-trang 20241231
+jpeg-turbo 3.2.0
+json-c 0.19
+json-glib 1.10.8
+lame 4.0
+lcdf-typetools 2.110
+leptonica 1.87.0
+libarchive 3.8.10
+libass 0.17.5_1
+libassuan 3.0.2
+libb2 0.98.1
+libbluray 1.5.0
+libcuefile r475
+libdatrie 0.2.14
+libde265 1.1.3
+libdeflate 1.26
+libdvdcss 1.6.0
+libdvdnav 7.0.0
+libdvdread 7.1.1
+libepoxy 1.5.10
+libevent 2.1.13_1
+libffi 3.8.0
+libgcrypt 1.12.4
+libgee 0.20.8
+libgpg-error 1.61
+libheif 1.23.6
+libidn 1.44
+libidn2 2.3.8
+libksba 1.8.1
+liblqr 0.4.3
+libnghttp2 1.70.0
+libnice 0.1.24
+libogg 1.3.6
+libomp 23.1.3
+libpng 1.6.59
+libpsl 0.23.3
+libreplaygain r475
+librsvg 2.63.3
+libshout 2.4.6_4
+libsndfile 1.2.2_1
+libsodium 1.0.22
+libsoup 3.8.0
+libssh2 1.11.1_7
+libtasn1 4.21.0
+libthai 0.1.30
+libtiff 4.7.2
+libtommath 1.3.0
+libtool 2.6.2
+libudfread 1.2.0
+libunibreak 8.0
+libunistring 1.5
+libusb 1.0.30
+libusrsctp 0.9.5.0_1
+libuv 1.53.0
+libvmaf 3.2.1
+libvorbis 1.3.7
+libvpx 1.17.0
+libx11 1.8.14
+libxau 1.0.12
+libxcb 1.17.0
+libxdmcp 1.1.5
+libxext 1.3.7
+libxfixes 6.0.2
+libxi 1.8.4
+libxrender 0.9.13
+libxtst 1.2.6
+libyaml 0.2.5
+lilypond 2.26.0_1
+lima 2.2.1
+litehtml 0.10_1
+little-cms2 2.19.1
+llhttp 9.4.3
+llm 0.36
+lz4 1.10.0
+lzo 2.10
+m4 1.4.21
+md4c 0.6.0
+merve 1.2.2_4
+mlx 0.32.4
+mlx-c 0.7.0_1
+mpdecimal 4.0.1
+mpg123 1.33.7
+musepack r475
+nbytes 0.1.4
+nettle 4.0
+ninja 1.13.2
+node 26.12.0
+npth 1.8
+nspr 4.40
+nss 3.131
+ollama 0.40.6
+omnifocus-mcp 1.1.9
+opencode 1.19.3
+opencore-amr 0.1.6
+openexr 3.5.2
+openjdk 27
+openjpeg 2.5.4_1
+openjph 0.32.0
+openssl@3 3.5.9
+openssl@4 4.0.3
+opus 1.6.1
+orc 0.4.44
+p11-kit 0.26.5
+pandoc 3.12.1
+pango 1.58.2
+pcre 8.45
+pcre2 10.49
+pdfgrep 2.2.0_3
+pdfpc 4.7.0
+pinentry 1.3.3
+pipx 1.18.2
+pixman 0.46.4
+pkgconf 3.0.9
+poppler 26.10.0
+py3cairo 1.29.2_1
+pycparser 3.11
+pydantic 2.14.1
+pygments 2.21.0
+pygobject3 3.58.1_1
+python-tk@3.12 3.12.15_1
+python@3.11 3.11.17
+python@3.12 3.12.15
+python@3.13 3.13.16
+python@3.14 3.14.8_2
+python@3.15 3.15.0
+qtbase 6.12.0
+qtdeclarative 6.12.0
+qtsvg 6.12.0
+qttools 6.12.0
+readline 8.3.6
+ripgrep 15.2.0
+rtmpdump 2.6_2
+ruby 4.0.7_1
+sdl2-compat 2.32.74
+sdl3 3.4.18
+simdjson 5.0.5
+simdutf 9.3.2
+speex 1.2.1
+sqlite 3.54.1
+srt 1.5.7_1
+srtp 2.8.1_1
+svt-av1 4.2.0
+swiftlint 0.65.1
+taglib 2.3.2
+tcl-tk 9.1.0
+tesseract 5.5.3
+the_silver_searcher 2.2.0
+theora 1.2.0
+tlrc 1.13.1
+unbound 1.26.1_1
+utf8cpp 4.2.1
+uv 0.13.1
+uvwasi 0.0.23
+virtualenv 21.14.8
+virtualenvwrapper 6.1.1_3
+webp 1.6.0
+wget 1.25.0_2
+x264 r3222
+x265 4.3
+xcodegen 2.46.0
+xorgproto 2026.1
+xz 5.8.4
+yap 1.2.1
+yt-dlp 2026.8.19_2
+zbar 0.23.95
+zimg 3.0.6
+zstd 1.5.7_1
+
+$ cmake --version
+cmake version 4.4.4
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+
+$ ninja --version
+1.13.2
+
+$ qtpaths6 --qt-query
+QT_SYSROOT:
+QT_INSTALL_PREFIX:/opt/homebrew
+QT_INSTALL_ARCHDATA:/opt/homebrew/share/qt
+QT_INSTALL_DATA:/opt/homebrew/share/qt
+QT_INSTALL_DOCS:/opt/homebrew/share/qt/doc
+QT_INSTALL_HEADERS:/opt/homebrew/include
+QT_INSTALL_LIBS:/opt/homebrew/lib
+QT_INSTALL_LIBEXECS:/opt/homebrew/share/qt/libexec
+QT_INSTALL_BINS:/opt/homebrew/bin
+QT_INSTALL_TESTS:/opt/homebrew/share/qt/tests
+QT_INSTALL_PLUGINS:/opt/homebrew/share/qt/plugins
+QT_INSTALL_QML:/opt/homebrew/share/qt/qml
+QT_INSTALL_TRANSLATIONS:/opt/homebrew/share/qt/translations
+QT_INSTALL_CONFIGURATION:
+QT_INSTALL_EXAMPLES:/opt/homebrew/share/qt/examples
+QT_INSTALL_DEMOS:/opt/homebrew/share/qt/examples
+QT_HOST_PREFIX:/opt/homebrew
+QT_HOST_DATA:/opt/homebrew/share/qt
+QT_HOST_BINS:/opt/homebrew/bin
+QT_HOST_LIBEXECS:/opt/homebrew/share/qt/libexec
+QT_HOST_LIBS:/opt/homebrew/lib
+QMAKE_SPEC:macx-clang
+QMAKE_XSPEC:macx-clang
+QMAKE_VERSION:3.1
+QT_VERSION:6.12.0
