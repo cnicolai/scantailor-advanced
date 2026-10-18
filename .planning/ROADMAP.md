@@ -33,11 +33,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The `-ffp-contract` setting is fixed in the build configuration and recorded. A CMake sanitizer option produces an ASan/UBSan build that runs the existing tests, and its findings are recorded, not fixed
   5. `git diff 5eaac18` (the 1.2.1 release) outside `.planning/` shows only build and launch fixes and added build settings: no deleted code paths and no change to processing behaviour
 
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 01-01-PLAN.md — Tracer: Homebrew toolchain to a passing foundation_tests via CMakePresets.json; Clang warnings, frozen -ffp-contract=off, SANITIZE option, debug/asan presets
+- [x] 01-01-PLAN.md — Tracer: Homebrew toolchain to a passing foundation_tests via CMakePresets.json; Clang warnings, frozen -ffp-contract=off, SANITIZE option, debug/asan presets
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — First full release/debug build, error classes recorded, formatting decision, one-commit-per-class compile fixes
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deletion-Free macOS Build | 0/7 | Planned | - |
+| 1. Deletion-Free macOS Build | 1/7 | In Progress | - |
 | 2. Golden Baselines | 0/TBD | Not started | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |

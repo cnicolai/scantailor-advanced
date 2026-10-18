@@ -9,13 +9,13 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 
 ### Build & Run
 
-- [ ] **BUILD-01**: One CMake preset configures and builds an arm64 binary against Homebrew Qt 6, Boost, jpeg-turbo, libpng and libtiff
+- [x] **BUILD-01**: One CMake preset configures and builds an arm64 binary against Homebrew Qt 6, Boost, jpeg-turbo, libpng and libtiff
 - [ ] **BUILD-02**: The built binary links exactly one copy each of libjpeg, libpng and libtiff (verified with `otool -L`)
 - [ ] **BUILD-03**: The app launches from the build directory, opens a project, processes it through all six stages and writes output
 - [ ] **BUILD-04**: The existing test suite runs under `ctest` on the Mac, and its initial pass/fail state is recorded before any change
-- [ ] **BUILD-05**: Apple Clang builds with warnings enabled (equivalents of `-Wall -Wextra`)
-- [ ] **BUILD-06**: A CMake option builds with AddressSanitizer and UndefinedBehaviorSanitizer
-- [ ] **BUILD-07**: Floating-point compiler settings (`-ffp-contract`) are fixed and recorded before any baseline images are captured
+- [x] **BUILD-05**: Apple Clang builds with warnings enabled (equivalents of `-Wall -Wextra`)
+- [x] **BUILD-06**: A CMake option builds with AddressSanitizer and UndefinedBehaviorSanitizer
+- [x] **BUILD-07**: Floating-point compiler settings (`-ffp-contract`) are fixed and recorded before any baseline images are captured
 
 ### Tests
 
@@ -124,13 +124,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUILD-01 | Phase 1 | Pending |
+| BUILD-01 | Phase 1 | Complete |
 | BUILD-02 | Phase 1 | Pending |
 | BUILD-03 | Phase 1 | Pending |
 | BUILD-04 | Phase 1 | Pending |
-| BUILD-05 | Phase 1 | Pending |
-| BUILD-06 | Phase 1 | Pending |
-| BUILD-07 | Phase 1 | Pending |
+| BUILD-05 | Phase 1 | Complete |
+| BUILD-06 | Phase 1 | Complete |
+| BUILD-07 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 2 | Pending |
