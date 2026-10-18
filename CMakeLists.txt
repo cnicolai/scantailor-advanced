@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
 set(target_name scantailor-advanced)
 
@@ -12,6 +12,10 @@ endif()
 # Set cmake policies.
 if (POLICY CMP0071)
   cmake_policy(SET CMP0071 NEW)
+endif()
+
+if (POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
 endif()
 
 project("ScanTailor Advanced")
