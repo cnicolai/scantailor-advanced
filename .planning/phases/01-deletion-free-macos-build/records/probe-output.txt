@@ -1,0 +1,20 @@
+# DPR and settings-path probe output (plan 01-05 Task 1, D-06)
+# Probe: {scratch}/dpr-probe (plain executable, no bundle, Qt6::Widgets, Homebrew Qt). Not committed.
+# Built: cmake -S {scratch}/dpr-probe -B {scratch}/dpr-probe/build -G Ninja -DCMAKE_PREFIX_PATH=/opt/homebrew
+# Run from the executor's shell; Cocoa platform started; window shown for 500 ms. Home directory normalised to ~.
+# AppDataLocation shown is the directory only; the app adds /profiles (src/core/DefaultParamsProfileManager.cpp:24).
+
+platform: cocoa
+screen[0] name: Studio Display
+screen[0] devicePixelRatio: 2
+screen[0] logicalDotsPerInch: 72
+screen[0] physicalDotsPerInch: 109.75
+screen[0] geometry: 0,0 2560x1440
+window devicePixelRatio: 2
+QLibraryInfo::build(): Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2))
+QDir::homePath(): ~
+XDG_CONFIG_HOME: unset
+derived INI path: ~/.config/scantailor-advanced/scantailor-advanced.ini
+AppDataLocation: ~/Library/Application Support/scantailor-advanced/scantailor-advanced
+
+probe constructs QSettings: no
