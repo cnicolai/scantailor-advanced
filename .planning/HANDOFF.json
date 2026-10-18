@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-10-18T22:10:13.723Z",
+  "phase": "01",
+  "phase_name": "Deletion-Free macOS Build",
+  "phase_dir": ".planning/phases/01-deletion-free-macos-build",
+  "plan": 5,
+  "task": 2,
+  "total_tasks": 3,
+  "status": "paused",
+  "branch": "gsd/phase-01-deletion-free-macos-build",
+  "completed_plans": ["01-01", "01-02"],
+  "completed_tasks": [
+    {"id": 1, "name": "01-05 Task 1: scratchpad probe for pixel ratio and settings paths, three throwaway pages", "status": "done", "commit": "6392688"},
+    {"id": 2, "name": "01-05 Task 2: D-02 permission to list leftover ScanTailor settings (checkpoint:decision, blocking-human)", "status": "in_progress", "progress": "Question presented to the user once; the user did not answer and asked to pause. Nothing in ~/.config, ~/Library or the AppData path has been listed, opened or touched."}
+  ],
+  "remaining_tasks": [
+    {"id": 2, "name": "01-05 Task 2: re-ask the D-02 question (list-corrected | list-original | no-listing)", "status": "not_started"},
+    {"id": 3, "name": "01-05 Task 3: write records/prior-state.md (Decision line, listing or user report; keep/move-aside sub-question if entries exist), commit, SUMMARY", "status": "not_started"},
+    {"id": 4, "name": "Plans 01-03 and 01-04 (wave 3), 01-06 (wave 4, user smoke walkthrough), 01-07 (wave 5, closing check), then phase verification", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "01-05 Task 2 D-02 settings-listing question unanswered", "type": "human_action", "workaround": "none — blocking-human gate, must be answered by the user"}
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {"action": "Answer the D-02 question: list-corrected (recommended) | list-original | no-listing", "context": "Leftover ScanTailor INI/profiles could change what defaults mean in the 01-06 smoke run. Paths: ~/.config/scantailor-advanced/scantailor-advanced.ini; ~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles; ~/Library/Preferences entries containing 'scantailor'", "blocking": true}
+  ],
+  "decisions": [
+    {"decision": "Build-tool reads under /opt/homebrew and the Xcode/CLT SDK approved for plans 01-01..01-07 (records/access-approval.md); Claude's own direct reads outside the project are NOT covered", "rationale": "User's global ask-first rule", "phase": "01"},
+    {"decision": "Phase 1 commits on branch gsd/phase-01-deletion-free-macos-build (created from cf03dc8); user merges into master later", "rationale": "master is protected; user chose a phase branch over allow_default_branch_commits", "phase": "01"},
+    {"decision": "Executors run sequentially on the main working tree (ISOLATION=none)", "rationale": "worktree.base-check: HEAD diverged from origin/HEAD (5eaac18)", "phase": "01"},
+    {"decision": "D-01/D-02 storage premise amended: settings are an INI under ~/.config (main.cpp:47 IniFormat)", "rationale": "Research finding, amendment approved by the user", "phase": "01"},
+    {"decision": "Plan-checker iteration limit reached; user chose one narrow final revision (BUILD-04 tested-commit header, jq version record)", "rationale": "jq and tracer findings were false positives", "phase": "01"}
+  ],
+  "uncommitted_files": [
+    " M .planning/config.json",
+    "?? .planning/milestone.lock",
+    "?? .planning/state.json"
+  ],
+  "next_action": "Run /gsd-execute-phase 1 --auto --no-transition. It skips 01-01/01-02 (summarized) and re-dispatches 01-05; the executor sees Task 1 committed (6392688) and returns the Task 2 D-02 checkpoint, which the orchestrator presents to the user.",
+  "context_notes": "Session scratchpad (probe, smoke pages, root-pin guard) is session-specific and may be gone in a new session: the root-pin guard must be rebuilt with the new scratchpad path; smoke pages are regenerated from the gen-pages.sh content in records/smoke-pages.md and verified against its SHA-256 table. Before EVERY gsd-executor dispatch, re-run `gsd_run query dispatch-isolation --raw --phase 01 --force-isolation none` — the isolation sentinel gets reset between dispatches and the guard hook then blocks sequential dispatch. config.json's only change is workflow._auto_chain_active=true from the --auto chain."
+}
