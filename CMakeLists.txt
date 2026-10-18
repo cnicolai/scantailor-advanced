@@ -61,6 +61,12 @@ if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
   set(DEFAULT_COMPILER_FLAGS_IS_SET YES CACHE INTERNAL "" FORCE)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # Clang counterpart of the GNU warning set above (-Wpedantic left out, D-08).
+  # Outside the cache guard so that every configure applies it.
+  add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Werror=return-type;-Wno-unused>")
+endif()
+
 if (UNIX)
   option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
   option(CMAKE_INSTALL_RPATH_USE_LINK_PATH "" ON)
