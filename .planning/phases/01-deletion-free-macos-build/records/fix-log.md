@@ -33,6 +33,10 @@ No compile or link errors.
 
 src/ edits needed: no
 
+Formatting decision: not needed (no src/ edits).
+
+Fix loop: no fixes needed.
+
 ### Warnings recorded, not fixed (D-08)
 
 The release tree already held the objects of `foundation` and `foundation_tests` from plan 01-01, so its 434 steps are the remaining ones; the debug tree was built from nothing (456 steps). Counts are warning lines in the build output (a header warning repeats once per translation unit that includes it); release and debug differ by one line.
