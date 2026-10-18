@@ -25,12 +25,35 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "macos-debug",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "macos-asan",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "SANITIZE": "address,undefined"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "macos-release",
       "configurePreset": "macos-release"
+    },
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "macos-asan",
+      "configurePreset": "macos-asan"
     }
   ],
   "testPresets": [
@@ -48,6 +71,20 @@
       "name": "macos-release",
       "inherits": "macos-test-base",
       "configurePreset": "macos-release"
+    },
+    {
+      "name": "macos-debug",
+      "inherits": "macos-test-base",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "macos-asan",
+      "inherits": "macos-test-base",
+      "configurePreset": "macos-asan",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0:halt_on_error=0",
+        "UBSAN_OPTIONS": "print_stacktrace=1"
+      }
     }
   ]
 }
