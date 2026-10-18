@@ -65,6 +65,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # Clang counterpart of the GNU warning set above (-Wpedantic left out, D-08).
   # Outside the cache guard so that every configure applies it.
   add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Werror=return-type;-Wno-unused>")
+  # FP contraction frozen so results do not depend on build type or code layout; fixed before Phase 2 baselines (D-03).
+  add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-ffp-contract=off>")
 endif()
 
 if (UNIX)
