@@ -32,14 +32,37 @@ Fixture: 300 dpi, `BLACK_AND_WHITE`, despeckle 1.0, layout AUTO (no layout updat
 
 This differs from research P3, which saw the first text column cropped and the picture dropped. With these generator and seed values the cut keeps part of the picture and drops the text. In both observations page_split AUTO does not leave the mixed page uncut. The case asserts `layoutType == 0`, an ink box of at least 0.9 of text-and-picture box in both directions and ink in the mapped picture rectangle, as an `XFAIL_CHECK` (D-18), so the mark fails as soon as the behaviour is fixed. The coverage scenarios force `SINGLE_PAGE_UNCUT` (research P3), so no golden depends on this behaviour.
 
+## Colour measurements
+
+Fixture as above, `COLOR_GRAYSCALE`, despeckle 1.0, layout `SINGLE_PAGE_UNCUT`. Picture chroma is the mean of (max - min of R, G, B) over the picture rectangle shrunk by 4 px (input picture in the generated image, output picture at the mapped rectangle). Ink/paper contrast is the mean grey (qGray) under the truth paper of the text block minus the mean grey under the truth ink, with the truth ink from `renderInkMask` (at the input dpi for the input image, at 600 dpi and the registered offset for the output).
+
+| Scenario | Registration offset (px) | Output (px) | Input picture chroma | Output picture chroma | Chroma ratio | Input contrast | Output contrast |
+|----------|--------------------------|-------------|----------------------|-----------------------|--------------|----------------|-----------------|
+| mixed_300_color | (41, -178) | 2080 x 1856 | 57.3359 | 57.2931 | 0.99925 | 200.98 | 187.09 |
+| mixed_600_color | (41, -178) | 2080 x 1856 | 57.4138 | 57.4051 | 0.99985 | 201.00 | 195.40 |
+
+## Picture-zone measurements
+
+Fixture as above, `MIXED` output, 300 dpi, despeckle 1.0, layout `SINGLE_PAGE_UNCUT`. No zones are drawn by the test: the picture zone is the one the output stage detects. Non-bi-level means not (all channels at most 5) and not (all channels at least 250), counted inside the mapped picture rectangle shrunk by 4 px; pure black or white means all channels 0 or all 255, counted outside the mapped picture rectangle grown by 8 px.
+
+| Scenario | Picture non-bi-level share | Pure black or white share outside | Output picture chroma (input 57.3359) | Output contrast (text, input 200.98) |
+|----------|----------------------------|-----------------------------------|----------------------------------------|---------------------------------------|
+| mixed_300_mixed | 0.999668 | 1 | 57.2813 (ratio 0.99905) | 246.26 |
+
+The MIXED output keeps the picture in colour and the page around it pure black and white; the text comes out bi-level (contrast 246). The tag for a missing picture zone in the plan (`MIXED output keeps no picture zone on the mixed page`) is not needed.
+
 ## Tolerance decisions
 
-Rule: D-15 as written in plan 02-04. Share steps are 0.05 percentage points (0.0005). Worst case is the shortfall from the ideal value (removed share ideal 1, glyph component change ideal 0).
+Rule: D-15 as written in plan 02-04. Share steps are 0.05 percentage points (0.0005), the chroma ratio step is 0.005 (as the IoU step), the contrast step is 1 grey level. Worst case is the shortfall from the ideal value: removed share, chroma ratio and bi-level shares have the ideal 1, the glyph component change 0, the ink/paper contrast the input page's own contrast. The plan names no ideal for the 100 levels; the input contrast is the natural one and is reported as `input_ink_paper_contrast`.
 
 | Check | Starting tolerance | Worst case | Outcome | Constant in `TestMixedPage.cpp` |
 |-------|--------------------|------------|---------|---------------------------------|
 | Despeckle removed share, `_bw` 300 and 600 dpi | at least 0.90 | shortfall 0 | tightened: twice 0 is 0, one step of 0.0005 gives at least 0.9995, that is every speck present with despeckling off | `kMinSpeckRemovedShare = 0.9995` |
 | Glyph component change between the two despeckle runs | at most 1% | 0 | tightened: one step, at most 0.0005 (193 components, so no component may change) | `kMaxGlyphComponentChange = 0.0005` |
+| Picture chroma ratio, `_color` 300 and 600 dpi | at least 0.5 (shortfall from the ideal ratio 1: 0.5) | shortfall 0.00075 | tightened: twice the worst case is 0.0015, rounded up to the step 0.005 gives at least 0.995 | `kMinPictureChromaRatio = 0.995` |
+| Ink/paper contrast, `_color` 300 and 600 dpi | at least 100 grey levels (ideal: the input page's own contrast, 201; shortfall 101) | shortfall 13.9 (output 187.1 at 300 dpi, 195.4 at 600 dpi) | tightened: twice the worst case is 27.8, rounded up to the step of 1 level gives 28, so at least 201 - 28 | `kMinInkPaperContrast = 173.0` |
+| Picture non-bi-level share, `_mixed` | at least 0.95 | shortfall 0.00033 | tightened: twice the worst case is 0.00066, rounded up to the step 0.0005 gives at least 0.999 | `kMinPictureNonBilevelShare = 0.999` |
+| Pure black or white share outside the picture, `_mixed` | at least 0.999 | shortfall 0 | tightened: one step of 0.0005 gives at least 0.9995 | `kMinOutsidePictureBilevelShare = 0.9995` |
 | Specks inside the content box present with despeckling off (fixture sanity) | at least 0.90 | 1.00 | not a D-15 value (a property of the fixture, not of the code under test), kept | `kMinSpecksPresentOff = 0.90` |
 | Specks inside the content box (fixture sanity) | none in the plan | 15 and 11 | own floor of 10 | `kMinReachableSpecks = 10` |
 
