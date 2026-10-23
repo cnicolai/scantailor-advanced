@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 01
 current_phase_name: Deletion-Free macOS Build
 status: executing
-stopped_at: Completed 01-06-PLAN.md (smoke verdict FAIL, awaiting decision)
-last_updated: "2026-10-23T13:04:42.020Z"
+stopped_at: Completed 01-06-PLAN.md (BUILD-03 PASS after re-check); 01-07 next
+last_updated: "2026-10-23T13:19:08.103Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 01 execution started
-state_head: 7de8359bd20135f9e281770e96e01babbf6f0c5e
+state_head: b374ba0fa227151762db7b6db2d53867dc1afd4c
 progress:
   total_phases: 6
   completed_phases: 0
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 01 (Deletion-Free macOS Build) — EXECUTING
-Plan: 6 of 7 summarised (01-01 to 01-05 complete; 01-06 halted: BUILD-03 smoke verdict FAIL); 01-07 waits for the decision on 01-06
-Status: Blocked on the user's decision about 01-06 (see records/SMOKE-FINDINGS.md `## What is open`)
+Plan: 6 of 7 summarised (01-01 to 01-06 complete; 01-06 BUILD-03 smoke verdict PASS after the re-check of steps 4, 6, 8); 01-07 is next
+Status: Ready to execute 01-07 (BUILD-03 stays pending in REQUIREMENTS.md until 01-07, which also declares it, has its summary)
 Last activity: 2026-10-23 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -84,9 +84,11 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-03: qt_tests passes under the default Cocoa platform in Release and Debug, so no QT_QPA_PLATFORM=offscreen entry was added to the test preset
 - [Phase 01]: 01-03: imageproc_tests ScaleTestSuite/test_random_image fails in Release and Debug on the unmodified sources; recorded as the BUILD-04 baseline and deferred, not fixed (D-08)
 - [Phase 01]: 01-04: ASan+UBSan build needed no CMakeLists.txt change; 0 ASan and 3 UBSan reports (BinaryImage.cpp:1044, SlicedHistogram.cpp:49) recorded, not fixed
-- [Phase 01]: 01-06: BUILD-03 smoke verdict is FAIL: saved project has dewarping mode off only and 0 picture zones; cause open (walkthrough gap, wrong file, or save bug) — Plan sets PASS only when the project-file check meets every expectation; not softened
+- [Phase 01]: 01-06: first-run BUILD-03 smoke verdict was FAIL (dewarping off only, 0 picture zones); superseded by the PASS entry below after the re-check — kept for history
 - [Phase 01]: 01-06: project-file check ran on the user-named Desktop file after the user saved there at step 8 — User chose 'Read the Desktop file'; only the allowed fields are recorded
 - [Phase 01]: 01-06: HIDPI-01 provisionally needs no embedded Info.plist (probe ratio 2.0, user reports sharp window) — No qt.highdpi line reached the stderr file, so the app's own confirmation is missing
+- [Phase 01]: 01-06: BUILD-03 smoke verdict is PASS after the re-check of steps 4, 6, 8; first run FAIL kept in the record — Re-saved project holds dewarping auto (page 02 left) and one picture zone (page 03); the first run's settings never took effect; no app defect found in save and load
+- [Phase 01]: 01-06: macOS save dialog cannot take the scratchpad path, so the smoke project stays at the user-named Desktop file — Practical dialog constraint, not a user error; a later walkthrough should name a reachable path
 
 ### Pending Todos
 
@@ -100,10 +102,9 @@ None yet.
 - Phase 4 research flag: a Retina experiment on the Mac, covering the unbundled DPR, `widthMM()` and the smoothing heuristic under Qt 6. Verifying Retina is mostly manual (100%/200% zoom, thumbnails, zone mask, colour picker, toolbar icons, moving between displays).
 - Phase 5: check on the Mac whether Backspace works for deleting zones under Qt 6 (low confidence in research).
 - Phase 3: remove Qt 5 code with `unifdef`, not by hand. The polarity of the RANSAC/dewarp branches in `DistortionModelBuilder.cpp` and `DetectVertContentBounds.cpp` changes output if it is wrong.
-- BUILD-03: saved project lacks dewarping auto and a picture zone; repeat steps 4, 6, 8 on the scratchpad path or decide (see SMOKE-FINDINGS.md)
 
 ## Session Continuity
 
-Last session: 2026-10-23T13:04:42.001Z
-Stopped at: Completed 01-06-PLAN.md (smoke verdict FAIL, awaiting decision)
+Last session: 2026-10-23T13:19:08.083Z
+Stopped at: Completed 01-06-PLAN.md (BUILD-03 PASS after re-check); 01-07 next
 Resume file: None
