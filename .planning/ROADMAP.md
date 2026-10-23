@@ -168,3 +168,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-10-18*
+
+## Backlog
+
+### Phase 999.1: Global binarizers reject Format_Grayscale8 input (BACKLOG)
+
+**Goal:** `BinaryImage::BinaryImage(const QImage&, BinaryThreshold)` (`src/imageproc/BinaryImage.cpp:142`), used by `binarizeOtsu` and `binarizeMokji`, throws `std::runtime_error: Unsupported QImage format` for `Format_Grayscale8` input; the check requires no exception (measured: throws, bound: no exception, FLAT page, 300 dpi, seed 7). No production caller passes this format, so no requirement exists. When fixed, remove the `XFAIL_CHECK` tagged `global thresholds reject Format_Grayscale8 (std::runtime_error): no requirement` in `src/imageproc/tests/TestBinarize.cpp`. Finding F-04-1 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
