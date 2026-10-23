@@ -145,7 +145,7 @@ Each task was committed as a RED commit (tests plus interface stubs) and a GREEN
 2. **Task 2: Text goldens and the toolchain manifest** - `6a0524c` (test), `0d530f0` (feat)
 3. **Task 3: GoldenStore, reporting helpers and the expected-failure trip-wire** - `5aaf157` (test), `344196d` (feat)
 
-**Plan metadata:** committed with this SUMMARY (docs: complete plan)
+**Plan metadata:** `e12a5a9` (docs: plan summary), followed by the state and roadmap commit
 
 ## Files Created/Modified
 

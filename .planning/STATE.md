@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-10-23T17:58:47.813Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-10-23T18:18:06.201Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: d6edf4eb04b5e61b0214ec603c95bc4fe22a4f04
+state_head: e12a5a9f48770f6c2494cf8369f06b240a299ea2
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 8
+  completed_plans: 9
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 02 execution started
 
@@ -65,6 +65,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P06 | 44 min | 3 tasks | 2 files |
 | Phase 01 P07 | 5 min | 2 tasks | 3 files |
 | Phase 02 P01 | 10 min | 2 tasks | 12 files |
+| Phase 02 P02 | 19 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,11 @@ Recent decisions affecting current work:
 - [Phase 01]: Phase 1 verdict PASS: all five success criteria PASS on cde6825; imageproc_tests ScaleTestSuite/test_random_image remains the recorded baseline failure
 - [Phase 01]: Phase 2 baseline commit is cde6825 (src, CMakeLists.txt, CMakePresets.json equal 11bc573)
 - [Phase 02]: Deskew angle stored by the unmodified stage is the negative of the generator skewDeg (1.5 gives -1.5); GroundTruth textBlock is the tight ink box; runPipeline runs up to page_split first to learn the sub-page count
+- [Phase 02]: 02-02: Comparator reports the size metric always (value 0 when sizes match); on a mismatch it is the only metric
+- [Phase 02]: 02-02: Update mode refreshes a suite MANIFEST.txt on the first check that passes or passes sanity; blocked checks write nothing; an unchanged manifest is not rewritten
+- [Phase 02]: 02-02: A golden replaced in update mode reports no metrics; expected/actual/diff stay in the artifact folder
+- [Phase 02]: 02-02: Non-numeric value under a _deg/_px/_mm key fails; numeric limit gets 1e-9 slack (kTextToleranceSlack)
+- [Phase 02]: 02-02: GoldenStore clearArtifacts re-checks that the path is below the artifact root (a mutation run with validation off deleted build/macos-release)
 
 ### Pending Todos
 
@@ -110,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T17:58:47.784Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-10-23T18:18:06.170Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
