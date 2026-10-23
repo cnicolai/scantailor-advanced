@@ -1,0 +1,50 @@
+# Warning counts of the clean release build
+# Source: warnings-release.txt (build section). Produced by script, not by hand: python3 -I warncount.py (kept in the session scratchpad, 55 lines).
+# Method: a diagnostic is a line containing 'warning:'. Source diagnostics have the form file:line:col: warning: text [-Wflag]; linker diagnostics ('ld: warning: ...') have no source location and are listed separately.
+# Unique site = file:line:col plus flag (header warnings repeat once per translation unit). No source edit, no define, no pragma was added for any warning (D-08).
+
+total warnings: 1143
+  with source location: 1140
+  tool diagnostics without source location (linker etc.): 3
+
+## Occurrences per flag (descending)
+  1125  -Wunused-parameter
+     7  -Winconsistent-missing-override
+     6  -Wdeprecated-pragma
+     1  -Wreorder-ctor
+     1  -Wdeprecated-declarations
+     3  (tool, no source location)
+
+## Unique sites per flag (file:line:col + flag; header warnings repeat once per translation unit)
+   105  -Wunused-parameter
+     4  -Wdeprecated-pragma
+     1  -Wdeprecated-declarations
+     1  -Winconsistent-missing-override
+     1  -Wreorder-ctor
+total unique sites: 112
+
+## Split by origin (project = {repo}/src/, generated = {repo}/build/ moc/uic output, third-party = any other path)
+### project
+occurrences: 1137
+unique sites: 109
+    1123 occurrences     103 sites  -Wunused-parameter
+       7 occurrences       1 sites  -Winconsistent-missing-override
+       5 occurrences       3 sites  -Wdeprecated-pragma
+       1 occurrences       1 sites  -Wreorder-ctor
+       1 occurrences       1 sites  -Wdeprecated-declarations
+
+### generated
+occurrences: 3
+unique sites: 3
+       2 occurrences       2 sites  -Wunused-parameter
+       1 occurrences       1 sites  -Wdeprecated-pragma
+
+### third-party
+occurrences: 0
+unique sites: 0
+  (none)
+
+## Tool diagnostics without source location
+ld: warning: ignoring duplicate libraries: 'src/core/filters/deskew/libdeskew.a', 'src/core/filters/fix_orientation/libfix_orientation.a', 'src/core/filters/output/liboutput.a', 'src/core/filters/page_layout/libpage_layout.a', 'src/core/filters/page_split/libpage_split.a', 'src/core/filters/select_content/libselect_content.a', 'src/core/interaction/libinteraction.a', 'src/core/libcore.a', 'src/core/zones/libzones.a'
+ld: warning: ignoring duplicate libraries: 'src/core/filters/deskew/libdeskew.a', 'src/core/filters/fix_orientation/libfix_orientation.a', 'src/core/filters/output/liboutput.a', 'src/core/filters/page_layout/libpage_layout.a', 'src/core/filters/page_split/libpage_split.a', 'src/core/filters/select_content/libselect_content.a', 'src/core/interaction/libinteraction.a', 'src/core/libcore.a', 'src/core/zones/libzones.a', 'src/foundation/libfoundation.a'
+ld: warning: ignoring duplicate libraries: 'src/core/filters/deskew/libdeskew.a', 'src/core/filters/fix_orientation/libfix_orientation.a', 'src/core/filters/output/liboutput.a', 'src/core/filters/page_layout/libpage_layout.a', 'src/core/filters/page_split/libpage_split.a', 'src/core/filters/select_content/libselect_content.a', 'src/core/interaction/libinteraction.a', 'src/core/libcore.a', 'src/core/zones/libzones.a'
