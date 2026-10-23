@@ -224,3 +224,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.7: A layout type from the default profile is not written to the project file until page_split has run (BACKLOG)
+
+**Goal:** After `loadDefaultSettings` alone (profile with `SINGLE_PAGE_UNCUT`) the written element is `<page-split defaultLayoutType="auto-detect"/>` with no `<image>` child, identical to the default-profile project: `page_split::Filter::writeImageSettings` writes an `<image>` element only when the page has params, and `defaultLayoutType` is a `Settings`-level value that `DefaultParams` never sets. The application loads defaults at processing time, so a project saved before page_split has run carries no layout type for its pages. Possibly by design; the decision is open. No requirement exists and no expected-failure mark exists (the test runs the stage first). Finding F-08-1 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
