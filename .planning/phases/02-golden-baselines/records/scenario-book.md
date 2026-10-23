@@ -100,3 +100,30 @@ The ordering of OFF and AUTO flips with the strip count, a two-strip fit is exac
 - Consequence: `src/pipeline_tests/TestBookSpread.cpp` measures the line offsets against the truth mask (noise floor 0.583 px on a straight page) and reports the plan's measure as reference only.
 - Fixing requirement: none; plan 02-10 may want a backlog item to give `src/test_support` a glyph-independent straightness measure.
 - Backlog: pending (plan 02-10)
+
+## Goldens
+
+Recorded with `UPDATE_GOLDENS=1 build/macos-release/pipeline_tests --run_test=BookSpreadTestSuite --run_test=DewarpPageTestSuite` from a tree whose non-test paths equal `cde6825` apart from `src/CMakeLists.txt` (the plan's gate command printed `src/CMakeLists.txt` only; `src/test_support` and `HeadlessPipeline.*` are unchanged by this plan). Every golden logged `RECORDED book/<name>` and no `sanity failed`. The suite directory is `src/pipeline_tests/golden/book/`. The test code was committed first (`235e5a7`, `test(02-06): check book-spread and dewarp goldens`), the recording ran on that committed tree, so the manifest names `source_commit = 235e5a7`, `build_type = Release` and `ffp_contract = off`. Golden commit: `5afce63` (`test(02-06): record book-spread and dewarp goldens from macos-release`, sixteen files, all under `golden/book/`, body starts with `Reason: initial baseline from unmodified production code`).
+
+| File | Kind | Bytes | Pixels |
+|------|------|-------|--------|
+| spread_300_bw_left.png | bi-level (1 bit) | 16543 | 1752 x 1860 |
+| spread_300_bw_right.png | bi-level (1 bit) | 15525 | 1752 x 1860 |
+| spread_300_bw.txt | text, 41 keys | 1112 | n/a |
+| spread_300_color_left.png | colour (8 bit RGB) | 1351465 | 1752 x 1860 |
+| spread_300_color_right.png | colour (8 bit RGB) | 1315723 | 1752 x 1860 |
+| spread_300_color.txt | text, 41 keys | 1112 | n/a |
+| spread_600_bw_left.png | bi-level (1 bit) | 12686 | 1740 x 1860 |
+| spread_600_bw_right.png | bi-level (1 bit) | 13361 | 1740 x 1860 |
+| spread_600_bw.txt | text, 41 keys | 1121 | n/a |
+| spread_600_color_left.png | colour (8 bit RGB) | 1468229 | 1740 x 1860 |
+| spread_600_color_right.png | colour (8 bit RGB) | 1451636 | 1740 x 1860 |
+| spread_600_color.txt | text, 41 keys | 1121 | n/a |
+| curved_300_dewarp.png | bi-level (1 bit), AUTO output | 19134 | 1872 x 1824 |
+| curved_300_dewarp.txt | text, 8 keys (`residual_off_px`, `residual_auto_px`, `distortion_model_valid`, size, dpi, seed, input dpi) | 158 | n/a |
+| fixtures.txt | text, 3 keys (`spread_300`, `spread_600`, `curved_300`) | 234 | n/a |
+| MANIFEST.txt | toolchain | 333 | n/a |
+
+The spread goldens record the behaviour of F-06-1 (cutter off the gutter centre) and the dewarp golden the AUTO output of the unmodified code, as D-18 requires. Spread text goldens: `layout_type = 2`, `cutter_count = 1`.
+
+Checks after recording: both suites pass again in Release without `UPDATE_GOLDENS` (211 `GOLDEN-METRIC suite=book` lines, none with `result=fail`, `git status` shows nothing under `golden/book`); `ctest --preset macos-debug -R pipeline_tests` passes (160 s for the whole executable) against the Release goldens; in Release every colour golden reproduces with `max_abs_error` 0.
