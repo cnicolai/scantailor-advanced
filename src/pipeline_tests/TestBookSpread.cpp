@@ -2,7 +2,9 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include <ExpectedFailure.h>
+#include <GoldenChecks.h>
 #include <PageGenerator.h>
+#include <TextGolden.h>
 #include <TruthMetrics.h>
 #include <filters/output/DewarpingOptions.h>
 #include <filters/output/Params.h>
@@ -80,6 +82,15 @@ test_support::PageSpec spreadSpec(const int dpi) {
   spec.dpi = dpi;
   spec.seed = 1;
   spec.skewDeg = kAppliedSkewDeg;
+  return spec;
+}
+
+test_support::PageSpec curvedSpec() {
+  test_support::PageSpec spec;
+  spec.kind = test_support::PageKind::CURVED;
+  spec.dpi = kDewarpInputDpi;
+  spec.seed = 1;
+  spec.skewDeg = 0.0;
   return spec;
 }
 
@@ -302,10 +313,64 @@ void checkSpread(const SpreadScenario& scenario, const SpreadMeasured& m, const 
   }
 }
 
+QString intText(const long long value) {
+  return QString::number(value);
+}
+
+// Stage decisions of the scenario as text golden values (D-14); the suffix of a key decides its tolerance.
+test_support::TextValues spreadDecisions(const SpreadScenario& scenario, const SpreadMeasured& m) {
+  using test_support::formatNumber;
+  test_support::TextValues values;
+  values["seed"] = intText(1);
+  values["input_dpi"] = intText(scenario.dpi);
+  values["applied_skew_deg"] = formatNumber(kAppliedSkewDeg);
+  values["layout_type"] = intText(m.result.layoutType);
+  values["cutter_count"] = intText(static_cast<long long>(m.result.cutters.size()));
+  values["cutter_x1_px"] = formatNumber(m.cutter.x1());
+  values["cutter_y1_px"] = formatNumber(m.cutter.y1());
+  values["cutter_x2_px"] = formatNumber(m.cutter.x2());
+  values["cutter_y2_px"] = formatNumber(m.cutter.y2());
+  for (int i = 0; i < 2; ++i) {
+    const SubPageResult& sub = m.result.pages[i];
+    const QString prefix = QString::fromLatin1(sideName(i)) + "_";
+    values[prefix + "deskew_angle_deg"] = formatNumber(sub.deskewAngleDeg);
+    values[prefix + "content_x_px"] = intText(sub.contentRect.x());
+    values[prefix + "content_y_px"] = intText(sub.contentRect.y());
+    values[prefix + "content_w_px"] = intText(sub.contentRect.width());
+    values[prefix + "content_h_px"] = intText(sub.contentRect.height());
+    values[prefix + "page_rect_x_px"] = formatNumber(sub.pageRect.x());
+    values[prefix + "page_rect_y_px"] = formatNumber(sub.pageRect.y());
+    values[prefix + "page_rect_w_px"] = formatNumber(sub.pageRect.width());
+    values[prefix + "page_rect_h_px"] = formatNumber(sub.pageRect.height());
+    values[prefix + "hard_margin_left_mm"] = formatNumber(sub.hardMarginLeftMM);
+    values[prefix + "hard_margin_top_mm"] = formatNumber(sub.hardMarginTopMM);
+    values[prefix + "hard_margin_right_mm"] = formatNumber(sub.hardMarginRightMM);
+    values[prefix + "hard_margin_bottom_mm"] = formatNumber(sub.hardMarginBottomMM);
+    values[prefix + "output_w_px"] = intText(sub.outputSize.width());
+    values[prefix + "output_h_px"] = intText(sub.outputSize.height());
+    values[prefix + "output_dpi"] = intText(sub.outputDpiX);
+  }
+  return values;
+}
+
 void runSpreadCase(const SpreadScenario& scenario, const char* midOffsetDefect = nullptr) {
   const SpreadMeasured m = measureSpread(scenario);
   reportSpread(scenario, m);
   checkSpread(scenario, m, midOffsetDefect);
+
+  // Goldens are recorded only when the sanity checks of both sub-pages passed (D-05).
+  const test_support::ImageKind kind = scenario.colorMode == output::BLACK_AND_WHITE ? test_support::ImageKind::BILEVEL
+                                                                                     : test_support::ImageKind::COLOR;
+  for (int i = 0; i < 2; ++i) {
+    const test_support::Sanity sanity{m.subs[i].sanity.ok, m.subs[i].sanity.reason};
+    CHECK_IMAGE_GOLDEN("book", QString::fromLatin1(scenario.name) + "_" + sideName(i), m.result.pages[i].output, kind,
+                       sanity);
+  }
+  const bool bothOk = m.subs[0].sanity.ok && m.subs[1].sanity.ok;
+  const QString reason = !m.subs[0].sanity.ok
+                             ? "left sub-page: " + m.subs[0].sanity.reason
+                             : (!m.subs[1].sanity.ok ? "right sub-page: " + m.subs[1].sanity.reason : QString());
+  CHECK_TEXT_GOLDEN("book", scenario.name, spreadDecisions(scenario, m), (test_support::Sanity{bothOk, reason}));
 }
 
 }  // namespace
@@ -336,6 +401,17 @@ BOOST_AUTO_TEST_CASE(test_spread_600_color_split) {
   runSpreadCase(kSpread600Color,
                 "page_split cutter 55.7 px from the gutter centre at mid-height on the 600 dpi spread, bound 2 px "
                 "(F-06-1): no requirement");
+}
+
+// Fingerprints of every generated book input, so that a change of the generator shows up as a fixture change and not
+// as a pipeline change.
+BOOST_AUTO_TEST_CASE(test_book_fixture_fingerprints) {
+  test_support::TextValues values;
+  values["spread_300"] = QString::fromLatin1(test_support::fingerprint(spreadPage(300).image));
+  values["spread_600"] = QString::fromLatin1(test_support::fingerprint(spreadPage(600).image));
+  values["curved_300"] = QString::fromLatin1(test_support::fingerprint(test_support::generatePage(curvedSpec()).image));
+  BOOST_REQUIRE_EQUAL(values.size(), 3u);
+  CHECK_TEXT_GOLDEN("book", "fixtures", values, (test_support::Sanity{true, QString()}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -496,15 +572,6 @@ LineOffsets measureLineOffsets(const QImage& output,
   return result;
 }
 
-test_support::PageSpec curvedSpec() {
-  test_support::PageSpec spec;
-  spec.kind = test_support::PageKind::CURVED;
-  spec.dpi = kDewarpInputDpi;
-  spec.seed = 1;
-  spec.skewDeg = 0.0;
-  return spec;
-}
-
 struct DewarpRun {
   PipelineResult result;
   QImage output;
@@ -588,6 +655,31 @@ BOOST_AUTO_TEST_CASE(test_curved_300_auto_dewarp_straightens) {
   BOOST_CHECK_MESSAGE(residualAuto300 <= kMaxDewarpResidual300Px,
                       scenario << ": AUTO dewarping leaves " << num(residualAuto300)
                                << " px residual at 300 dpi, bound " << num(kMaxDewarpResidual300Px) << " px");
+
+  // Golden of the AUTO output, recorded only when the straightness measure found every line and the ink fraction is
+  // plausible (D-05).
+  const double ink = test_support::inkFraction(autoSub.output);
+  QString reason;
+  if (!off.offsets.valid || !autoRun.offsets.valid) {
+    reason = "no valid straightness result";
+  } else if (ink < kMinInkFractionOfOutput || ink > kMaxInkFractionOfOutput) {
+    reason = QString("ink fraction %1 is outside [0.005, 0.5]").arg(ink);
+  }
+  const test_support::Sanity sanity{reason.isEmpty(), reason};
+  CHECK_IMAGE_GOLDEN("book", QString::fromStdString(scenario), autoSub.output, test_support::ImageKind::BILEVEL,
+                     sanity);
+
+  using test_support::formatNumber;
+  test_support::TextValues values;
+  values["seed"] = QString::number(1);
+  values["input_dpi"] = QString::number(kDewarpInputDpi);
+  values["residual_off_px"] = formatNumber(residualOff);
+  values["residual_auto_px"] = formatNumber(residualAuto);
+  values["distortion_model_valid"] = QString::number(modelValid ? 1 : 0);
+  values["output_w_px"] = QString::number(autoSub.outputSize.width());
+  values["output_h_px"] = QString::number(autoSub.outputSize.height());
+  values["output_dpi"] = QString::number(autoSub.outputDpiX);
+  CHECK_TEXT_GOLDEN("book", QString::fromStdString(scenario), values, sanity);
 }
 
 // Guard for the measure above: a page whose lines are straight must measure (almost) zero, so the residuals of the
