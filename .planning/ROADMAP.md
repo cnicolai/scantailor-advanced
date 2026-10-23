@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The `-ffp-contract` setting is fixed in the build configuration and recorded. A CMake sanitizer option produces an ASan/UBSan build that runs the existing tests, and its findings are recorded, not fixed
   5. `git diff 5eaac18` (the 1.2.1 release) outside `.planning/` shows only build and launch fixes and added build settings: no deleted code paths and no change to processing behaviour
 
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -48,7 +48,7 @@ Plans:
 - [x] 01-04-PLAN.md — ASan/UBSan build, existing tests under sanitizers, findings recorded not fixed
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 01-06-PLAN.md — User-driven smoke walkthrough (one step per message), output and project checks, SMOKE-FINDINGS.md
+- [x] 01-06-PLAN.md — User-driven smoke walkthrough (one step per message), output and project checks, SMOKE-FINDINGS.md
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 01-07-PLAN.md — Closing check of all five success criteria from fresh trees, criterion-5 diff audit, Phase 2 baseline commit
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deletion-Free macOS Build | 5/7 | In Progress | - |
+| 1. Deletion-Free macOS Build | 6/7 | In Progress | - |
 | 2. Golden Baselines | 0/TBD | Not started | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |

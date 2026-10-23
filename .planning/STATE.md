@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 01
 current_phase_name: Deletion-Free macOS Build
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-10-23T12:19:49.973Z"
+stopped_at: Completed 01-06-PLAN.md (smoke verdict FAIL, awaiting decision)
+last_updated: "2026-10-23T13:04:42.020Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 01 execution started
-state_head: 48a4b062c2ba790c4c3800a27d15c5c708f81eed
+state_head: 7de8359bd20135f9e281770e96e01babbf6f0c5e
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
 milestone_name: macOS
 ---
 
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 01 (Deletion-Free macOS Build) — EXECUTING
-Plan: 5 of 7 complete (01-01, 01-02, 01-03, 01-04, 01-05); next: 01-06 (wave 4), then 01-07
-Status: Ready to execute
+Plan: 6 of 7 summarised (01-01 to 01-05 complete; 01-06 halted: BUILD-03 smoke verdict FAIL); 01-07 waits for the decision on 01-06
+Status: Blocked on the user's decision about 01-06 (see records/SMOKE-FINDINGS.md `## What is open`)
 Last activity: 2026-10-23 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P05 | 3min | 3 tasks | 3 files |
 | Phase 01 P03 | 25 min | 3 tasks | 9 files |
 | Phase 01 P04 | 5 min | 2 tasks | 4 files |
+| Phase 01 P06 | 44 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-03: qt_tests passes under the default Cocoa platform in Release and Debug, so no QT_QPA_PLATFORM=offscreen entry was added to the test preset
 - [Phase 01]: 01-03: imageproc_tests ScaleTestSuite/test_random_image fails in Release and Debug on the unmodified sources; recorded as the BUILD-04 baseline and deferred, not fixed (D-08)
 - [Phase 01]: 01-04: ASan+UBSan build needed no CMakeLists.txt change; 0 ASan and 3 UBSan reports (BinaryImage.cpp:1044, SlicedHistogram.cpp:49) recorded, not fixed
+- [Phase 01]: 01-06: BUILD-03 smoke verdict is FAIL: saved project has dewarping mode off only and 0 picture zones; cause open (walkthrough gap, wrong file, or save bug) — Plan sets PASS only when the project-file check meets every expectation; not softened
+- [Phase 01]: 01-06: project-file check ran on the user-named Desktop file after the user saved there at step 8 — User chose 'Read the Desktop file'; only the allowed fields are recorded
+- [Phase 01]: 01-06: HIDPI-01 provisionally needs no embedded Info.plist (probe ratio 2.0, user reports sharp window) — No qt.highdpi line reached the stderr file, so the app's own confirmation is missing
 
 ### Pending Todos
 
@@ -96,9 +100,10 @@ None yet.
 - Phase 4 research flag: a Retina experiment on the Mac, covering the unbundled DPR, `widthMM()` and the smoothing heuristic under Qt 6. Verifying Retina is mostly manual (100%/200% zoom, thumbnails, zone mask, colour picker, toolbar icons, moving between displays).
 - Phase 5: check on the Mac whether Backspace works for deleting zones under Qt 6 (low confidence in research).
 - Phase 3: remove Qt 5 code with `unifdef`, not by hand. The polarity of the RANSAC/dewarp branches in `DistortionModelBuilder.cpp` and `DetectVertContentBounds.cpp` changes output if it is wrong.
+- BUILD-03: saved project lacks dewarping auto and a picture zone; repeat steps 4, 6, 8 on the scratchpad path or decide (see SMOKE-FINDINGS.md)
 
 ## Session Continuity
 
-Last session: 2026-10-23T12:19:49.954Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-10-23T13:04:42.001Z
+Stopped at: Completed 01-06-PLAN.md (smoke verdict FAIL, awaiting decision)
 Resume file: None
