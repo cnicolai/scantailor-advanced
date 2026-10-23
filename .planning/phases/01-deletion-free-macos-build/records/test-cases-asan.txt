@@ -1,0 +1,1449 @@
+# Per-executable test output, ASan+UBSan (macos-asan)
+# tested commit: 8038a2462908a94580f9997f3ad7d9fdf0948ca5
+# Environment: ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1. Boost.Test executables run with --log_level=test_suite --report_level=detailed; qt_tests twice (default platform, QT_QPA_PLATFORM=offscreen). stdout and stderr merged (2>&1), so sanitizer reports appear in place between the Entering/Leaving lines of the test case that triggered them. ANSI colour codes removed. Paths normalised: {repo}, ~, {scratch}.
+
+## core_tests
+
+$ ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/core_tests --log_level=test_suite --report_level=detailed
+Running 55 test cases...
+Entering test module "Master Test Suite"
+{repo}/src/core/tests/TestContentSpanFinder.cpp:14: Entering test suite "ContentSpanFinderTestSuite"
+{repo}/src/core/tests/TestContentSpanFinder.cpp:16: Entering test case "test_empty_input"
+{repo}/src/core/tests/TestContentSpanFinder.cpp:16: Leaving test case "test_empty_input"; testing time: 50us
+{repo}/src/core/tests/TestContentSpanFinder.cpp:25: Entering test case "test_min_content_width"
+{repo}/src/core/tests/TestContentSpanFinder.cpp:25: Leaving test case "test_min_content_width"; testing time: 48us
+{repo}/src/core/tests/TestContentSpanFinder.cpp:49: Entering test case "test_min_whitespace_width"
+{repo}/src/core/tests/TestContentSpanFinder.cpp:49: Leaving test case "test_min_whitespace_width"; testing time: 32us
+{repo}/src/core/tests/TestContentSpanFinder.cpp:73: Entering test case "test_min_content_and_whitespace_width"
+{repo}/src/core/tests/TestContentSpanFinder.cpp:73: Leaving test case "test_min_content_and_whitespace_width"; testing time: 31us
+{repo}/src/core/tests/TestContentSpanFinder.cpp:14: Leaving test suite "ContentSpanFinderTestSuite"; testing time: 222us
+{repo}/src/core/tests/TestDeskewParams.cpp:19: Entering test suite "DeskewParamsTestSuite"
+{repo}/src/core/tests/TestDeskewParams.cpp:21: Entering test case "params_oblique_roundtrip_xml"
+{repo}/src/core/tests/TestDeskewParams.cpp:21: Leaving test case "params_oblique_roundtrip_xml"; testing time: 163us
+{repo}/src/core/tests/TestDeskewParams.cpp:39: Entering test case "params_zero_oblique_roundtrip_xml"
+{repo}/src/core/tests/TestDeskewParams.cpp:39: Leaving test case "params_zero_oblique_roundtrip_xml"; testing time: 68us
+{repo}/src/core/tests/TestDeskewParams.cpp:56: Entering test case "params_independent_oblique_mode_xml"
+{repo}/src/core/tests/TestDeskewParams.cpp:56: Leaving test case "params_independent_oblique_mode_xml"; testing time: 64us
+{repo}/src/core/tests/TestDeskewParams.cpp:70: Entering test case "params_oblique_mode_attribute_roundtrip_xml"
+{repo}/src/core/tests/TestDeskewParams.cpp:70: Leaving test case "params_oblique_mode_attribute_roundtrip_xml"; testing time: 71us
+{repo}/src/core/tests/TestDeskewParams.cpp:89: Entering test case "apply_merge_deskew_only_preserves_oblique"
+{repo}/src/core/tests/TestDeskewParams.cpp:89: Leaving test case "apply_merge_deskew_only_preserves_oblique"; testing time: 30us
+{repo}/src/core/tests/TestDeskewParams.cpp:103: Entering test case "apply_merge_oblique_only_preserves_deskew"
+{repo}/src/core/tests/TestDeskewParams.cpp:103: Leaving test case "apply_merge_oblique_only_preserves_deskew"; testing time: 32us
+{repo}/src/core/tests/TestDeskewParams.cpp:116: Entering test case "params_auto_oblique_false_roundtrip_xml"
+{repo}/src/core/tests/TestDeskewParams.cpp:116: Leaving test case "params_auto_oblique_false_roundtrip_xml"; testing time: 83us
+{repo}/src/core/tests/TestDeskewParams.cpp:131: Entering test case "params_missing_autoOblique_attribute_defaults_true"
+{repo}/src/core/tests/TestDeskewParams.cpp:131: Leaving test case "params_missing_autoOblique_attribute_defaults_true"; testing time: 60us
+{repo}/src/core/tests/TestDeskewParams.cpp:145: Entering test case "default_params_deskew_auto_oblique_off_by_default"
+{repo}/src/core/tests/TestDeskewParams.cpp:145: Leaving test case "default_params_deskew_auto_oblique_off_by_default"; testing time: 26us
+{repo}/src/core/tests/TestDeskewParams.cpp:19: Leaving test suite "DeskewParamsTestSuite"; testing time: 716us
+{repo}/src/core/tests/TestDeskewParams.cpp:152: Entering test suite "ImageTransformationObliqueTestSuite"
+{repo}/src/core/tests/TestDeskewParams.cpp:154: Entering test case "post_oblique_applied_and_stored"
+{repo}/src/core/tests/TestDeskewParams.cpp:154: Leaving test case "post_oblique_applied_and_stored"; testing time: 75us
+{repo}/src/core/tests/TestDeskewParams.cpp:152: Leaving test suite "ImageTransformationObliqueTestSuite"; testing time: 86us
+{repo}/src/core/tests/TestObliqueFinder.cpp:14: Entering test suite "ObliqueFinderTestSuite"
+{repo}/src/core/tests/TestObliqueFinder.cpp:16: Entering test case "build_sausage_mask_null_returns_null"
+{repo}/src/core/tests/TestObliqueFinder.cpp:16: Leaving test case "build_sausage_mask_null_returns_null"; testing time: 32us
+{repo}/src/core/tests/TestObliqueFinder.cpp:22: Entering test case "build_sausage_mask_preserves_size"
+{repo}/src/imageproc/BinaryImage.cpp:1044:37: runtime error: member access within null pointer of type 'SharedData'
+    #0 0x000100364624 in imageproc::BinaryImage::SharedData::operator new(unsigned long, imageproc::BinaryImage::SharedData::NumWords) BinaryImage.cpp:1044
+    #1 0x00010034a584 in imageproc::BinaryImage::SharedData::create(unsigned long) BinaryImage.cpp:39
+    #2 0x00010034b404 in imageproc::BinaryImage::BinaryImage(int, int, imageproc::BWColor) BinaryImage.cpp:88
+    #3 0x00010034b8a0 in imageproc::BinaryImage::BinaryImage(int, int, imageproc::BWColor) BinaryImage.cpp:86
+    #4 0x00010025fc00 in Tests::ObliqueFinderTestSuite::build_sausage_mask_preserves_size::test_method() TestObliqueFinder.cpp:23
+    #5 0x00010025f078 in Tests::ObliqueFinderTestSuite::build_sausage_mask_preserves_size_invoker() TestObliqueFinder.cpp:22
+    #6 0x00010021bfd4 in boost::detail::function::void_function_invoker<void (*)(), void>::invoke(boost::detail::function::function_buffer&) function_template.hpp:59
+    #7 0x0001006d77b4 in boost::detail::function::function_obj_invoker<boost::detail::forward, int>::invoke(boost::detail::function::function_buffer&)+0x28 (libboost_unit_test_framework.dylib:arm64+0xb7b4)
+    #8 0x0001006d4bf0 in boost::execution_monitor::catch_signals(boost::function<int ()> const&)+0xdc (libboost_unit_test_framework.dylib:arm64+0x8bf0)
+    #9 0x0001006d4d28 in boost::execution_monitor::execute(boost::function<int ()> const&)+0x30 (libboost_unit_test_framework.dylib:arm64+0x8d28)
+    #10 0x0001006d582c in boost::execution_monitor::vexecute(boost::function<void ()> const&)+0x28 (libboost_unit_test_framework.dylib:arm64+0x982c)
+    #11 0x0001006fc358 in boost::unit_test::unit_test_monitor_t::execute_and_translate(boost::function<void ()> const&, unsigned long)+0x124 (libboost_unit_test_framework.dylib:arm64+0x30358)
+    #12 0x0001006df670 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0x9f8 (libboost_unit_test_framework.dylib:arm64+0x13670)
+    #13 0x0001006df7b8 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0xb40 (libboost_unit_test_framework.dylib:arm64+0x137b8)
+    #14 0x0001006df7b8 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0xb40 (libboost_unit_test_framework.dylib:arm64+0x137b8)
+    #15 0x0001006ddca0 in boost::unit_test::framework::run(unsigned long, bool)+0x900 (libboost_unit_test_framework.dylib:arm64+0x11ca0)
+    #16 0x0001006fb12c in boost::unit_test::unit_test_main(bool (*)(), int, char**)+0x2cc (libboost_unit_test_framework.dylib:arm64+0x2f12c)
+    #17 0x0001001fed84 in main unit_test.hpp:65
+    #18 0x000184bd84e0 in start+0x1b4c (dyld:arm64e+0x204e0)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior {repo}/src/imageproc/BinaryImage.cpp:1044:37 
+{repo}/src/core/tests/TestObliqueFinder.cpp:22: Leaving test case "build_sausage_mask_preserves_size"; testing time: 103717us
+{repo}/src/core/tests/TestObliqueFinder.cpp:31: Entering test case "find_oblique_null_mask_returns_nullopt"
+{repo}/src/core/tests/TestObliqueFinder.cpp:31: Leaving test case "find_oblique_null_mask_returns_nullopt"; testing time: 140us
+{repo}/src/core/tests/TestObliqueFinder.cpp:14: Leaving test suite "ObliqueFinderTestSuite"; testing time: 103941us
+{repo}/src/core/tests/TestImageId.cpp:10: Entering test suite "CoreImageIdTestSuite"
+{repo}/src/core/tests/TestImageId.cpp:12: Entering test case "test_default_constructor_is_null"
+{repo}/src/core/tests/TestImageId.cpp:12: Leaving test case "test_default_constructor_is_null"; testing time: 50us
+{repo}/src/core/tests/TestImageId.cpp:19: Entering test case "test_constructor_with_path"
+{repo}/src/core/tests/TestImageId.cpp:19: Leaving test case "test_constructor_with_path"; testing time: 44us
+{repo}/src/core/tests/TestImageId.cpp:28: Entering test case "test_multipage"
+{repo}/src/core/tests/TestImageId.cpp:28: Leaving test case "test_multipage"; testing time: 37us
+{repo}/src/core/tests/TestImageId.cpp:35: Entering test case "test_equality"
+{repo}/src/core/tests/TestImageId.cpp:35: Leaving test case "test_equality"; testing time: 39us
+{repo}/src/core/tests/TestImageId.cpp:45: Entering test case "test_ordering"
+{repo}/src/core/tests/TestImageId.cpp:45: Leaving test case "test_ordering"; testing time: 39us
+{repo}/src/core/tests/TestImageId.cpp:54: Entering test case "test_from_qfileinfo"
+{repo}/src/core/tests/TestImageId.cpp:54: Leaving test case "test_from_qfileinfo"; testing time: 52us
+{repo}/src/core/tests/TestImageId.cpp:60: Entering test case "test_setters"
+{repo}/src/core/tests/TestImageId.cpp:60: Leaving test case "test_setters"; testing time: 30us
+{repo}/src/core/tests/TestImageId.cpp:10: Leaving test suite "CoreImageIdTestSuite"; testing time: 370us
+{repo}/src/core/tests/TestMargins.cpp:10: Entering test suite "CoreMarginsTestSuite"
+{repo}/src/core/tests/TestMargins.cpp:12: Entering test case "test_default_constructor"
+{repo}/src/core/tests/TestMargins.cpp:12: Leaving test case "test_default_constructor"; testing time: 35us
+{repo}/src/core/tests/TestMargins.cpp:20: Entering test case "test_value_constructor"
+{repo}/src/core/tests/TestMargins.cpp:20: Leaving test case "test_value_constructor"; testing time: 34us
+{repo}/src/core/tests/TestMargins.cpp:28: Entering test case "test_setters"
+{repo}/src/core/tests/TestMargins.cpp:28: Leaving test case "test_setters"; testing time: 31us
+{repo}/src/core/tests/TestMargins.cpp:40: Entering test case "test_xml_roundtrip"
+{repo}/src/core/tests/TestMargins.cpp:40: Leaving test case "test_xml_roundtrip"; testing time: 67us
+{repo}/src/core/tests/TestMargins.cpp:54: Entering test case "test_from_xml_attributes"
+{repo}/src/core/tests/TestMargins.cpp:54: Leaving test case "test_from_xml_attributes"; testing time: 51us
+{repo}/src/core/tests/TestMargins.cpp:10: Leaving test suite "CoreMarginsTestSuite"; testing time: 270us
+{repo}/src/core/tests/TestPageId.cpp:10: Entering test suite "CorePageIdTestSuite"
+{repo}/src/core/tests/TestPageId.cpp:12: Entering test case "test_default_constructor_is_null"
+{repo}/src/core/tests/TestPageId.cpp:12: Leaving test case "test_default_constructor_is_null"; testing time: 28us
+{repo}/src/core/tests/TestPageId.cpp:17: Entering test case "test_subpage_to_string"
+{repo}/src/core/tests/TestPageId.cpp:17: Leaving test case "test_subpage_to_string"; testing time: 29us
+{repo}/src/core/tests/TestPageId.cpp:23: Entering test case "test_subpage_from_string"
+{repo}/src/core/tests/TestPageId.cpp:23: Leaving test case "test_subpage_from_string"; testing time: 38us
+{repo}/src/core/tests/TestPageId.cpp:38: Entering test case "test_constructor_with_image_id"
+{repo}/src/core/tests/TestPageId.cpp:38: Leaving test case "test_constructor_with_image_id"; testing time: 34us
+{repo}/src/core/tests/TestPageId.cpp:47: Entering test case "test_equality"
+{repo}/src/core/tests/TestPageId.cpp:47: Leaving test case "test_equality"; testing time: 30us
+{repo}/src/core/tests/TestPageId.cpp:60: Entering test case "test_ordering"
+{repo}/src/core/tests/TestPageId.cpp:60: Leaving test case "test_ordering"; testing time: 27us
+{repo}/src/core/tests/TestPageId.cpp:10: Leaving test suite "CorePageIdTestSuite"; testing time: 254us
+{repo}/src/core/tests/TestPageRange.cpp:11: Entering test suite "CorePageRangeTestSuite"
+{repo}/src/core/tests/TestPageRange.cpp:13: Entering test case "test_select_every_other_empty_range"
+{repo}/src/core/tests/TestPageRange.cpp:13: Leaving test case "test_select_every_other_empty_range"; testing time: 36us
+{repo}/src/core/tests/TestPageRange.cpp:20: Entering test case "test_select_every_other_base_not_in_range"
+{repo}/src/core/tests/TestPageRange.cpp:20: Leaving test case "test_select_every_other_base_not_in_range"; testing time: 42us
+{repo}/src/core/tests/TestPageRange.cpp:29: Entering test case "test_select_every_other_alternates"
+{repo}/src/core/tests/TestPageRange.cpp:29: Leaving test case "test_select_every_other_alternates"; testing time: 61us
+{repo}/src/core/tests/TestPageRange.cpp:50: Entering test case "test_select_every_other_single_page"
+{repo}/src/core/tests/TestPageRange.cpp:50: Leaving test case "test_select_every_other_single_page"; testing time: 37us
+{repo}/src/core/tests/TestPageRange.cpp:11: Leaving test suite "CorePageRangeTestSuite"; testing time: 224us
+{repo}/src/core/tests/TestPageSequence.cpp:21: Entering test suite "PageSequenceTestSuite"
+{repo}/src/core/tests/TestPageSequence.cpp:23: Entering test case "select_this_page_and_following_every_other_from_first"
+{repo}/src/core/tests/TestPageSequence.cpp:23: Leaving test case "select_this_page_and_following_every_other_from_first"; testing time: 318us
+{repo}/src/core/tests/TestPageSequence.cpp:43: Entering test case "select_this_page_and_following_every_other_from_second"
+{repo}/src/core/tests/TestPageSequence.cpp:43: Leaving test case "select_this_page_and_following_every_other_from_second"; testing time: 297us
+{repo}/src/core/tests/TestPageSequence.cpp:63: Entering test case "select_this_page_and_following_every_other_partitions_75_pages"
+{repo}/src/core/tests/TestPageSequence.cpp:63: Leaving test case "select_this_page_and_following_every_other_partitions_75_pages"; testing time: 387us
+{repo}/src/core/tests/TestPageSequence.cpp:21: Leaving test suite "PageSequenceTestSuite"; testing time: 1035us
+{repo}/src/core/tests/TestSelectContentApply.cpp:12: Entering test suite "SelectContentApplyTestSuite"
+{repo}/src/core/tests/TestSelectContentApply.cpp:14: Entering test case "apply_content_box_auto_forces_recompute"
+{repo}/src/core/tests/TestSelectContentApply.cpp:14: Leaving test case "apply_content_box_auto_forces_recompute"; testing time: 45us
+{repo}/src/core/tests/TestSelectContentApply.cpp:32: Entering test case "same_mode_auto_no_content_box_update"
+{repo}/src/core/tests/TestSelectContentApply.cpp:32: Leaving test case "same_mode_auto_no_content_box_update"; testing time: 65us
+{repo}/src/core/tests/TestSelectContentApply.cpp:47: Entering test case "different_outlines_force_content_box_update"
+{repo}/src/core/tests/TestSelectContentApply.cpp:47: Leaving test case "different_outlines_force_content_box_update"; testing time: 51us
+{repo}/src/core/tests/TestSelectContentApply.cpp:12: Leaving test suite "SelectContentApplyTestSuite"; testing time: 200us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:11: Entering test suite "SmartFilenameOrderingTestSuite"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:13: Entering test case "test_same_file"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:13: Leaving test case "test_same_file"; testing time: 33us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:19: Entering test case "test_dirs_different"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:19: Leaving test case "test_dirs_different"; testing time: 30us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:27: Entering test case "test_simple_case"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:27: Leaving test case "test_simple_case"; testing time: 38us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:35: Entering test case "test_avg_case"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:35: Leaving test case "test_avg_case"; testing time: 39us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:43: Entering test case "test_compex_case"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:43: Leaving test case "test_compex_case"; testing time: 33us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:51: Entering test case "test_almost_equal"
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:51: Leaving test case "test_almost_equal"; testing time: 35us
+{repo}/src/core/tests/TestSmartFilenameOrdering.cpp:11: Leaving test suite "SmartFilenameOrderingTestSuite"; testing time: 267us
+{repo}/src/core/tests/TestUnits.cpp:9: Entering test suite "CoreUnitsTestSuite"
+{repo}/src/core/tests/TestUnits.cpp:11: Entering test case "test_units_to_string"
+{repo}/src/core/tests/TestUnits.cpp:11: Leaving test case "test_units_to_string"; testing time: 34us
+{repo}/src/core/tests/TestUnits.cpp:18: Entering test case "test_units_from_string"
+{repo}/src/core/tests/TestUnits.cpp:18: Leaving test case "test_units_from_string"; testing time: 28us
+{repo}/src/core/tests/TestUnits.cpp:25: Entering test case "test_units_from_string_defaults_to_mm"
+{repo}/src/core/tests/TestUnits.cpp:25: Leaving test case "test_units_from_string_defaults_to_mm"; testing time: 28us
+{repo}/src/core/tests/TestUnits.cpp:30: Entering test case "test_units_to_localized_string"
+{repo}/src/core/tests/TestUnits.cpp:30: Leaving test case "test_units_to_localized_string"; testing time: 54us
+{repo}/src/core/tests/TestUnits.cpp:9: Leaving test suite "CoreUnitsTestSuite"; testing time: 187us
+Leaving test module "Master Test Suite"; testing time: 107907us
+
+Test module "Master Test Suite" has passed with:
+  55 test cases out of 55 passed
+  379 assertions out of 379 passed
+
+  Test suite "ContentSpanFinderTestSuite" has passed with:
+    4 test cases out of 4 passed
+    9 assertions out of 9 passed
+
+    Test case "ContentSpanFinderTestSuite/test_empty_input" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ContentSpanFinderTestSuite/test_min_content_width" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "ContentSpanFinderTestSuite/test_min_whitespace_width" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "ContentSpanFinderTestSuite/test_min_content_and_whitespace_width" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "DeskewParamsTestSuite" has passed with:
+    9 test cases out of 9 passed
+    29 assertions out of 29 passed
+
+    Test case "DeskewParamsTestSuite/params_oblique_roundtrip_xml" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "DeskewParamsTestSuite/params_zero_oblique_roundtrip_xml" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "DeskewParamsTestSuite/params_independent_oblique_mode_xml" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "DeskewParamsTestSuite/params_oblique_mode_attribute_roundtrip_xml" has passed with:
+      6 assertions out of 6 passed
+
+    Test case "DeskewParamsTestSuite/apply_merge_deskew_only_preserves_oblique" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "DeskewParamsTestSuite/apply_merge_oblique_only_preserves_deskew" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "DeskewParamsTestSuite/params_auto_oblique_false_roundtrip_xml" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "DeskewParamsTestSuite/params_missing_autoOblique_attribute_defaults_true" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "DeskewParamsTestSuite/default_params_deskew_auto_oblique_off_by_default" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "ImageTransformationObliqueTestSuite" has passed with:
+    1 test case out of 1 passed
+    2 assertions out of 2 passed
+
+    Test case "ImageTransformationObliqueTestSuite/post_oblique_applied_and_stored" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "ObliqueFinderTestSuite" has passed with:
+    3 test cases out of 3 passed
+    5 assertions out of 5 passed
+
+    Test case "ObliqueFinderTestSuite/build_sausage_mask_null_returns_null" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ObliqueFinderTestSuite/build_sausage_mask_preserves_size" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "ObliqueFinderTestSuite/find_oblique_null_mask_returns_nullopt" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "CoreImageIdTestSuite" has passed with:
+    7 test cases out of 7 passed
+    20 assertions out of 20 passed
+
+    Test case "CoreImageIdTestSuite/test_default_constructor_is_null" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "CoreImageIdTestSuite/test_constructor_with_path" has passed with:
+      5 assertions out of 5 passed
+
+    Test case "CoreImageIdTestSuite/test_multipage" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "CoreImageIdTestSuite/test_equality" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "CoreImageIdTestSuite/test_ordering" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "CoreImageIdTestSuite/test_from_qfileinfo" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "CoreImageIdTestSuite/test_setters" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "CoreMarginsTestSuite" has passed with:
+    5 test cases out of 5 passed
+    20 assertions out of 20 passed
+
+    Test case "CoreMarginsTestSuite/test_default_constructor" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CoreMarginsTestSuite/test_value_constructor" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CoreMarginsTestSuite/test_setters" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CoreMarginsTestSuite/test_xml_roundtrip" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CoreMarginsTestSuite/test_from_xml_attributes" has passed with:
+      4 assertions out of 4 passed
+
+  Test suite "CorePageIdTestSuite" has passed with:
+    6 test cases out of 6 passed
+    24 assertions out of 24 passed
+
+    Test case "CorePageIdTestSuite/test_default_constructor_is_null" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "CorePageIdTestSuite/test_subpage_to_string" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "CorePageIdTestSuite/test_subpage_from_string" has passed with:
+      9 assertions out of 9 passed
+
+    Test case "CorePageIdTestSuite/test_constructor_with_image_id" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CorePageIdTestSuite/test_equality" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "CorePageIdTestSuite/test_ordering" has passed with:
+      4 assertions out of 4 passed
+
+  Test suite "CorePageRangeTestSuite" has passed with:
+    4 test cases out of 4 passed
+    12 assertions out of 12 passed
+
+    Test case "CorePageRangeTestSuite/test_select_every_other_empty_range" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "CorePageRangeTestSuite/test_select_every_other_base_not_in_range" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "CorePageRangeTestSuite/test_select_every_other_alternates" has passed with:
+      8 assertions out of 8 passed
+
+    Test case "CorePageRangeTestSuite/test_select_every_other_single_page" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "PageSequenceTestSuite" has passed with:
+    3 test cases out of 3 passed
+    227 assertions out of 227 passed
+
+    Test case "PageSequenceTestSuite/select_this_page_and_following_every_other_from_first" has passed with:
+      76 assertions out of 76 passed
+
+    Test case "PageSequenceTestSuite/select_this_page_and_following_every_other_from_second" has passed with:
+      76 assertions out of 76 passed
+
+    Test case "PageSequenceTestSuite/select_this_page_and_following_every_other_partitions_75_pages" has passed with:
+      75 assertions out of 75 passed
+
+  Test suite "SelectContentApplyTestSuite" has passed with:
+    3 test cases out of 3 passed
+    6 assertions out of 6 passed
+
+    Test case "SelectContentApplyTestSuite/apply_content_box_auto_forces_recompute" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SelectContentApplyTestSuite/same_mode_auto_no_content_box_update" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SelectContentApplyTestSuite/different_outlines_force_content_box_update" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "SmartFilenameOrderingTestSuite" has passed with:
+    6 test cases out of 6 passed
+    11 assertions out of 11 passed
+
+    Test case "SmartFilenameOrderingTestSuite/test_same_file" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "SmartFilenameOrderingTestSuite/test_dirs_different" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SmartFilenameOrderingTestSuite/test_simple_case" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SmartFilenameOrderingTestSuite/test_avg_case" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SmartFilenameOrderingTestSuite/test_compex_case" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SmartFilenameOrderingTestSuite/test_almost_equal" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "CoreUnitsTestSuite" has passed with:
+    4 test cases out of 4 passed
+    14 assertions out of 14 passed
+
+    Test case "CoreUnitsTestSuite/test_units_to_string" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CoreUnitsTestSuite/test_units_from_string" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "CoreUnitsTestSuite/test_units_from_string_defaults_to_mm" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "CoreUnitsTestSuite/test_units_to_localized_string" has passed with:
+      4 assertions out of 4 passed
+
+exit status: 0
+
+## foundation_tests
+
+$ ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/foundation_tests --log_level=test_suite --report_level=detailed
+Running 22 test cases...
+Entering test module "Master Test Suite"
+{repo}/src/foundation/tests/TestConstants.cpp:9: Entering test suite "FoundationConstantsTestSuite"
+{repo}/src/foundation/tests/TestConstants.cpp:11: Entering test case "test_pi"
+{repo}/src/foundation/tests/TestConstants.cpp:11: Leaving test case "test_pi"; testing time: 49us
+{repo}/src/foundation/tests/TestConstants.cpp:15: Entering test case "test_sqrt_2"
+{repo}/src/foundation/tests/TestConstants.cpp:15: Leaving test case "test_sqrt_2"; testing time: 30us
+{repo}/src/foundation/tests/TestConstants.cpp:19: Entering test case "test_deg2rad_rad2deg"
+{repo}/src/foundation/tests/TestConstants.cpp:19: Leaving test case "test_deg2rad_rad2deg"; testing time: 28us
+{repo}/src/foundation/tests/TestConstants.cpp:24: Entering test case "test_inch_mm_conversion"
+{repo}/src/foundation/tests/TestConstants.cpp:24: Leaving test case "test_inch_mm_conversion"; testing time: 26us
+{repo}/src/foundation/tests/TestConstants.cpp:29: Entering test case "test_dpi_dpm_conversion"
+{repo}/src/foundation/tests/TestConstants.cpp:29: Leaving test case "test_dpi_dpm_conversion"; testing time: 26us
+{repo}/src/foundation/tests/TestConstants.cpp:9: Leaving test suite "FoundationConstantsTestSuite"; testing time: 227us
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:10: Entering test suite "FoundationLineIntersectionScalarTestSuite"
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:12: Entering test case "test_intersecting_lines"
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:12: Leaving test case "test_intersecting_lines"; testing time: 36us
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:28: Entering test case "test_parallel_lines"
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:28: Leaving test case "test_parallel_lines"; testing time: 26us
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:36: Entering test case "test_overlapping_lines"
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:36: Leaving test case "test_overlapping_lines"; testing time: 25us
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:44: Entering test case "test_single_param_overload"
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:44: Leaving test case "test_single_param_overload"; testing time: 26us
+{repo}/src/foundation/tests/TestLineIntersectionScalar.cpp:10: Leaving test suite "FoundationLineIntersectionScalarTestSuite"; testing time: 165us
+{repo}/src/foundation/tests/TestProximity.cpp:10: Entering test suite "FoundationProximityTestSuite"
+{repo}/src/foundation/tests/TestProximity.cpp:12: Entering test case "test_default_constructor"
+{repo}/src/foundation/tests/TestProximity.cpp:12: Leaving test case "test_default_constructor"; testing time: 27us
+{repo}/src/foundation/tests/TestProximity.cpp:18: Entering test case "test_two_points"
+{repo}/src/foundation/tests/TestProximity.cpp:18: Leaving test case "test_two_points"; testing time: 54us
+{repo}/src/foundation/tests/TestProximity.cpp:26: Entering test case "test_same_point"
+{repo}/src/foundation/tests/TestProximity.cpp:26: Leaving test case "test_same_point"; testing time: 34us
+{repo}/src/foundation/tests/TestProximity.cpp:33: Entering test case "test_from_dist"
+{repo}/src/foundation/tests/TestProximity.cpp:33: Leaving test case "test_from_dist"; testing time: 28us
+{repo}/src/foundation/tests/TestProximity.cpp:39: Entering test case "test_from_sq_dist"
+{repo}/src/foundation/tests/TestProximity.cpp:39: Leaving test case "test_from_sq_dist"; testing time: 32us
+{repo}/src/foundation/tests/TestProximity.cpp:45: Entering test case "test_comparison_operators"
+{repo}/src/foundation/tests/TestProximity.cpp:45: Leaving test case "test_comparison_operators"; testing time: 29us
+{repo}/src/foundation/tests/TestProximity.cpp:57: Entering test case "test_point_and_line_segment_perpendicular"
+{repo}/src/foundation/tests/TestProximity.cpp:57: Leaving test case "test_point_and_line_segment_perpendicular"; testing time: 39us
+{repo}/src/foundation/tests/TestProximity.cpp:67: Entering test case "test_point_and_line_segment_endpoint_closest"
+{repo}/src/foundation/tests/TestProximity.cpp:67: Leaving test case "test_point_and_line_segment_endpoint_closest"; testing time: 30us
+{repo}/src/foundation/tests/TestProximity.cpp:77: Entering test case "test_point_and_zero_length_segment"
+{repo}/src/foundation/tests/TestProximity.cpp:77: Leaving test case "test_point_and_zero_length_segment"; testing time: 27us
+{repo}/src/foundation/tests/TestProximity.cpp:10: Leaving test suite "FoundationProximityTestSuite"; testing time: 426us
+{repo}/src/foundation/tests/TestUtils.cpp:11: Entering test suite "FoundationUtilsTestSuite"
+{repo}/src/foundation/tests/TestUtils.cpp:13: Entering test case "test_double_to_string_zero"
+{repo}/src/foundation/tests/TestUtils.cpp:13: Leaving test case "test_double_to_string_zero"; testing time: 46us
+{repo}/src/foundation/tests/TestUtils.cpp:17: Entering test case "test_double_to_string_positive"
+{repo}/src/foundation/tests/TestUtils.cpp:17: Leaving test case "test_double_to_string_positive"; testing time: 40us
+{repo}/src/foundation/tests/TestUtils.cpp:23: Entering test case "test_double_to_string_negative"
+{repo}/src/foundation/tests/TestUtils.cpp:23: Leaving test case "test_double_to_string_negative"; testing time: 34us
+{repo}/src/foundation/tests/TestUtils.cpp:29: Entering test case "test_double_to_string_locale_independent"
+{repo}/src/foundation/tests/TestUtils.cpp:29: Leaving test case "test_double_to_string_locale_independent"; testing time: 35us
+{repo}/src/foundation/tests/TestUtils.cpp:11: Leaving test suite "FoundationUtilsTestSuite"; testing time: 212us
+Leaving test module "Master Test Suite"; testing time: 1085us
+
+Test module "Master Test Suite" has passed with:
+  22 test cases out of 22 passed
+  51 assertions out of 51 passed
+
+  Test suite "FoundationConstantsTestSuite" has passed with:
+    5 test cases out of 5 passed
+    8 assertions out of 8 passed
+
+    Test case "FoundationConstantsTestSuite/test_pi" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "FoundationConstantsTestSuite/test_sqrt_2" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "FoundationConstantsTestSuite/test_deg2rad_rad2deg" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationConstantsTestSuite/test_inch_mm_conversion" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationConstantsTestSuite/test_dpi_dpm_conversion" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "FoundationLineIntersectionScalarTestSuite" has passed with:
+    4 test cases out of 4 passed
+    12 assertions out of 12 passed
+
+    Test case "FoundationLineIntersectionScalarTestSuite/test_intersecting_lines" has passed with:
+      7 assertions out of 7 passed
+
+    Test case "FoundationLineIntersectionScalarTestSuite/test_parallel_lines" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "FoundationLineIntersectionScalarTestSuite/test_overlapping_lines" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "FoundationLineIntersectionScalarTestSuite/test_single_param_overload" has passed with:
+      3 assertions out of 3 passed
+
+  Test suite "FoundationProximityTestSuite" has passed with:
+    9 test cases out of 9 passed
+    24 assertions out of 24 passed
+
+    Test case "FoundationProximityTestSuite/test_default_constructor" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationProximityTestSuite/test_two_points" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationProximityTestSuite/test_same_point" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationProximityTestSuite/test_from_dist" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationProximityTestSuite/test_from_sq_dist" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationProximityTestSuite/test_comparison_operators" has passed with:
+      7 assertions out of 7 passed
+
+    Test case "FoundationProximityTestSuite/test_point_and_line_segment_perpendicular" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "FoundationProximityTestSuite/test_point_and_line_segment_endpoint_closest" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "FoundationProximityTestSuite/test_point_and_zero_length_segment" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "FoundationUtilsTestSuite" has passed with:
+    4 test cases out of 4 passed
+    7 assertions out of 7 passed
+
+    Test case "FoundationUtilsTestSuite/test_double_to_string_zero" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "FoundationUtilsTestSuite/test_double_to_string_positive" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationUtilsTestSuite/test_double_to_string_negative" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "FoundationUtilsTestSuite/test_double_to_string_locale_independent" has passed with:
+      2 assertions out of 2 passed
+
+exit status: 0
+
+## math_tests
+
+$ ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/math_tests --log_level=test_suite --report_level=detailed
+Running 32 test cases...
+Entering test module "Master Test Suite"
+{repo}/src/math/tests/TestHessians.cpp:13: Entering test suite "AutomaticDifferentiationTestSuite"
+{repo}/src/math/tests/TestHessians.cpp:15: Entering test case "test1"
+{repo}/src/math/tests/TestHessians.cpp:15: Leaving test case "test1"; testing time: 57us
+{repo}/src/math/tests/TestHessians.cpp:36: Entering test case "test2"
+{repo}/src/math/tests/TestHessians.cpp:36: Leaving test case "test2"; testing time: 31us
+{repo}/src/math/tests/TestHessians.cpp:64: Entering test case "test3"
+{repo}/src/math/tests/TestHessians.cpp:64: Leaving test case "test3"; testing time: 38us
+{repo}/src/math/tests/TestHessians.cpp:13: Leaving test suite "AutomaticDifferentiationTestSuite"; testing time: 168us
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:10: Entering test suite "MathLineBoundedByRectTestSuite"
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:12: Entering test case "test_line_through_rect_center"
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:12: Leaving test case "test_line_through_rect_center"; testing time: 38us
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:23: Entering test case "test_line_through_rect_diagonal"
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:23: Leaving test case "test_line_through_rect_diagonal"; testing time: 30us
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:34: Entering test case "test_line_outside_rect_no_intersection"
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:34: Leaving test case "test_line_outside_rect_no_intersection"; testing time: 28us
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:41: Entering test case "test_vertical_line_through_rect"
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:41: Leaving test case "test_vertical_line_through_rect"; testing time: 28us
+{repo}/src/math/tests/TestLineBoundedByRect.cpp:10: Leaving test suite "MathLineBoundedByRectTestSuite"; testing time: 171us
+{repo}/src/math/tests/TestLinearFunction.cpp:8: Entering test suite "MathLinearFunctionTestSuite"
+{repo}/src/math/tests/TestLinearFunction.cpp:10: Entering test case "test_constructor_num_vars"
+{repo}/src/math/tests/TestLinearFunction.cpp:10: Leaving test case "test_constructor_num_vars"; testing time: 29us
+{repo}/src/math/tests/TestLinearFunction.cpp:17: Entering test case "test_evaluate_linear"
+{repo}/src/math/tests/TestLinearFunction.cpp:17: Leaving test case "test_evaluate_linear"; testing time: 28us
+{repo}/src/math/tests/TestLinearFunction.cpp:28: Entering test case "test_reset"
+{repo}/src/math/tests/TestLinearFunction.cpp:28: Leaving test case "test_reset"; testing time: 28us
+{repo}/src/math/tests/TestLinearFunction.cpp:39: Entering test case "test_operator_plus_equals"
+{repo}/src/math/tests/TestLinearFunction.cpp:39: Leaving test case "test_operator_plus_equals"; testing time: 26us
+{repo}/src/math/tests/TestLinearFunction.cpp:54: Entering test case "test_operator_times_equals_scalar"
+{repo}/src/math/tests/TestLinearFunction.cpp:54: Leaving test case "test_operator_times_equals_scalar"; testing time: 27us
+{repo}/src/math/tests/TestLinearFunction.cpp:65: Entering test case "test_swap"
+{repo}/src/math/tests/TestLinearFunction.cpp:65: Leaving test case "test_swap"; testing time: 27us
+{repo}/src/math/tests/TestLinearFunction.cpp:8: Leaving test suite "MathLinearFunctionTestSuite"; testing time: 236us
+{repo}/src/math/tests/TestMatrixCalc.cpp:11: Entering test suite "MatrixCalcSuite"
+{repo}/src/math/tests/TestMatrixCalc.cpp:13: Entering test case "test1"
+{repo}/src/math/tests/TestMatrixCalc.cpp:13: Leaving test case "test1"; testing time: 32us
+{repo}/src/math/tests/TestMatrixCalc.cpp:30: Entering test case "test2"
+{repo}/src/math/tests/TestMatrixCalc.cpp:30: Leaving test case "test2"; testing time: 151us
+{repo}/src/math/tests/TestMatrixCalc.cpp:51: Entering test case "test3"
+{repo}/src/math/tests/TestMatrixCalc.cpp:51: Leaving test case "test3"; testing time: 28us
+{repo}/src/math/tests/TestMatrixCalc.cpp:66: Entering test case "test4"
+{repo}/src/math/tests/TestMatrixCalc.cpp:66: Leaving test case "test4"; testing time: 26us
+{repo}/src/math/tests/TestMatrixCalc.cpp:11: Leaving test suite "MatrixCalcSuite"; testing time: 278us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:8: Entering test suite "MathQuadraticFunctionTestSuite"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:10: Entering test case "test_constructor"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:10: Leaving test case "test_constructor"; testing time: 26us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:19: Entering test case "test_evaluate_quadratic"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:19: Leaving test case "test_evaluate_quadratic"; testing time: 27us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:32: Entering test case "test_reset"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:32: Leaving test case "test_reset"; testing time: 26us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:43: Entering test case "test_operator_plus_equals"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:43: Leaving test case "test_operator_plus_equals"; testing time: 30us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:60: Entering test case "test_operator_times_equals_scalar"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:60: Leaving test case "test_operator_times_equals_scalar"; testing time: 31us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:71: Entering test case "test_gradient"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:71: Leaving test case "test_gradient"; testing time: 32us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:87: Entering test case "test_recalc_for_translated_arguments"
+{repo}/src/math/tests/TestQuadraticFunction.cpp:87: Leaving test case "test_recalc_for_translated_arguments"; testing time: 28us
+{repo}/src/math/tests/TestQuadraticFunction.cpp:8: Leaving test suite "MathQuadraticFunctionTestSuite"; testing time: 285us
+{repo}/src/math/tests/TestSidesOfLine.cpp:10: Entering test suite "MathSidesOfLineTestSuite"
+{repo}/src/math/tests/TestSidesOfLine.cpp:12: Entering test case "test_points_on_same_side_positive"
+{repo}/src/math/tests/TestSidesOfLine.cpp:12: Leaving test case "test_points_on_same_side_positive"; testing time: 26us
+{repo}/src/math/tests/TestSidesOfLine.cpp:20: Entering test case "test_points_on_opposite_sides"
+{repo}/src/math/tests/TestSidesOfLine.cpp:20: Leaving test case "test_points_on_opposite_sides"; testing time: 26us
+{repo}/src/math/tests/TestSidesOfLine.cpp:28: Entering test case "test_point_on_line_returns_zero"
+{repo}/src/math/tests/TestSidesOfLine.cpp:28: Leaving test case "test_point_on_line_returns_zero"; testing time: 24us
+{repo}/src/math/tests/TestSidesOfLine.cpp:36: Entering test case "test_both_points_on_line_returns_zero"
+{repo}/src/math/tests/TestSidesOfLine.cpp:36: Leaving test case "test_both_points_on_line_returns_zero"; testing time: 26us
+{repo}/src/math/tests/TestSidesOfLine.cpp:44: Entering test case "test_diagonal_line_same_side"
+{repo}/src/math/tests/TestSidesOfLine.cpp:44: Leaving test case "test_diagonal_line_same_side"; testing time: 26us
+{repo}/src/math/tests/TestSidesOfLine.cpp:10: Leaving test suite "MathSidesOfLineTestSuite"; testing time: 177us
+{repo}/src/math/tests/TestSqDistApproximant.cpp:16: Entering test suite "SqDistApproximantTestSuite"
+{repo}/src/math/tests/TestSqDistApproximant.cpp:25: Entering test case "test_point_distance"
+{repo}/src/math/tests/TestSqDistApproximant.cpp:25: Leaving test case "test_point_distance"; testing time: 1221us
+{repo}/src/math/tests/TestSqDistApproximant.cpp:37: Entering test case "test_line_distance"
+{repo}/src/math/tests/TestSqDistApproximant.cpp:37: Leaving test case "test_line_distance"; testing time: 1461us
+{repo}/src/math/tests/TestSqDistApproximant.cpp:53: Entering test case "test_general_case"
+{repo}/src/math/tests/TestSqDistApproximant.cpp:53: Leaving test case "test_general_case"; testing time: 1288us
+{repo}/src/math/tests/TestSqDistApproximant.cpp:16: Leaving test suite "SqDistApproximantTestSuite"; testing time: 4004us
+Leaving test module "Master Test Suite"; testing time: 5405us
+
+Test module "Master Test Suite" has passed with:
+  32 test cases out of 32 passed
+  3104 assertions out of 3104 passed
+
+  Test suite "AutomaticDifferentiationTestSuite" has passed with:
+    3 test cases out of 3 passed
+    17 assertions out of 17 passed
+
+    Test case "AutomaticDifferentiationTestSuite/test1" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "AutomaticDifferentiationTestSuite/test2" has passed with:
+      7 assertions out of 7 passed
+
+    Test case "AutomaticDifferentiationTestSuite/test3" has passed with:
+      7 assertions out of 7 passed
+
+  Test suite "MathLineBoundedByRectTestSuite" has passed with:
+    4 test cases out of 4 passed
+    16 assertions out of 16 passed
+
+    Test case "MathLineBoundedByRectTestSuite/test_line_through_rect_center" has passed with:
+      5 assertions out of 5 passed
+
+    Test case "MathLineBoundedByRectTestSuite/test_line_through_rect_diagonal" has passed with:
+      5 assertions out of 5 passed
+
+    Test case "MathLineBoundedByRectTestSuite/test_line_outside_rect_no_intersection" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MathLineBoundedByRectTestSuite/test_vertical_line_through_rect" has passed with:
+      5 assertions out of 5 passed
+
+  Test suite "MathLinearFunctionTestSuite" has passed with:
+    6 test cases out of 6 passed
+    18 assertions out of 18 passed
+
+    Test case "MathLinearFunctionTestSuite/test_constructor_num_vars" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MathLinearFunctionTestSuite/test_evaluate_linear" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MathLinearFunctionTestSuite/test_reset" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MathLinearFunctionTestSuite/test_operator_plus_equals" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MathLinearFunctionTestSuite/test_operator_times_equals_scalar" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MathLinearFunctionTestSuite/test_swap" has passed with:
+      4 assertions out of 4 passed
+
+  Test suite "MatrixCalcSuite" has passed with:
+    4 test cases out of 4 passed
+    24 assertions out of 24 passed
+
+    Test case "MatrixCalcSuite/test1" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MatrixCalcSuite/test2" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "MatrixCalcSuite/test3" has passed with:
+      9 assertions out of 9 passed
+
+    Test case "MatrixCalcSuite/test4" has passed with:
+      8 assertions out of 8 passed
+
+  Test suite "MathQuadraticFunctionTestSuite" has passed with:
+    7 test cases out of 7 passed
+    24 assertions out of 24 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_constructor" has passed with:
+      5 assertions out of 5 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_evaluate_quadratic" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_reset" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_operator_plus_equals" has passed with:
+      5 assertions out of 5 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_operator_times_equals_scalar" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_gradient" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "MathQuadraticFunctionTestSuite/test_recalc_for_translated_arguments" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "MathSidesOfLineTestSuite" has passed with:
+    5 test cases out of 5 passed
+    5 assertions out of 5 passed
+
+    Test case "MathSidesOfLineTestSuite/test_points_on_same_side_positive" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MathSidesOfLineTestSuite/test_points_on_opposite_sides" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MathSidesOfLineTestSuite/test_point_on_line_returns_zero" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MathSidesOfLineTestSuite/test_both_points_on_line_returns_zero" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MathSidesOfLineTestSuite/test_diagonal_line_same_side" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "SqDistApproximantTestSuite" has passed with:
+    3 test cases out of 3 passed
+    3000 assertions out of 3000 passed
+
+    Test case "SqDistApproximantTestSuite/test_point_distance" has passed with:
+      1000 assertions out of 1000 passed
+
+    Test case "SqDistApproximantTestSuite/test_line_distance" has passed with:
+      1000 assertions out of 1000 passed
+
+    Test case "SqDistApproximantTestSuite/test_general_case" has passed with:
+      1000 assertions out of 1000 passed
+
+exit status: 0
+
+## imageproc_tests
+
+$ ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/imageproc_tests --log_level=test_suite --report_level=detailed
+Running 94 test cases...
+Entering test module "Master Test Suite"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:17: Entering test suite "BinaryImageTestSuite"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:19: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:19: Leaving test case "test_null_image"; testing time: 50us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:24: Entering test case "test_from_to_qimage"
+{repo}/src/imageproc/BinaryImage.cpp:1044:37: runtime error: member access within null pointer of type 'SharedData'
+    #0 0x00010062c7c4 in imageproc::BinaryImage::SharedData::operator new(unsigned long, imageproc::BinaryImage::SharedData::NumWords) BinaryImage.cpp:1044
+    #1 0x000100613744 in imageproc::BinaryImage::SharedData::create(unsigned long) BinaryImage.cpp:39
+    #2 0x000100613520 in imageproc::BinaryImage::BinaryImage(int, int) BinaryImage.cpp:70
+    #3 0x000100613950 in imageproc::BinaryImage::BinaryImage(int, int) BinaryImage.cpp:68
+    #4 0x000100616ad4 in imageproc::BinaryImage::fromMono(QImage const&) BinaryImage.cpp:612
+    #5 0x000100616000 in imageproc::BinaryImage::BinaryImage(QImage const&, imageproc::BinaryThreshold) BinaryImage.cpp:123
+    #6 0x00010061cd74 in imageproc::BinaryImage::BinaryImage(QImage const&, imageproc::BinaryThreshold) BinaryImage.cpp:116
+    #7 0x0001004916d0 in imageproc::tests::BinaryImageTestSuite::test_from_to_qimage::test_method() TestBinaryImage.cpp:46
+    #8 0x000100490348 in imageproc::tests::BinaryImageTestSuite::test_from_to_qimage_invoker() TestBinaryImage.cpp:24
+    #9 0x0001004ab540 in boost::detail::function::void_function_invoker<void (*)(), void>::invoke(boost::detail::function::function_buffer&) function_template.hpp:59
+    #10 0x000100d737b4 in boost::detail::function::function_obj_invoker<boost::detail::forward, int>::invoke(boost::detail::function::function_buffer&)+0x28 (libboost_unit_test_framework.dylib:arm64+0xb7b4)
+    #11 0x000100d70bf0 in boost::execution_monitor::catch_signals(boost::function<int ()> const&)+0xdc (libboost_unit_test_framework.dylib:arm64+0x8bf0)
+    #12 0x000100d70d28 in boost::execution_monitor::execute(boost::function<int ()> const&)+0x30 (libboost_unit_test_framework.dylib:arm64+0x8d28)
+    #13 0x000100d7182c in boost::execution_monitor::vexecute(boost::function<void ()> const&)+0x28 (libboost_unit_test_framework.dylib:arm64+0x982c)
+    #14 0x000100d98358 in boost::unit_test::unit_test_monitor_t::execute_and_translate(boost::function<void ()> const&, unsigned long)+0x124 (libboost_unit_test_framework.dylib:arm64+0x30358)
+    #15 0x000100d7b670 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0x9f8 (libboost_unit_test_framework.dylib:arm64+0x13670)
+    #16 0x000100d7b7b8 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0xb40 (libboost_unit_test_framework.dylib:arm64+0x137b8)
+    #17 0x000100d7b7b8 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0xb40 (libboost_unit_test_framework.dylib:arm64+0x137b8)
+    #18 0x000100d79ca0 in boost::unit_test::framework::run(unsigned long, bool)+0x900 (libboost_unit_test_framework.dylib:arm64+0x11ca0)
+    #19 0x000100d9712c in boost::unit_test::unit_test_main(bool (*)(), int, char**)+0x2cc (libboost_unit_test_framework.dylib:arm64+0x2f12c)
+    #20 0x00010048cac4 in main unit_test.hpp:65
+    #21 0x000184bd84e0 in start+0x1b4c (dyld:arm64e+0x204e0)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior {repo}/src/imageproc/BinaryImage.cpp:1044:37 
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:24: Leaving test case "test_from_to_qimage"; testing time: 102681us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:57: Entering test case "test_full_fill"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:57: Leaving test case "test_full_fill"; testing time: 197us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:75: Entering test case "test_partial_fill_small"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:75: Leaving test case "test_partial_fill_small"; testing time: 254us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:90: Entering test case "test_partial_fill_large"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:90: Leaving test case "test_partial_fill_large"; testing time: 175us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:105: Entering test case "test_fill_except"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:105: Leaving test case "test_fill_except"; testing time: 191us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:122: Entering test case "test_content_bounding_box4"
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:122: Leaving test case "test_content_bounding_box4"; testing time: 37us
+{repo}/src/imageproc/tests/TestBinaryImage.cpp:17: Leaving test suite "BinaryImageTestSuite"; testing time: 103707us
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:16: Entering test suite "ReduceThresholdTestSuite"
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:18: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:18: Leaving test case "test_null_image"; testing time: 32us
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:22: Entering test case "test_small_image"
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:22: Leaving test case "test_small_image"; testing time: 58us
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:43: Entering test case "test_lines"
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:43: Leaving test case "test_lines"; testing time: 71us
+{repo}/src/imageproc/tests/TestReduceThreshold.cpp:16: Leaving test suite "ReduceThresholdTestSuite"; testing time: 198us
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:30: Entering test suite "SlicedHistogramTestSuite"
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:32: Entering test case "test_null_image"
+{repo}/src/imageproc/SlicedHistogram.cpp:49:47: runtime error: left shift of negative value -1
+    #0 0x00010062f44c in imageproc::SlicedHistogram::processHorizontalLines(imageproc::BinaryImage const&, QRect const&) SlicedHistogram.cpp:49
+    #1 0x00010062edec in imageproc::SlicedHistogram::SlicedHistogram(imageproc::BinaryImage const&, imageproc::SlicedHistogram::Type) SlicedHistogram.cpp:17
+    #2 0x000100630abc in imageproc::SlicedHistogram::SlicedHistogram(imageproc::BinaryImage const&, imageproc::SlicedHistogram::Type) SlicedHistogram.cpp:14
+    #3 0x0001004bbf10 in imageproc::tests::SlicedHistogramTestSuite::test_null_image::test_method() TestSlicedHistogram.cpp:35
+    #4 0x0001004bb35c in imageproc::tests::SlicedHistogramTestSuite::test_null_image_invoker() TestSlicedHistogram.cpp:32
+    #5 0x0001004ab540 in boost::detail::function::void_function_invoker<void (*)(), void>::invoke(boost::detail::function::function_buffer&) function_template.hpp:59
+    #6 0x000100d737b4 in boost::detail::function::function_obj_invoker<boost::detail::forward, int>::invoke(boost::detail::function::function_buffer&)+0x28 (libboost_unit_test_framework.dylib:arm64+0xb7b4)
+    #7 0x000100d70bf0 in boost::execution_monitor::catch_signals(boost::function<int ()> const&)+0xdc (libboost_unit_test_framework.dylib:arm64+0x8bf0)
+    #8 0x000100d70d28 in boost::execution_monitor::execute(boost::function<int ()> const&)+0x30 (libboost_unit_test_framework.dylib:arm64+0x8d28)
+    #9 0x000100d7182c in boost::execution_monitor::vexecute(boost::function<void ()> const&)+0x28 (libboost_unit_test_framework.dylib:arm64+0x982c)
+    #10 0x000100d98358 in boost::unit_test::unit_test_monitor_t::execute_and_translate(boost::function<void ()> const&, unsigned long)+0x124 (libboost_unit_test_framework.dylib:arm64+0x30358)
+    #11 0x000100d7b670 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0x9f8 (libboost_unit_test_framework.dylib:arm64+0x13670)
+    #12 0x000100d7b7b8 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0xb40 (libboost_unit_test_framework.dylib:arm64+0x137b8)
+    #13 0x000100d7b7b8 in boost::unit_test::framework::state::execute_test_tree(unsigned long, unsigned long, boost::unit_test::framework::state::random_generator_helper const*)+0xb40 (libboost_unit_test_framework.dylib:arm64+0x137b8)
+    #14 0x000100d79ca0 in boost::unit_test::framework::run(unsigned long, bool)+0x900 (libboost_unit_test_framework.dylib:arm64+0x11ca0)
+    #15 0x000100d9712c in boost::unit_test::unit_test_main(bool (*)(), int, char**)+0x2cc (libboost_unit_test_framework.dylib:arm64+0x2f12c)
+    #16 0x00010048cac4 in main unit_test.hpp:65
+    #17 0x000184bd84e0 in start+0x1b4c (dyld:arm64e+0x204e0)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior {repo}/src/imageproc/SlicedHistogram.cpp:49:47 
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:32: Leaving test case "test_null_image"; testing time: 2622us
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:42: Entering test case "test_exceeding_area"
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:42: Leaving test case "test_exceeding_area"; testing time: 242us
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:49: Entering test case "test_small_image"
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:49: Leaving test case "test_small_image"; testing time: 72us
+{repo}/src/imageproc/tests/TestSlicedHistogram.cpp:30: Leaving test suite "SlicedHistogramTestSuite"; testing time: 2983us
+{repo}/src/imageproc/tests/TestConnCompEraser.cpp:19: Entering test suite "ConnCompEraserTestSuite"
+{repo}/src/imageproc/tests/TestConnCompEraser.cpp:21: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestConnCompEraser.cpp:21: Leaving test case "test_null_image"; testing time: 39us
+{repo}/src/imageproc/tests/TestConnCompEraser.cpp:26: Entering test case "test_small_image"
+{repo}/src/imageproc/tests/TestConnCompEraser.cpp:26: Leaving test case "test_small_image"; testing time: 129us
+{repo}/src/imageproc/tests/TestConnCompEraser.cpp:19: Leaving test suite "ConnCompEraserTestSuite"; testing time: 198us
+{repo}/src/imageproc/tests/TestConnCompEraserExt.cpp:21: Entering test suite "ConnCompEraserExtTestSuite"
+{repo}/src/imageproc/tests/TestConnCompEraserExt.cpp:23: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestConnCompEraserExt.cpp:23: Leaving test case "test_null_image"; testing time: 29us
+{repo}/src/imageproc/tests/TestConnCompEraserExt.cpp:56: Entering test case "test_small_image"
+{repo}/src/imageproc/tests/TestConnCompEraserExt.cpp:56: Leaving test case "test_small_image"; testing time: 246us
+{repo}/src/imageproc/tests/TestConnCompEraserExt.cpp:21: Leaving test suite "ConnCompEraserExtTestSuite"; testing time: 298us
+{repo}/src/imageproc/tests/TestDpi.cpp:12: Entering test suite "ImageProcDpiTestSuite"
+{repo}/src/imageproc/tests/TestDpi.cpp:14: Entering test case "test_default_constructor_is_null"
+{repo}/src/imageproc/tests/TestDpi.cpp:14: Leaving test case "test_default_constructor_is_null"; testing time: 34us
+{repo}/src/imageproc/tests/TestDpi.cpp:20: Entering test case "test_value_constructor"
+{repo}/src/imageproc/tests/TestDpi.cpp:20: Leaving test case "test_value_constructor"; testing time: 31us
+{repo}/src/imageproc/tests/TestDpi.cpp:27: Entering test case "test_equality"
+{repo}/src/imageproc/tests/TestDpi.cpp:27: Leaving test case "test_equality"; testing time: 28us
+{repo}/src/imageproc/tests/TestDpi.cpp:35: Entering test case "test_to_size"
+{repo}/src/imageproc/tests/TestDpi.cpp:35: Leaving test case "test_to_size"; testing time: 28us
+{repo}/src/imageproc/tests/TestDpi.cpp:42: Entering test case "test_to_size_null_returns_empty"
+{repo}/src/imageproc/tests/TestDpi.cpp:42: Leaving test case "test_to_size_null_returns_empty"; testing time: 31us
+{repo}/src/imageproc/tests/TestDpi.cpp:48: Entering test case "test_from_qsize"
+{repo}/src/imageproc/tests/TestDpi.cpp:48: Leaving test case "test_from_qsize"; testing time: 26us
+{repo}/src/imageproc/tests/TestDpi.cpp:55: Entering test case "test_xml_roundtrip"
+{repo}/src/imageproc/tests/TestDpi.cpp:55: Leaving test case "test_xml_roundtrip"; testing time: 104us
+{repo}/src/imageproc/tests/TestDpi.cpp:67: Entering test case "test_from_xml_attributes"
+{repo}/src/imageproc/tests/TestDpi.cpp:67: Leaving test case "test_from_xml_attributes"; testing time: 52us
+{repo}/src/imageproc/tests/TestDpi.cpp:77: Entering test case "test_from_dpm"
+{repo}/src/imageproc/tests/TestDpi.cpp:77: Leaving test case "test_from_dpm"; testing time: 39us
+{repo}/src/imageproc/tests/TestDpi.cpp:12: Leaving test suite "ImageProcDpiTestSuite"; testing time: 487us
+{repo}/src/imageproc/tests/TestGrayscale.cpp:16: Entering test suite "GrayscaleTestSuite"
+{repo}/src/imageproc/tests/TestGrayscale.cpp:18: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestGrayscale.cpp:18: Leaving test case "test_null_image"; testing time: 29us
+{repo}/src/imageproc/tests/TestGrayscale.cpp:22: Entering test case "test_mono_to_grayscale"
+{repo}/src/imageproc/tests/TestGrayscale.cpp:22: Leaving test case "test_mono_to_grayscale"; testing time: 247us
+{repo}/src/imageproc/tests/TestGrayscale.cpp:44: Entering test case "test_argb32_to_grayscale"
+{repo}/src/imageproc/tests/TestGrayscale.cpp:44: Leaving test case "test_argb32_to_grayscale"; testing time: 169us
+{repo}/src/imageproc/tests/TestGrayscale.cpp:16: Leaving test suite "GrayscaleTestSuite"; testing time: 484us
+{repo}/src/imageproc/tests/TestRasterOp.cpp:20: Entering test suite "RasterOpTestSuite"
+{repo}/src/imageproc/tests/TestRasterOp.cpp:35: Entering test case "test_small_image"
+{repo}/src/imageproc/tests/TestRasterOp.cpp:35: Leaving test case "test_small_image"; testing time: 49us
+{repo}/src/imageproc/tests/TestRasterOp.cpp:116: Entering test case "test_large_image"
+{repo}/src/imageproc/tests/TestRasterOp.cpp:116: Leaving test case "test_large_image"; testing time: 21138us
+{repo}/src/imageproc/tests/TestRasterOp.cpp:152: Entering test case "test_move_blocks"
+{repo}/src/imageproc/tests/TestRasterOp.cpp:152: Leaving test case "test_move_blocks"; testing time: 5878us
+{repo}/src/imageproc/tests/TestRasterOp.cpp:20: Leaving test suite "RasterOpTestSuite"; testing time: 27176us
+{repo}/src/imageproc/tests/TestShear.cpp:17: Entering test suite "ShearTestSuite"
+{repo}/src/imageproc/tests/TestShear.cpp:19: Entering test case "test_small_image"
+{repo}/src/imageproc/tests/TestShear.cpp:19: Leaving test case "test_small_image"; testing time: 154us
+{repo}/src/imageproc/tests/TestShear.cpp:17: Leaving test suite "ShearTestSuite"; testing time: 168us
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:17: Entering test suite "OrthogonalRotationTestSuite"
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:19: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:19: Leaving test case "test_null_image"; testing time: 28us
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:24: Entering test case "test_full_image"
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:24: Leaving test case "test_full_image"; testing time: 67us
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:56: Entering test case "test_sub_image"
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:56: Leaving test case "test_sub_image"; testing time: 64us
+{repo}/src/imageproc/tests/TestOrthogonalRotation.cpp:17: Leaving test suite "OrthogonalRotationTestSuite"; testing time: 205us
+{repo}/src/imageproc/tests/TestSkewFinder.cpp:18: Entering test suite "SkewFinderTestSuite"
+{repo}/src/imageproc/tests/TestSkewFinder.cpp:20: Entering test case "test_positive_detection"
+{repo}/src/imageproc/tests/TestSkewFinder.cpp:20: Leaving test case "test_positive_detection"; testing time: 210704us
+{repo}/src/imageproc/tests/TestSkewFinder.cpp:51: Entering test case "test_negative_detection"
+{repo}/src/imageproc/tests/TestSkewFinder.cpp:51: Leaving test case "test_negative_detection"; testing time: 37334us
+{repo}/src/imageproc/tests/TestSkewFinder.cpp:18: Leaving test suite "SkewFinderTestSuite"; testing time: 248149us
+{repo}/src/imageproc/tests/TestScale.cpp:20: Entering test suite "ScaleTestSuite"
+{repo}/src/imageproc/tests/TestScale.cpp:22: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestScale.cpp:22: Leaving test case "test_null_image"; testing time: 179us
+{repo}/src/imageproc/tests/TestScale.cpp:55: Entering test case "test_random_image"
+{repo}/src/imageproc/tests/TestScale.cpp:68: error: in "ScaleTestSuite/test_random_image": check checkScale(img, QSize(50, 50)) has failed
+{repo}/src/imageproc/tests/TestScale.cpp:70: error: in "ScaleTestSuite/test_random_image": check checkScale(img, QSize(80, 80)) has failed
+{repo}/src/imageproc/tests/TestScale.cpp:55: Leaving test case "test_random_image"; testing time: 866us
+{repo}/src/imageproc/tests/TestScale.cpp:20: Leaving test suite "ScaleTestSuite"; testing time: 1070us
+{repo}/src/imageproc/tests/TestTransform.cpp:20: Entering test suite "TransformTestSuite"
+{repo}/src/imageproc/tests/TestTransform.cpp:22: Entering test case "test_null_image"
+{repo}/src/imageproc/tests/TestTransform.cpp:22: Leaving test case "test_null_image"; testing time: 40us
+{repo}/src/imageproc/tests/TestTransform.cpp:31: Entering test case "test_random_image"
+{repo}/src/imageproc/tests/TestTransform.cpp:31: Leaving test case "test_random_image"; testing time: 797us
+{repo}/src/imageproc/tests/TestTransform.cpp:20: Leaving test suite "TransformTestSuite"; testing time: 861us
+{repo}/src/imageproc/tests/TestMorphology.cpp:20: Entering test suite "MorphologyTestSuite"
+{repo}/src/imageproc/tests/TestMorphology.cpp:22: Entering test case "test_dilate_1x1"
+{repo}/src/imageproc/tests/TestMorphology.cpp:22: Leaving test case "test_dilate_1x1"; testing time: 78us
+{repo}/src/imageproc/tests/TestMorphology.cpp:31: Entering test case "test_dilate_1x1_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:31: Leaving test case "test_dilate_1x1_gray"; testing time: 85us
+{repo}/src/imageproc/tests/TestMorphology.cpp:40: Entering test case "test_dilate_1x1_shift_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:40: Leaving test case "test_dilate_1x1_shift_black"; testing time: 49us
+{repo}/src/imageproc/tests/TestMorphology.cpp:55: Entering test case "test_dilate_1x1_shift_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:55: Leaving test case "test_dilate_1x1_shift_gray"; testing time: 102us
+{repo}/src/imageproc/tests/TestMorphology.cpp:69: Entering test case "test_dilate_3x1_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:69: Leaving test case "test_dilate_3x1_gray"; testing time: 106us
+{repo}/src/imageproc/tests/TestMorphology.cpp:83: Entering test case "test_dilate_1x3_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:83: Leaving test case "test_dilate_1x3_gray"; testing time: 101us
+{repo}/src/imageproc/tests/TestMorphology.cpp:97: Entering test case "test_dilate_1x20_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:97: Leaving test case "test_dilate_1x20_gray"; testing time: 107us
+{repo}/src/imageproc/tests/TestMorphology.cpp:111: Entering test case "test_dilate_3x3_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:111: Leaving test case "test_dilate_3x3_white"; testing time: 74us
+{repo}/src/imageproc/tests/TestMorphology.cpp:126: Entering test case "test_dilate_3x3_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:126: Leaving test case "test_dilate_3x3_gray"; testing time: 130us
+{repo}/src/imageproc/tests/TestMorphology.cpp:140: Entering test case "test_dilate_3x3_gray_shrinked"
+{repo}/src/imageproc/tests/TestMorphology.cpp:140: Leaving test case "test_dilate_3x3_gray_shrinked"; testing time: 105us
+{repo}/src/imageproc/tests/TestMorphology.cpp:154: Entering test case "test_open_1x2_gray"
+{repo}/src/imageproc/tests/TestMorphology.cpp:154: Leaving test case "test_open_1x2_gray"; testing time: 135us
+{repo}/src/imageproc/tests/TestMorphology.cpp:168: Entering test case "test_dilate_5x5_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:168: Leaving test case "test_dilate_5x5_white"; testing time: 70us
+{repo}/src/imageproc/tests/TestMorphology.cpp:183: Entering test case "test_dilate_3x3_narrowing_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:183: Leaving test case "test_dilate_3x3_narrowing_white"; testing time: 58us
+{repo}/src/imageproc/tests/TestMorphology.cpp:198: Entering test case "test_dilate_5x5_narrowing_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:198: Leaving test case "test_dilate_5x5_narrowing_white"; testing time: 65us
+{repo}/src/imageproc/tests/TestMorphology.cpp:220: Entering test case "test_dilate_3x3_narrowing_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:220: Leaving test case "test_dilate_3x3_narrowing_black"; testing time: 106us
+{repo}/src/imageproc/tests/TestMorphology.cpp:235: Entering test case "test_dilate_3x3_widening_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:235: Leaving test case "test_dilate_3x3_widening_white"; testing time: 80us
+{repo}/src/imageproc/tests/TestMorphology.cpp:254: Entering test case "test_dilate_3x3_widening_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:254: Leaving test case "test_dilate_3x3_widening_black"; testing time: 74us
+{repo}/src/imageproc/tests/TestMorphology.cpp:273: Entering test case "test_dilate_3x1_out_of_brick_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:273: Leaving test case "test_dilate_3x1_out_of_brick_white"; testing time: 55us
+{repo}/src/imageproc/tests/TestMorphology.cpp:289: Entering test case "test_dilate_1x3_out_of_brick_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:289: Leaving test case "test_dilate_1x3_out_of_brick_black"; testing time: 67us
+{repo}/src/imageproc/tests/TestMorphology.cpp:305: Entering test case "test_large_dilate"
+{repo}/src/imageproc/tests/TestMorphology.cpp:305: Leaving test case "test_large_dilate"; testing time: 515us
+{repo}/src/imageproc/tests/TestMorphology.cpp:320: Entering test case "test_erode_1x1"
+{repo}/src/imageproc/tests/TestMorphology.cpp:320: Leaving test case "test_erode_1x1"; testing time: 37us
+{repo}/src/imageproc/tests/TestMorphology.cpp:329: Entering test case "test_erode_3x3_assymmetric_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:329: Leaving test case "test_erode_3x3_assymmetric_black"; testing time: 65us
+{repo}/src/imageproc/tests/TestMorphology.cpp:345: Entering test case "test_erode_3x3_assymmetric_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:345: Leaving test case "test_erode_3x3_assymmetric_white"; testing time: 63us
+{repo}/src/imageproc/tests/TestMorphology.cpp:361: Entering test case "test_erode_11x11_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:361: Leaving test case "test_erode_11x11_white"; testing time: 91us
+{repo}/src/imageproc/tests/TestMorphology.cpp:377: Entering test case "test_open_2x2_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:377: Leaving test case "test_open_2x2_white"; testing time: 99us
+{repo}/src/imageproc/tests/TestMorphology.cpp:392: Entering test case "test_open_2x2_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:392: Leaving test case "test_open_2x2_black"; testing time: 84us
+{repo}/src/imageproc/tests/TestMorphology.cpp:407: Entering test case "test_open_2x2_shifted_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:407: Leaving test case "test_open_2x2_shifted_white"; testing time: 78us
+{repo}/src/imageproc/tests/TestMorphology.cpp:424: Entering test case "test_open_2x2_shifted_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:424: Leaving test case "test_open_2x2_shifted_black"; testing time: 74us
+{repo}/src/imageproc/tests/TestMorphology.cpp:441: Entering test case "test_open_2x2_narrowing"
+{repo}/src/imageproc/tests/TestMorphology.cpp:441: Leaving test case "test_open_2x2_narrowing"; testing time: 100us
+{repo}/src/imageproc/tests/TestMorphology.cpp:458: Entering test case "test_close_2x2_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:458: Leaving test case "test_close_2x2_white"; testing time: 71us
+{repo}/src/imageproc/tests/TestMorphology.cpp:473: Entering test case "test_close_2x2_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:473: Leaving test case "test_close_2x2_black"; testing time: 72us
+{repo}/src/imageproc/tests/TestMorphology.cpp:488: Entering test case "test_close_2x2_shifted_white"
+{repo}/src/imageproc/tests/TestMorphology.cpp:488: Leaving test case "test_close_2x2_shifted_white"; testing time: 70us
+{repo}/src/imageproc/tests/TestMorphology.cpp:505: Entering test case "test_close_2x2_shifted_black"
+{repo}/src/imageproc/tests/TestMorphology.cpp:505: Leaving test case "test_close_2x2_shifted_black"; testing time: 74us
+{repo}/src/imageproc/tests/TestMorphology.cpp:522: Entering test case "test_close_2x2_narrowing"
+{repo}/src/imageproc/tests/TestMorphology.cpp:522: Leaving test case "test_close_2x2_narrowing"; testing time: 101us
+{repo}/src/imageproc/tests/TestMorphology.cpp:539: Entering test case "test_hmm_1"
+{repo}/src/imageproc/tests/TestMorphology.cpp:539: Leaving test case "test_hmm_1"; testing time: 91us
+{repo}/src/imageproc/tests/TestMorphology.cpp:561: Entering test case "test_hmm_surroundings_1"
+{repo}/src/imageproc/tests/TestMorphology.cpp:561: Leaving test case "test_hmm_surroundings_1"; testing time: 76us
+{repo}/src/imageproc/tests/TestMorphology.cpp:588: Entering test case "test_hmm_surroundings_2"
+{repo}/src/imageproc/tests/TestMorphology.cpp:588: Leaving test case "test_hmm_surroundings_2"; testing time: 75us
+{repo}/src/imageproc/tests/TestMorphology.cpp:610: Entering test case "test_hmm_cornercase_1"
+{repo}/src/imageproc/tests/TestMorphology.cpp:610: Leaving test case "test_hmm_cornercase_1"; testing time: 62us
+{repo}/src/imageproc/tests/TestMorphology.cpp:632: Entering test case "test_hmm_cornercase_2"
+{repo}/src/imageproc/tests/TestMorphology.cpp:632: Leaving test case "test_hmm_cornercase_2"; testing time: 71us
+{repo}/src/imageproc/tests/TestMorphology.cpp:654: Entering test case "test_hmr_1"
+{repo}/src/imageproc/tests/TestMorphology.cpp:654: Leaving test case "test_hmr_1"; testing time: 125us
+{repo}/src/imageproc/tests/TestMorphology.cpp:20: Leaving test suite "MorphologyTestSuite"; testing time: 4278us
+{repo}/src/imageproc/tests/TestBinarize.cpp:17: Test suite "BinarizeTestSuite" is skipped because disabled
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:28: Entering test suite "PolygonRasterizerTestSuite"
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:95: Entering test case "test_complex_shape"
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:95: Leaving test case "test_complex_shape"; testing time: 67571us
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:114: Entering test case "test_corner_cases"
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:114: Leaving test case "test_corner_cases"; testing time: 94601us
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:140: Entering test case "regression_test_1"
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:140: Leaving test case "regression_test_1"; testing time: 37343us
+{repo}/src/imageproc/tests/TestPolygonRasterizer.cpp:28: Leaving test suite "PolygonRasterizerTestSuite"; testing time: 199708us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:21: Entering test suite "SeedFillTestSuite"
+{repo}/src/imageproc/tests/TestSeedFill.cpp:23: Entering test case "test_regression_1"
+{repo}/src/imageproc/tests/TestSeedFill.cpp:23: Leaving test case "test_regression_1"; testing time: 203us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:40: Entering test case "test_regression_2"
+{repo}/src/imageproc/tests/TestSeedFill.cpp:40: Leaving test case "test_regression_2"; testing time: 44us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:57: Entering test case "test_regression_3"
+{repo}/src/imageproc/tests/TestSeedFill.cpp:57: Leaving test case "test_regression_3"; testing time: 42us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:71: Entering test case "test_regression_4"
+{repo}/src/imageproc/tests/TestSeedFill.cpp:71: Leaving test case "test_regression_4"; testing time: 41us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:84: Entering test case "test_gray4_random"
+Test case SeedFillTestSuite/test_gray4_random did not check any assertions
+{repo}/src/imageproc/tests/TestSeedFill.cpp:84: Leaving test case "test_gray4_random"; testing time: 7699us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:101: Entering test case "test_gray8_random"
+Test case SeedFillTestSuite/test_gray8_random did not check any assertions
+{repo}/src/imageproc/tests/TestSeedFill.cpp:101: Leaving test case "test_gray8_random"; testing time: 8432us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:118: Entering test case "test_gray_vs_binary"
+Test case SeedFillTestSuite/test_gray_vs_binary did not check any assertions
+{repo}/src/imageproc/tests/TestSeedFill.cpp:118: Leaving test case "test_gray_vs_binary"; testing time: 15850us
+{repo}/src/imageproc/tests/TestSeedFill.cpp:21: Leaving test suite "SeedFillTestSuite"; testing time: 32535us
+{repo}/src/imageproc/tests/TestSEDM.cpp:19: Entering test suite "SEDMTestSuite"
+{repo}/src/imageproc/tests/TestSEDM.cpp:46: Entering test case "test1"
+{repo}/src/imageproc/tests/TestSEDM.cpp:46: Leaving test case "test1"; testing time: 193us
+{repo}/src/imageproc/tests/TestSEDM.cpp:19: Leaving test suite "SEDMTestSuite"; testing time: 208us
+{repo}/src/imageproc/tests/TestRastLineFinder.cpp:15: Entering test suite "RastLineFinderTestSuite"
+{repo}/src/imageproc/tests/TestRastLineFinder.cpp:21: Entering test case "test1"
+{repo}/src/imageproc/tests/TestRastLineFinder.cpp:21: Leaving test case "test1"; testing time: 1845us
+{repo}/src/imageproc/tests/TestRastLineFinder.cpp:15: Leaving test suite "RastLineFinderTestSuite"; testing time: 1873us
+Leaving test module "Master Test Suite"; testing time: 624854us
+
+Test module "Master Test Suite" has failed with:
+  93 test cases out of 94 passed
+  1 test case out of 94 failed
+  192 assertions out of 194 passed
+  2 assertions out of 194 failed
+
+  Test suite "BinaryImageTestSuite" has passed with:
+    7 test cases out of 7 passed
+    17 assertions out of 17 passed
+
+    Test case "BinaryImageTestSuite/test_null_image" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "BinaryImageTestSuite/test_from_to_qimage" has passed with:
+      6 assertions out of 6 passed
+
+    Test case "BinaryImageTestSuite/test_full_fill" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "BinaryImageTestSuite/test_partial_fill_small" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "BinaryImageTestSuite/test_partial_fill_large" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "BinaryImageTestSuite/test_fill_except" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "BinaryImageTestSuite/test_content_bounding_box4" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "ReduceThresholdTestSuite" has passed with:
+    3 test cases out of 3 passed
+    13 assertions out of 13 passed
+
+    Test case "ReduceThresholdTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ReduceThresholdTestSuite/test_small_image" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "ReduceThresholdTestSuite/test_lines" has passed with:
+      8 assertions out of 8 passed
+
+  Test suite "SlicedHistogramTestSuite" has passed with:
+    3 test cases out of 3 passed
+    7 assertions out of 7 passed
+
+    Test case "SlicedHistogramTestSuite/test_null_image" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SlicedHistogramTestSuite/test_exceeding_area" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "SlicedHistogramTestSuite/test_small_image" has passed with:
+      4 assertions out of 4 passed
+
+  Test suite "ConnCompEraserTestSuite" has passed with:
+    2 test cases out of 2 passed
+    3 assertions out of 3 passed
+
+    Test case "ConnCompEraserTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ConnCompEraserTestSuite/test_small_image" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "ConnCompEraserExtTestSuite" has passed with:
+    2 test cases out of 2 passed
+    11 assertions out of 11 passed
+
+    Test case "ConnCompEraserExtTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ConnCompEraserExtTestSuite/test_small_image" has passed with:
+      10 assertions out of 10 passed
+
+  Test suite "ImageProcDpiTestSuite" has passed with:
+    9 test cases out of 9 passed
+    19 assertions out of 19 passed
+
+    Test case "ImageProcDpiTestSuite/test_default_constructor_is_null" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "ImageProcDpiTestSuite/test_value_constructor" has passed with:
+      3 assertions out of 3 passed
+
+    Test case "ImageProcDpiTestSuite/test_equality" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "ImageProcDpiTestSuite/test_to_size" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "ImageProcDpiTestSuite/test_to_size_null_returns_empty" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ImageProcDpiTestSuite/test_from_qsize" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "ImageProcDpiTestSuite/test_xml_roundtrip" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "ImageProcDpiTestSuite/test_from_xml_attributes" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "ImageProcDpiTestSuite/test_from_dpm" has passed with:
+      3 assertions out of 3 passed
+
+  Test suite "GrayscaleTestSuite" has passed with:
+    3 test cases out of 3 passed
+    4 assertions out of 4 passed
+
+    Test case "GrayscaleTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "GrayscaleTestSuite/test_mono_to_grayscale" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "GrayscaleTestSuite/test_argb32_to_grayscale" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "RasterOpTestSuite" has passed with:
+    3 test cases out of 3 passed
+    10 assertions out of 10 passed
+
+    Test case "RasterOpTestSuite/test_small_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "RasterOpTestSuite/test_large_image" has passed with:
+      4 assertions out of 4 passed
+
+    Test case "RasterOpTestSuite/test_move_blocks" has passed with:
+      5 assertions out of 5 passed
+
+  Test suite "ShearTestSuite" has passed with:
+    1 test case out of 1 passed
+    4 assertions out of 4 passed
+
+    Test case "ShearTestSuite/test_small_image" has passed with:
+      4 assertions out of 4 passed
+
+  Test suite "OrthogonalRotationTestSuite" has passed with:
+    3 test cases out of 3 passed
+    17 assertions out of 17 passed
+
+    Test case "OrthogonalRotationTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "OrthogonalRotationTestSuite/test_full_image" has passed with:
+      8 assertions out of 8 passed
+
+    Test case "OrthogonalRotationTestSuite/test_sub_image" has passed with:
+      8 assertions out of 8 passed
+
+  Test suite "SkewFinderTestSuite" has passed with:
+    2 test cases out of 2 passed
+    3 assertions out of 3 passed
+
+    Test case "SkewFinderTestSuite/test_positive_detection" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "SkewFinderTestSuite/test_negative_detection" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "ScaleTestSuite" has failed with:
+    1 test case out of 2 passed
+    1 test case out of 2 failed
+    3 assertions out of 5 passed
+    2 assertions out of 5 failed
+
+    Test case "ScaleTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "ScaleTestSuite/test_random_image" has failed with:
+      2 assertions out of 4 passed
+      2 assertions out of 4 failed
+
+  Test suite "TransformTestSuite" has passed with:
+    2 test cases out of 2 passed
+    2 assertions out of 2 passed
+
+    Test case "TransformTestSuite/test_null_image" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "TransformTestSuite/test_random_image" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "MorphologyTestSuite" has passed with:
+    40 test cases out of 40 passed
+    48 assertions out of 48 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x1" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x1_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x1_shift_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x1_shift_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x1_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x3_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x20_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_gray_shrinked" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_open_1x2_gray" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_5x5_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_narrowing_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_5x5_narrowing_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_narrowing_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_widening_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x3_widening_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_3x1_out_of_brick_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_dilate_1x3_out_of_brick_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_large_dilate" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_erode_1x1" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_erode_3x3_assymmetric_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_erode_3x3_assymmetric_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_erode_11x11_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_open_2x2_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_open_2x2_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_open_2x2_shifted_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_open_2x2_shifted_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_open_2x2_narrowing" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_close_2x2_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_close_2x2_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_close_2x2_shifted_white" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_close_2x2_shifted_black" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "MorphologyTestSuite/test_close_2x2_narrowing" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_hmm_1" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_hmm_surroundings_1" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_hmm_surroundings_2" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_hmm_cornercase_1" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_hmm_cornercase_2" has passed with:
+      2 assertions out of 2 passed
+
+    Test case "MorphologyTestSuite/test_hmr_1" has passed with:
+      2 assertions out of 2 passed
+
+  Test suite "PolygonRasterizerTestSuite" has passed with:
+    3 test cases out of 3 passed
+    21 assertions out of 21 passed
+
+    Test case "PolygonRasterizerTestSuite/test_complex_shape" has passed with:
+      8 assertions out of 8 passed
+
+    Test case "PolygonRasterizerTestSuite/test_corner_cases" has passed with:
+      12 assertions out of 12 passed
+
+    Test case "PolygonRasterizerTestSuite/regression_test_1" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "SeedFillTestSuite" has passed with:
+    7 test cases out of 7 passed
+    4 assertions out of 4 passed
+
+    Test case "SeedFillTestSuite/test_regression_1" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "SeedFillTestSuite/test_regression_2" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "SeedFillTestSuite/test_regression_3" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "SeedFillTestSuite/test_regression_4" has passed with:
+      1 assertion out of 1 passed
+
+    Test case "SeedFillTestSuite/test_gray4_random" has passed
+
+    Test case "SeedFillTestSuite/test_gray8_random" has passed
+
+    Test case "SeedFillTestSuite/test_gray_vs_binary" has passed
+
+  Test suite "SEDMTestSuite" has passed with:
+    1 test case out of 1 passed
+    1 assertion out of 1 passed
+
+    Test case "SEDMTestSuite/test1" has passed with:
+      1 assertion out of 1 passed
+
+  Test suite "RastLineFinderTestSuite" has passed with:
+    1 test case out of 1 passed
+    5 assertions out of 5 passed
+
+    Test case "RastLineFinderTestSuite/test1" has passed with:
+      5 assertions out of 5 passed
+
+exit status: 201
+
+## qt_tests (as registered: default Cocoa platform, executor's shell)
+
+$ ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/qt_tests
+********* Start testing of TestCoreQt *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2)), macos 26.7.0
+PASS   : TestCoreQt::initTestCase()
+PASS   : TestCoreQt::testUnitsToString()
+PASS   : TestCoreQt::testUnitsFromString()
+PASS   : TestCoreQt::testUnitsToLocalizedString()
+PASS   : TestCoreQt::testUtilsDoubleToString()
+PASS   : TestCoreQt::testSmartFilenameOrdering()
+PASS   : TestCoreQt::testSignalSpy()
+PASS   : TestCoreQt::cleanupTestCase()
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 1ms
+********* Finished testing of TestCoreQt *********
+********* Start testing of TestUxQt *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2)), macos 26.7.0
+PASS   : TestUxQt::initTestCase()
+PASS   : TestUxQt::testButtonClickEmitsSignal()
+PASS   : TestUxQt::testCheckBoxToggleChangesState()
+PASS   : TestUxQt::testLineEditAcceptsInput()
+PASS   : TestUxQt::testCollapsibleGroupBoxStateAndSignal()
+PASS   : TestUxQt::testErrorWidgetCreation()
+PASS   : TestUxQt::cleanupTestCase()
+Totals: 7 passed, 0 failed, 0 skipped, 0 blacklisted, 99ms
+********* Finished testing of TestUxQt *********
+exit status: 0
+
+## qt_tests (QT_QPA_PLATFORM=offscreen)
+
+$ ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 QT_QPA_PLATFORM=offscreen build/macos-asan/qt_tests
+********* Start testing of TestCoreQt *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2)), macos 26.7.0
+PASS   : TestCoreQt::initTestCase()
+PASS   : TestCoreQt::testUnitsToString()
+PASS   : TestCoreQt::testUnitsFromString()
+PASS   : TestCoreQt::testUnitsToLocalizedString()
+PASS   : TestCoreQt::testUtilsDoubleToString()
+PASS   : TestCoreQt::testSmartFilenameOrdering()
+PASS   : TestCoreQt::testSignalSpy()
+PASS   : TestCoreQt::cleanupTestCase()
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 2ms
+********* Finished testing of TestCoreQt *********
+********* Start testing of TestUxQt *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2)), macos 26.7.0
+PASS   : TestUxQt::initTestCase()
+PASS   : TestUxQt::testButtonClickEmitsSignal()
+PASS   : TestUxQt::testCheckBoxToggleChangesState()
+QWARN  : TestUxQt::testLineEditAcceptsInput() qt.qpa.fonts: Populating font family aliases took 218 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+PASS   : TestUxQt::testLineEditAcceptsInput()
+PASS   : TestUxQt::testCollapsibleGroupBoxStateAndSignal()
+PASS   : TestUxQt::testErrorWidgetCreation()
+PASS   : TestUxQt::cleanupTestCase()
+Totals: 7 passed, 0 failed, 0 skipped, 0 blacklisted, 337ms
+********* Finished testing of TestUxQt *********
+exit status: 0
