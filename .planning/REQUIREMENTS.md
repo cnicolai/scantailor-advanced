@@ -20,7 +20,7 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 ### Tests
 
 - [x] **TEST-01**: A seeded generator produces synthetic flat-document, book-spread and mixed text-and-image pages with known ground truth, without font rendering or `rand()`
-- [ ] **TEST-02**: An image comparator applies per-kind tolerances (bi-level, grey/colour, geometry); a failure writes the actual and diff images
+- [x] **TEST-02**: An image comparator applies per-kind tolerances (bi-level, grey/colour, geometry); a failure writes the actual and diff images
 - [x] **TEST-03**: Baseline (golden) images change only through an explicit update flag, and a manifest records the toolchain versions they were made with
 - [ ] **TEST-04**: Baselines are recorded from the unmodified codebase before any Qt 5/platform removal or refactor
 - [x] **TEST-05**: Flat-document tests check the deskew angle, the content box and binarization accuracy against ground truth
@@ -132,7 +132,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUILD-06 | Phase 1 | Complete |
 | BUILD-07 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Complete |
-| TEST-02 | Phase 2 | Pending |
+| TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 2 | Complete |
 | TEST-04 | Phase 2 | Pending |
 | TEST-05 | Phase 2 | Complete |

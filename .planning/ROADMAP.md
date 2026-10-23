@@ -67,7 +67,7 @@ Plans:
   4. The baseline commit comes before every strip or cleanup commit in git history, and its source tree matches the Phase 1 code
   5. A project with non-default parameters in every stage and special characters in names is written, read back and written again with identical results. A single `ctest` command runs the whole suite offscreen with isolated settings and passes. Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it
 
-**Plans:** 8/10 plans executed
+**Plans:** 9/10 plans executed
 
 Plans:
 **Wave 1**
@@ -85,7 +85,7 @@ Plans:
 - [x] 02-08-PLAN.md — Project round trip with special-character names and non-default parameters in every stage, SAFE-02 disposition
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 02-09-PLAN.md — Measured and frozen comparator limits, permanent comparator self-test, isolated qt_tests, full ctest in Release and Debug
+- [x] 02-09-PLAN.md — Measured and frozen comparator limits, permanent comparator self-test, isolated qt_tests, full ctest in Release and Debug
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 02-10-PLAN.md — One ASan/UBSan run recorded, findings and backlog items, TEST-04 proof and baseline commit, summary for the user
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
-| 2. Golden Baselines | 8/10 | In Progress | - |
+| 2. Golden Baselines | 9/10 | In Progress | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
