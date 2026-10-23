@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 01
 current_phase_name: Deletion-Free macOS Build
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-10-23T12:13:33.481Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-10-23T12:19:49.973Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 01 execution started
-state_head: 26263786f4f062791b965baa8e663b545d599f6a
+state_head: 48a4b062c2ba790c4c3800a27d15c5c708f81eed
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 01 (Deletion-Free macOS Build) — EXECUTING
-Plan: 4 of 7 complete (01-01, 01-02, 01-03, 01-05); next: 01-04 (wave 3), then 01-06, 01-07
+Plan: 5 of 7 complete (01-01, 01-02, 01-03, 01-04, 01-05); next: 01-06 (wave 4), then 01-07
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 01 execution started
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P02 | 5min | 3 tasks | 2 files |
 | Phase 01 P05 | 3min | 3 tasks | 3 files |
 | Phase 01 P03 | 25 min | 3 tasks | 9 files |
+| Phase 01 P04 | 5 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase 01]: D-02 answered list-corrected; no ScanTailor settings exist in INI, AppData or Preferences, so first launch starts from defaults
 - [Phase 01]: 01-03: qt_tests passes under the default Cocoa platform in Release and Debug, so no QT_QPA_PLATFORM=offscreen entry was added to the test preset
 - [Phase 01]: 01-03: imageproc_tests ScaleTestSuite/test_random_image fails in Release and Debug on the unmodified sources; recorded as the BUILD-04 baseline and deferred, not fixed (D-08)
+- [Phase 01]: 01-04: ASan+UBSan build needed no CMakeLists.txt change; 0 ASan and 3 UBSan reports (BinaryImage.cpp:1044, SlicedHistogram.cpp:49) recorded, not fixed
 
 ### Pending Todos
 
@@ -97,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T12:13:33.462Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-10-23T12:19:49.954Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
