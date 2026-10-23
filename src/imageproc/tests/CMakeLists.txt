@@ -22,7 +22,7 @@ remove_definitions(-DBUILDING_IMAGEPROC)
 add_executable(imageproc_tests ${sources})
 target_link_libraries(
     imageproc_tests
-    PRIVATE imageproc math foundation ${Qt_Widgets_lib} ${Qt_Xml_lib}
+    PRIVATE imageproc math foundation test_support ${Qt_Widgets_lib} ${Qt_Xml_lib}
     Boost::unit_test_framework ${EXTRA_LIBS})
 
 add_test(NAME imageproc_tests COMMAND imageproc_tests --log_level=message)

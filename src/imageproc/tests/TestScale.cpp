@@ -2,10 +2,12 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include <GrayImage.h>
+#include <Rng.h>
 #include <Scale.h>
 
 #include <QImage>
 #include <QSize>
+#include <algorithm>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <cstdint>
@@ -46,18 +48,51 @@ static bool fuzzyCompare(const QImage& img1, const QImage& img2) {
   return true;
 }
 
+// Exact area-average reference: every output pixel is the mean of the input pixels its footprint covers, each
+// weighted by the covered area, computed in double precision and rounded half up.  QImage::scaled() is not a
+// usable reference any more: since Qt 6 its smooth scaling is about one level darker on average and up to 28 levels
+// off on an 80x80 downscale (records/unit-tests.md, "D-17 TestScale investigation").
+static QImage areaAverageReference(const QImage& src, const QSize& dstSize) {
+  QImage dst(dstSize, QImage::Format_Grayscale8);
+  const double scaleX = double(src.width()) / dstSize.width();
+  const double scaleY = double(src.height()) / dstSize.height();
+  for (int dy = 0; dy < dstSize.height(); ++dy) {
+    uint8_t* const dstLine = dst.scanLine(dy);
+    const double top = dy * scaleY;
+    const double bottom = (dy + 1) * scaleY;
+    for (int dx = 0; dx < dstSize.width(); ++dx) {
+      const double left = dx * scaleX;
+      const double right = (dx + 1) * scaleX;
+      double weightedSum = 0.0;
+      double area = 0.0;
+      for (int sy = static_cast<int>(top); sy < static_cast<int>(std::ceil(bottom)); ++sy) {
+        const double heightShare = std::min<double>(sy + 1, bottom) - std::max<double>(sy, top);
+        const uint8_t* const srcLine = src.constScanLine(sy);
+        for (int sx = static_cast<int>(left); sx < static_cast<int>(std::ceil(right)); ++sx) {
+          const double share = (std::min<double>(sx + 1, right) - std::max<double>(sx, left)) * heightShare;
+          weightedSum += share * srcLine[sx];
+          area += share;
+        }
+      }
+      dstLine[dx] = static_cast<uint8_t>(std::floor(weightedSum / area + 0.5));
+    }
+  }
+  return dst;
+}
+
 static bool checkScale(const GrayImage& img, const QSize& newSize) {
   const GrayImage scaled1(scaleToGray(img, newSize));
-  const GrayImage scaled2(img.toQImage().scaled(newSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+  const GrayImage scaled2(areaAverageReference(img.toQImage(), newSize));
   return fuzzyCompare(scaled1, scaled2);
 }
 
 BOOST_AUTO_TEST_CASE(test_random_image) {
   GrayImage img(QSize(100, 100));
+  test_support::Rng rng(7);
   uint8_t* line = img.data();
   for (int y = 0; y < img.height(); ++y) {
     for (int x = 0; x < img.width(); ++x) {
-      line[x] = static_cast<uint8_t>(rand() % 256);
+      line[x] = static_cast<uint8_t>(rng.below(256));
     }
     line += img.stride();
   }
