@@ -197,3 +197,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.4: page_split puts the cutter 28 to 30 px from the gutter centre (BACKLOG)
+
+**Goal:** On the generated book spread (seed 1, skew 1.0 degree, AUTO layout) the page_split cutter lies 30.376 px (300 dpi) and 55.736 px (600 dpi, 27.87 px in 300 dpi pixels) from the gutter centre at mid-height against a bound of 2 px; it stays inside the gutter at every sample (margin 80.5 px at 300 dpi), so no content is cut. The cause was not analysed. No requirement exists. When fixed, remove the four `XFAIL_CHECK` tags `page_split cutter <30.4|55.7> px from the gutter centre at mid-height on the <300|600> dpi spread, bound 2 px (F-06-1): no requirement` in `src/pipeline_tests/TestBookSpread.cpp` and re-record the spread goldens. Finding F-06-1 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
