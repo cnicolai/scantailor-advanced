@@ -1,0 +1,143 @@
+# git diff 5eaac18 -- . ':!.planning' ':!.claude' (taken at cde6825, plan 01-07; no home path occurs in it, no normalisation was needed)
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f2c5a08..0f9f9f8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
++cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
+ 
+ set(target_name scantailor-advanced)
+ 
+@@ -14,6 +14,10 @@ if (POLICY CMP0071)
+   cmake_policy(SET CMP0071 NEW)
+ endif()
+ 
++if (POLICY CMP0167)
++  cmake_policy(SET CMP0167 NEW)
++endif()
++
+ project("ScanTailor Advanced")
+ 
+ # Set compiler flags.
+@@ -57,6 +61,24 @@ if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
+   set(DEFAULT_COMPILER_FLAGS_IS_SET YES CACHE INTERNAL "" FORCE)
+ endif()
+ 
++if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
++  # Clang counterpart of the GNU warning set above (-Wpedantic left out, D-08).
++  # Outside the cache guard so that every configure applies it.
++  add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Werror=return-type;-Wno-unused>")
++  # FP contraction frozen so results do not depend on build type or code layout; fixed before Phase 2 baselines (D-03).
++  add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-ffp-contract=off>")
++endif()
++
++set(SANITIZE "" CACHE STRING "Value for -fsanitize=, e.g. address,undefined. Empty disables.")
++if (SANITIZE)
++  add_compile_options(-fsanitize=${SANITIZE} -fno-omit-frame-pointer)
++  add_link_options(-fsanitize=${SANITIZE})
++  if (SANITIZE MATCHES "address")
++    # Keep running after a finding so one run collects every report.
++    add_compile_options(-fsanitize-recover=address)
++  endif()
++endif()
++
+ if (UNIX)
+   option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
+   option(CMAKE_INSTALL_RPATH_USE_LINK_PATH "" ON)
+diff --git a/CMakePresets.json b/CMakePresets.json
+new file mode 100644
+index 0000000..cb4d5ac
+--- /dev/null
++++ b/CMakePresets.json
+@@ -0,0 +1,90 @@
++{
++  "version": 6,
++  "cmakeMinimumRequired": {
++    "major": 3,
++    "minor": 25,
++    "patch": 0
++  },
++  "configurePresets": [
++    {
++      "name": "macos-base",
++      "hidden": true,
++      "generator": "Ninja",
++      "binaryDir": "${sourceDir}/build/${presetName}",
++      "cacheVariables": {
++        "CMAKE_PREFIX_PATH": "/opt/homebrew",
++        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
++        "PORTABLE_VERSION": "OFF",
++        "BUILD_TESTS": "ON",
++        "CMAKE_FIND_FRAMEWORK": "LAST"
++      }
++    },
++    {
++      "name": "macos-release",
++      "inherits": "macos-base",
++      "cacheVariables": {
++        "CMAKE_BUILD_TYPE": "Release"
++      }
++    },
++    {
++      "name": "macos-debug",
++      "inherits": "macos-base",
++      "cacheVariables": {
++        "CMAKE_BUILD_TYPE": "Debug"
++      }
++    },
++    {
++      "name": "macos-asan",
++      "inherits": "macos-base",
++      "cacheVariables": {
++        "CMAKE_BUILD_TYPE": "Debug",
++        "SANITIZE": "address,undefined"
++      }
++    }
++  ],
++  "buildPresets": [
++    {
++      "name": "macos-release",
++      "configurePreset": "macos-release"
++    },
++    {
++      "name": "macos-debug",
++      "configurePreset": "macos-debug"
++    },
++    {
++      "name": "macos-asan",
++      "configurePreset": "macos-asan"
++    }
++  ],
++  "testPresets": [
++    {
++      "name": "macos-test-base",
++      "hidden": true,
++      "output": {
++        "outputOnFailure": true
++      },
++      "execution": {
++        "noTestsAction": "error"
++      }
++    },
++    {
++      "name": "macos-release",
++      "inherits": "macos-test-base",
++      "configurePreset": "macos-release"
++    },
++    {
++      "name": "macos-debug",
++      "inherits": "macos-test-base",
++      "configurePreset": "macos-debug"
++    },
++    {
++      "name": "macos-asan",
++      "inherits": "macos-test-base",
++      "configurePreset": "macos-asan",
++      "environment": {
++        "ASAN_OPTIONS": "detect_leaks=0:halt_on_error=0",
++        "UBSAN_OPTIONS": "print_stacktrace=1"
++      }
++    }
++  ]
++}

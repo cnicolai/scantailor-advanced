@@ -56,3 +56,18 @@ None of these stops the build. Phase 1 records warnings only; nothing was edited
 ### Artifacts of the build
 
 `build/macos-release/` holds `scantailor-advanced`, `core_tests`, `foundation_tests`, `imageproc_tests`, `math_tests` and `qt_tests` (the plan's verify command lists all six).
+
+## Closing cross-check (plan 01-07)
+
+Command: `git log --format='%h %s' 5eaac18..HEAD -- . ':!.planning' ':!.claude'` at `cde6825`. It lists six commits, and every one has a row above; no row had to be added in plan 01-07.
+
+| Commit | Subject | Row |
+|--------|---------|-----|
+| b2d5214 | build(cmake): require CMake 3.25 and use BoostConfig (CMP0167) | 1 |
+| d7f2ca2 | build: add macOS CMake presets | 2 |
+| e35b498 | build(cmake): enable Clang warnings (D-08) | 3 |
+| 606bea0 | build(cmake): freeze -ffp-contract=off for C and C++ (D-03) | 4 |
+| 8670057 | build(cmake): add SANITIZE option for ASan/UBSan builds | 5 |
+| 11bc573 | build: add debug and ASan presets | 6 |
+
+Plans 01-03, 01-04 and 01-06 added no row of their own: 01-03 changed no preset after the first build (the qt_tests branch kept `CMakePresets.json` as it was), 01-04's `SANITIZE` block is row 5 and its presets are row 6, and the smoke run needed no launch fix. The diff against `5eaac18` outside `.planning/` and `.claude/` is `CMakeLists.txt` (modified) and `CMakePresets.json` (new) only; `src/` is unchanged. See `closing-check.md` `## Criterion 5` and `src-diff.txt`.

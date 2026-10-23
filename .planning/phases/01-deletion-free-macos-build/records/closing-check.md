@@ -193,3 +193,107 @@ $ git ls-files .planning/phases/01-deletion-free-macos-build/records/sanitizer-f
 ```
 
 verdict: PASS (`-ffp-contract=off` on 408 of 408 commands in each of the three presets and recorded in `fp-contract.md`; `SANITIZE` option present and the ASan/UBSan findings recorded and tracked)
+
+## Criterion 2
+
+Roadmap wording: the app launches from the build directory, opens a project, takes it through all six stages and writes output files (BUILD-03).
+
+Verdict line of `records/SMOKE-FINDINGS.md`:
+
+```
+BUILD-03 verdict: PASS (after re-check of steps 4, 6, 8; first run FAIL, see below)
+```
+
+What it covers (plan 01-06, run on commit `015b7a4`, preset `macos-release`, unbundled binary started from Terminal with stderr kept): steps 1 to 11 of the walkthrough (launch, new project with three generated pages, batch run of all six stages, dewarping Auto on one half of the book page, Color / Grayscale on the flat page, Mixed mode with a picture zone, four output TIFFs opened in Preview, save, close and reopen, menus, settings, Command+Q) and the re-check R1 to R5 of steps 4, 6 and 8 after the first run ended in FAIL on two project-file expectations. After the re-check the saved project file parses, holds the colour modes `bw`, `colorOrGray` and `mixed`, dewarping `auto` and one picture zone, and survives close and reopen. No launch fix was needed and no `src/` file was edited. The first run's FAIL and its analysis stay in that record unchanged.
+
+The smoke binary is not rebuilt for this check: the tree checked here (`cde6825`) has the same `src/`, `CMakeLists.txt` and `CMakePresets.json` as the smoke build's `015b7a4` (the commits between them touch only `.planning/`), and the release tree was rebuilt clean from it in criterion 1.
+
+verdict: PASS (BUILD-03 PASS in `SMOKE-FINDINGS.md`; walkthrough steps 1 to 11 plus re-check R1 to R5)
+
+## Criterion 5
+
+Roadmap wording: `git diff 5eaac18` (the 1.2.1 release) outside `.planning/` shows only build and launch fixes and added build settings: no deleted code paths and no change to processing behaviour.
+
+Pathspec: `. ':!.planning' ':!.claude'`. `.claude/` is excluded because `.claude/CLAUDE.md` is tracked and already differed from `5eaac18` before Phase 1 started (GSD project instructions, no code; research Pitfall 3, T-01-17). It is checked separately below.
+
+```
+$ git diff --stat 5eaac18 -- . ':!.planning' ':!.claude'
+ CMakeLists.txt    | 24 ++++++++++++++-
+ CMakePresets.json | 90 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 113 insertions(+), 1 deletion(-)
+$ git diff --name-status 5eaac18 -- . ':!.planning' ':!.claude'
+M	CMakeLists.txt
+A	CMakePresets.json
+$ git diff --numstat 5eaac18 -- src CMakeLists.txt
+23	1	CMakeLists.txt
+```
+
+Every listed path is `CMakeLists.txt` or `CMakePresets.json`. `src/` has no line in the numstat: no source file differs from `5eaac18`. The numstat has 23 added and 1 removed line in `CMakeLists.txt` and nothing else; the one removed line is line 1, `cmake_minimum_required(VERSION 3.9 FATAL_ERROR)`, replaced by `VERSION 3.25` (fix-log row 1). The full diff is in `records/src-diff.txt` (143 lines, contains the `VERSION 3.9` to `VERSION 3.25` hunk). Removed lines in the whole diff, listed by `grep -E '^-[^-]'`: exactly one, the line above.
+
+Per-hunk list (`git diff -U0 5eaac18 -- . ':!.planning' ':!.claude' | grep '^@@'` gives four hunks):
+
+| File | Hunk header | Class | Fix-log row |
+|------|-------------|-------|-------------|
+| CMakeLists.txt | `@@ -1 +1 @@` | modified (line 1 replaced by its 3.25 form) | 1 |
+| CMakeLists.txt | `@@ -16,0 +17,4 @@` | added only (CMP0167 policy block) | 1 |
+| CMakeLists.txt | `@@ -59,0 +64,18 @@` | added only (Clang warning and `-ffp-contract=off` block, `SANITIZE` block) | 3, 4, 5 |
+| CMakePresets.json | `@@ -0,0 +1,90 @@` | added only (new file) | 2, 6 |
+
+No hunk is `REMOVED ONLY`. No Qt 5, Windows or Linux branch is removed: no line of any `if (...)` branch, `find_package(Qt5 ...)` fallback, `WIN32` or `UNIX` block was deleted (the single removed line is the CMake minimum version).
+
+`.claude/` checked separately:
+
+```
+$ git diff --stat 5eaac18 -- .claude
+ .claude/CLAUDE.md | 332 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 332 insertions(+)
+$ git log --format='%h %s' 5eaac18..HEAD -- .claude
+c03e873 docs: create roadmap (6 phases)
+```
+
+Only `.claude/CLAUDE.md` differs, and it was added by the roadmap commit before the first Phase 1 plan ran.
+
+Commits since `5eaac18` that touch files outside `.planning/` and `.claude/`:
+
+```
+$ git log --format='%h %s' 5eaac18..HEAD -- . ':!.planning' ':!.claude'
+11bc573 build: add debug and ASan presets
+8670057 build(cmake): add SANITIZE option for ASan/UBSan builds
+606bea0 build(cmake): freeze -ffp-contract=off for C and C++ (D-03)
+e35b498 build(cmake): enable Clang warnings (D-08)
+d7f2ca2 build: add macOS CMake presets
+b2d5214 build(cmake): require CMake 3.25 and use BoostConfig (CMP0167)
+```
+
+Every commit listed has a row in `records/fix-log.md` (checked by script: `all-commits-logged`; the table with the commit-to-row mapping is in the fix-log's `## Closing cross-check (plan 01-07)`). No row had to be added in this plan.
+
+Processing behaviour. `Affects processing?` values in `fix-log.md`:
+
+| Row | Change | Affects processing? |
+|-----|--------|---------------------|
+| 1 | CMake minimum 3.25 and CMP0167 | No: `flags-compare.txt` shows no flag changed by this edit |
+| 2 | `CMakePresets.json` (release) | No: no source file touched |
+| 3 | Clang warnings `-Wall -Wextra -Werror=return-type -Wno-unused` | No: warnings only |
+| 4 | `-ffp-contract=off` | Yes, by design (D-03); the user's decision, see below |
+| 5 | `SANITIZE` option | No: off unless a preset sets it |
+| 6 | debug and ASan presets | No: separate build directories |
+
+Flag differences from `records/flags-compare.txt` (untouched configure against `build/macos-release`): five tokens added (`-Wall`, `-Wextra`, `-Werror=return-type`, `-Wno-unused`, `-ffp-contract=off`), none removed or changed; `-std=gnu++17`, `-O3`, `-DNDEBUG`, every `-D`, `-I` and `-isystem` token are identical, so the CMake 3.25 minimum caused no CMP0128 or include-path change. Four of the five are warning flags with no effect on generated code; `-ffp-contract=off` is the one token that changes generated code. It is the intended frozen setting of D-03, taken by the user in the Phase 1 discussion (`01-CONTEXT.md`), with a stated reversibility of "costly", and no earlier Mac output exists to compare against. Row 4 is therefore the user's decision rather than an unrequested change, and no row is a code edit. The disposition `approved by user` is not written in the row itself; the reference is D-03.
+
+verdict: PASS (only `CMakeLists.txt` and `CMakePresets.json` differ outside `.planning/` and `.claude/`; four hunks, none remove-only, one replaced line (the CMake minimum); `src/` identical to `5eaac18`; all six commits have fix-log rows; the one generated-code change is the user-decided `-ffp-contract=off`)
+
+## Summary of verdicts
+
+| Criterion | Requirements | Verdict |
+|-----------|--------------|---------|
+| 1 build, arm64, warnings, one image library each | BUILD-01, BUILD-02, BUILD-05 | PASS |
+| 2 launch and six stages end to end | BUILD-03 | PASS |
+| 3 ctest on the final tree, first results tracked | BUILD-04 | PASS |
+| 4 `-ffp-contract=off` and sanitizer option with findings | BUILD-06, BUILD-07 | PASS |
+| 5 diff against `5eaac18` | (phase goal) | PASS |
+
+Known baseline facts reproduced, not fixed: `imageproc_tests` fails `ScaleTestSuite/test_random_image` (`TestScale.cpp:68`, `:70`) in Release (this run), and per the earlier records in Debug and ASan; UBSan reports at `src/imageproc/BinaryImage.cpp:1044:37` and `src/imageproc/SlicedHistogram.cpp:49:47`. One difference from the earlier records: Homebrew `qtbase` is now `6.12.0_1` (was `6.12.0`); no test result or library check changed with it.
+
+Phase 1 verdict: PASS
+
+Phase 2 baseline commit: cde6825 (the commit checked; its `src/`, `CMakeLists.txt` and `CMakePresets.json` equal those of `11bc573`, the last commit that touches code or build files, and every later commit touches only `.planning/`, so Phase 2's goldens come from this source tree)
