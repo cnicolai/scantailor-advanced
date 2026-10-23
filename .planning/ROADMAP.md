@@ -67,7 +67,29 @@ Plans:
   4. The baseline commit comes before every strip or cleanup commit in git history, and its source tree matches the Phase 1 code
   5. A project with non-default parameters in every stage and special characters in names is written, read back and written again with identical results. A single `ctest` command runs the whole suite offscreen with isolated settings and passes. Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it
 
-**Plans**: TBD
+**Plans:** 10 plans
+
+Plans:
+**Wave 1**
+- [ ] 02-01-PLAN.md — Access question, then tracer: generated 300 dpi flat page through the six headless stage Tasks to a passing pipeline_tests (offscreen, isolated settings)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 02-02-PLAN.md — Per-kind image comparator, text goldens, toolchain manifest, GoldenStore with UPDATE_GOLDENS, expected-failure trip-wire
+- [ ] 02-03-PLAN.md — Spread, mixed and curved fixtures with ground truth and determinism suite, truth metrics, multi-page/dewarp/MIXED pipeline smoke
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 02-04-PLAN.md — Revived TestBinarize (nine binarizers), TestScale settled in test code (D-17), new dewarping_tests
+- [ ] 02-05-PLAN.md — Flat-document truth checks and deskew sweep at 300/600 dpi, B/W and colour goldens
+- [ ] 02-06-PLAN.md — Book-spread split and AUTO-dewarp truth checks, spread and dewarp goldens
+- [ ] 02-07-PLAN.md — Mixed-page despeckle, colour and picture-zone truth checks, mixed goldens, AUTO-layout mis-cut marked
+- [ ] 02-08-PLAN.md — Project round trip with special-character names and non-default parameters in every stage, SAFE-02 disposition
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 02-09-PLAN.md — Measured and frozen comparator limits, permanent comparator self-test, isolated qt_tests, full ctest in Release and Debug
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 02-10-PLAN.md — One ASan/UBSan run recorded, findings and backlog items, TEST-04 proof and baseline commit, summary for the user
+
 **UI hint**: no
 
 ### Phase 3: Qt 6 and macOS Only
