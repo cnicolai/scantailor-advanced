@@ -1,0 +1,117 @@
+tested commit: de61f9e24e0cdec58e9165a846ebe2211722b63a
+uncommitted changes (src, CMakeLists.txt, cmake, CMakePresets.json): none
+## Source commits since 5eaac18
+$ git log --oneline --abbrev=7 5eaac18..HEAD -- src CMakeLists.txt cmake
+8670057 build(cmake): add SANITIZE option for ASan/UBSan builds | fix-log row 5
+606bea0 build(cmake): freeze -ffp-contract=off for C and C++ (D-03) | fix-log row 4
+e35b498 build(cmake): enable Clang warnings (D-08) | fix-log row 3
+b2d5214 build(cmake): require CMake 3.25 and use BoostConfig (CMP0167) | fix-log row 1
+## ctest output
+$ ctest --preset macos-release -V --timeout 300
+(ANSI colour codes of the Boost.Test output removed; nothing else changed)
+UpdateCTestConfiguration  from :{repo}/DartConfiguration.tcl
+Test project {repo}/build/macos-release
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: foundation_tests
+
+1: Test command: {repo}/build/macos-release/foundation_tests "--log_level=message"
+1: Working Directory: {repo}/build/macos-release/src/foundation/tests
+1: Test timeout computed to be: 300
+1: Running 22 test cases...
+1: 
+1: *** No errors detected
+1: 
+1/5 Test #1: foundation_tests .................   Passed    0.30 sec
+test 2
+    Start 2: math_tests
+
+2: Test command: {repo}/build/macos-release/math_tests "--log_level=message"
+2: Working Directory: {repo}/build/macos-release/src/math/tests
+2: Test timeout computed to be: 300
+2: Running 32 test cases...
+2: 
+2: *** No errors detected
+2: 
+2/5 Test #2: math_tests .......................   Passed    0.28 sec
+test 3
+    Start 3: imageproc_tests
+
+3: Test command: {repo}/build/macos-release/imageproc_tests "--log_level=message"
+3: Working Directory: {repo}/build/macos-release/src/imageproc/tests
+3: Test timeout computed to be: 300
+3: Running 94 test cases...
+3: {repo}/src/imageproc/tests/TestScale.cpp:68: error: in "ScaleTestSuite/test_random_image": check checkScale(img, QSize(50, 50)) has failed
+3: {repo}/src/imageproc/tests/TestScale.cpp:70: error: in "ScaleTestSuite/test_random_image": check checkScale(img, QSize(80, 80)) has failed
+3: Test case SeedFillTestSuite/test_gray4_random did not check any assertions
+3: Test case SeedFillTestSuite/test_gray8_random did not check any assertions
+3: Test case SeedFillTestSuite/test_gray_vs_binary did not check any assertions
+3: 
+3: *** 2 failures are detected in the test module "Master Test Suite"
+3: 
+3/5 Test #3: imageproc_tests ..................***Failed    0.99 sec
+Running 94 test cases...
+{repo}/src/imageproc/tests/TestScale.cpp:68: error: in "ScaleTestSuite/test_random_image": check checkScale(img, QSize(50, 50)) has failed
+{repo}/src/imageproc/tests/TestScale.cpp:70: error: in "ScaleTestSuite/test_random_image": check checkScale(img, QSize(80, 80)) has failed
+Test case SeedFillTestSuite/test_gray4_random did not check any assertions
+Test case SeedFillTestSuite/test_gray8_random did not check any assertions
+Test case SeedFillTestSuite/test_gray_vs_binary did not check any assertions
+
+*** 2 failures are detected in the test module "Master Test Suite"
+
+
+test 4
+    Start 4: core_tests
+
+4: Test command: {repo}/build/macos-release/core_tests "--log_level=message"
+4: Working Directory: {repo}/build/macos-release/src/core/tests
+4: Test timeout computed to be: 300
+4: Running 55 test cases...
+4: 
+4: *** No errors detected
+4: 
+4/5 Test #4: core_tests .......................   Passed    0.03 sec
+test 5
+    Start 5: qt_tests
+
+5: Test command: {repo}/build/macos-release/qt_tests
+5: Working Directory: {repo}/build/macos-release/src/qt_tests
+5: Test timeout computed to be: 300
+5: ********* Start testing of TestCoreQt *********
+5: Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2)), macos 26.7.0
+5: PASS   : TestCoreQt::initTestCase()
+5: PASS   : TestCoreQt::testUnitsToString()
+5: PASS   : TestCoreQt::testUnitsFromString()
+5: PASS   : TestCoreQt::testUnitsToLocalizedString()
+5: PASS   : TestCoreQt::testUtilsDoubleToString()
+5: PASS   : TestCoreQt::testSmartFilenameOrdering()
+5: PASS   : TestCoreQt::testSignalSpy()
+5: PASS   : TestCoreQt::cleanupTestCase()
+5: Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 1ms
+5: ********* Finished testing of TestCoreQt *********
+5: ********* Start testing of TestUxQt *********
+5: Config: Using QtTest library 6.12.0, Qt 6.12.0 (arm64-little_endian-lp64 shared (dynamic) release build; by Apple LLVM 21.0.0 (clang-2100.3.34.2)), macos 26.7.0
+5: PASS   : TestUxQt::initTestCase()
+5: PASS   : TestUxQt::testButtonClickEmitsSignal()
+5: PASS   : TestUxQt::testCheckBoxToggleChangesState()
+5: PASS   : TestUxQt::testLineEditAcceptsInput()
+5: PASS   : TestUxQt::testCollapsibleGroupBoxStateAndSignal()
+5: PASS   : TestUxQt::testErrorWidgetCreation()
+5: PASS   : TestUxQt::cleanupTestCase()
+5: Totals: 7 passed, 0 failed, 0 skipped, 0 blacklisted, 100ms
+5: ********* Finished testing of TestUxQt *********
+5/5 Test #5: qt_tests .........................   Passed    0.78 sec
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) =   2.37 sec
+
+The following tests FAILED:
+	  3 - imageproc_tests (Failed)
+Errors while running CTest
+ctest exit status: 8
