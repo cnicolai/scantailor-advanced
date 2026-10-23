@@ -206,3 +206,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.5: Test support: straightnessResidual cannot measure the curved book page (BACKLOG)
+
+**Goal:** Limitation of `src/test_support`, not of the application: `straightnessResidual` finds no valid strip (0 of 8) on the output of the curved page without dewarping and has a 4 to 9 px noise floor from glyph content (dots of `i` and `j`, ascenders, descenders) on the AUTO output, so `src/pipeline_tests/TestBookSpread.cpp` measures line offsets against the truth mask (noise floor 0.583 px on a straight page) and reports the plan's measure as reference only. Goal: give `src/test_support` a glyph-independent straightness measure. No requirement exists and no expected-failure mark exists to remove. Finding F-06-2 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
