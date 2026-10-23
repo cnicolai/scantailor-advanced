@@ -83,7 +83,7 @@ Out-of-plan survey for F-04-2 (not part of the test, same fixture with other see
 - Fixture: FLAT, 300 dpi, seed 7, converted to `Format_Grayscale8`
 - Mark: `XFAIL_CHECK(..., "global thresholds reject Format_Grayscale8 (std::runtime_error): no requirement")`
 - Fixing requirement: none (no production caller passes this format: `BlackOnWhiteEstimator` and `PageFinder` pass the Indexed8 result of `transformToGray`; the local binarizers accept the format)
-- Backlog: pending (plan 02-10)
+- Backlog: 999.1 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)
 
 ### F-04-2: the distortion model can leave out the first or last text line
 - Check: `DewarpingTextLineTracerTestSuite/test_model_curves_follow_first_and_last_lines`, top curve against the centre of the first text line
@@ -92,5 +92,5 @@ Out-of-plan survey for F-04-2 (not part of the test, same fixture with other see
 - Fixture: CURVED, 300 dpi, seed 1
 - Mark: `XFAIL_CHECK(topDistance <= kStartBoundPx, "model top curve skips the first text line of the curved page (seed 1): no requirement")`
 - Fixing requirement: none (the production dewarping stage adds the page edges with `TopBottomEdgeTracer` after the tracer and falls back to a trivial model when the result is invalid, which this unit test does not run; whether the first line then lies outside the model domain is for the dewarp scenario of plan 02-06 to show)
-- Backlog: pending (plan 02-10)
+- Backlog: 999.2 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)
 

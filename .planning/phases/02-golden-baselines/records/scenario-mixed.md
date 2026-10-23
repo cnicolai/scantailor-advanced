@@ -75,7 +75,7 @@ Rule: D-15 as written in plan 02-04. Share steps are 0.05 percentage points (0.0
 - Fixture: MIXED, 300 dpi, seed 1, skew 0, `BLACK_AND_WHITE`, AUTO layout.
 - Mark: `XFAIL_CHECK(keepsSinglePage && keepsPage, "page_split AUTO cuts the mixed page and keeps only a fragment of its picture, dropping the text: no requirement")`
 - Fixing requirement: none
-- Backlog: pending (plan 02-10)
+- Backlog: 999.6 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)
 
 ## Goldens
 

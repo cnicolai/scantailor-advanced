@@ -68,4 +68,4 @@ Evidence: file 1 and file 2 are byte-identical for the five-page project and the
 - Fixture: five pages, 64 x 64 px, 300 dpi, layout `SINGLE_PAGE_UNCUT` in the profile.
 - Mark: none. The test runs the page_split stage for every page (real filters, fix_orientation task first, `SINGLE_PAGE_UNCUT` needs no detection), after which the element carries `layoutType="single-uncut"` and split parameters and the check passes. The behaviour is by design for a stage whose output is the parameters, so no expected failure was added; a project that is saved before page_split has run simply carries no layout type for the pages.
 - Fixing requirement: none
-- Backlog: pending (plan 02-10)
+- Backlog: 999.7 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)

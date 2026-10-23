@@ -91,7 +91,7 @@ The ordering of OFF and AUTO flips with the strip count, a two-strip fit is exac
 - Fixture: SPREAD, seed 1, skew 1.0 degrees, AUTO layout.
 - Mark: `XFAIL_CHECK(midHeightOk, "page_split cutter <30.4|55.7> px from the gutter centre at mid-height on the <300|600> dpi spread, bound 2 px (F-06-1): no requirement")`
 - Fixing requirement: none (no Phase 3 to 6 requirement concerns the page split position; the cutter stays in the gutter, so the output is not visibly wrong on this fixture)
-- Backlog: pending (plan 02-10)
+- Backlog: 999.4 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)
 - Note: the cutter runs from (783.2, 1182) to (809.0, 0), a slant of 1.25 degrees for an applied tilt of 1.0 degrees, and the gutter centre line lies about 30 px to the right of it along the whole height (top 28 px, bottom 33 px). Research P4 measured a different cutter (795.5,0 to 873.0,1182) on a first version of the fixture. The cause was not analysed.
 
 ### F-06-2 (test-support limitation, not a production defect): `straightnessResidual` cannot measure this page
@@ -99,7 +99,7 @@ The ordering of OFF and AUTO flips with the strip count, a two-strip fit is exac
 - Measured: no valid result for the output without dewarping (0 of 8 strips usable); 4.64 px for AUTO; ordering of OFF and AUTO depends on the strip count (table above).
 - Consequence: `src/pipeline_tests/TestBookSpread.cpp` measures the line offsets against the truth mask (noise floor 0.583 px on a straight page) and reports the plan's measure as reference only.
 - Fixing requirement: none; plan 02-10 may want a backlog item to give `src/test_support` a glyph-independent straightness measure.
-- Backlog: pending (plan 02-10)
+- Backlog: 999.5 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)
 
 ## Goldens
 

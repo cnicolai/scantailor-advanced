@@ -60,7 +60,7 @@ Rule: D-15 as written in plan 02-04 (worst case over all fixtures of the check; 
 - Fixture: FLAT, 600 dpi, seed 1, skew 1.5 degrees, black-and-white output at 600 dpi.
 - Mark: `XFAIL_CHECK(binarizationOk, "output of the 600 dpi flat page keeps about 0.1 deg residual skew, binarization mismatch 8.3% against 0.5% (F-05-1): no requirement")`
 - Fixing requirement: none
-- Backlog: pending (plan 02-10)
+- Backlog: 999.3 (ROADMAP.md, Backlog section; consolidated in 02-FINDINGS.md)
 
 Evidence that the cause is a rotation the stored angle does not show: the stored deskew angle is exactly -1.5 deg, and the generated input matches the truth mask rotated by 1.5 deg (exclusive-or 1833 pixels at 600 dpi, rising to over 15000 at 1.46 and 1.54 deg). In the output, the best-registered local offset of the truth mask changes with the row: in three horizontal bands of the page it is -1, 0 and +2 px in x at 600 dpi (0, 0 and +1 px at 300 dpi), a shear that grows with y. Searching the rotation of the truth mask gives the best match at net rotation -0.08 to -0.12 deg for the 600 dpi input (mismatch 0.0070 at -0.12 deg, 0.0105 at -0.08 deg, 0.0829 at 0) and about -0.04 deg for the 300 dpi input. The cause inside the output or deskew transformation was not analysed; only the effect is recorded. The golden of flat_600_bw records this behaviour (D-18).
 
