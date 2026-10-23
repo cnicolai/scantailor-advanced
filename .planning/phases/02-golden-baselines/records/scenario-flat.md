@@ -63,3 +63,24 @@ Rule: D-15 as written in plan 02-04 (worst case over all fixtures of the check; 
 - Backlog: pending (plan 02-10)
 
 Evidence that the cause is a rotation the stored angle does not show: the stored deskew angle is exactly -1.5 deg, and the generated input matches the truth mask rotated by 1.5 deg (exclusive-or 1833 pixels at 600 dpi, rising to over 15000 at 1.46 and 1.54 deg). In the output, the best-registered local offset of the truth mask changes with the row: in three horizontal bands of the page it is -1, 0 and +2 px in x at 600 dpi (0, 0 and +1 px at 300 dpi), a shear that grows with y. Searching the rotation of the truth mask gives the best match at net rotation -0.08 to -0.12 deg for the 600 dpi input (mismatch 0.0070 at -0.12 deg, 0.0105 at -0.08 deg, 0.0829 at 0) and about -0.04 deg for the 300 dpi input. The cause inside the output or deskew transformation was not analysed; only the effect is recorded. The golden of flat_600_bw records this behaviour (D-18).
+
+## Goldens
+
+Recorded with `UPDATE_GOLDENS=1 build/macos-release/pipeline_tests --run_test=FlatDocumentTestSuite` from a tree whose non-test paths equal `cde6825` apart from `src/CMakeLists.txt` (the plan's gate command printed `src/CMakeLists.txt` only). Every scenario logged `RECORDED flat/<name>` and no `sanity failed`. The suite directory is `src/pipeline_tests/golden/flat/`. Golden commit: `2f6df32` (`test(02-05): record flat-document goldens from macos-release`, ten files, all under `golden/flat/`). The manifest names `build_type = Release`, `ffp_contract = off` and `source_commit = 24d18b6` (the test-code commit; the manifest was refreshed once after that commit, no golden file changed).
+
+| File | Kind | Bytes | Pixels |
+|------|------|-------|--------|
+| flat_300_bw.png | bi-level (1 bit) | 14127 | 1676 x 1636 |
+| flat_300_bw.txt | text, 20 keys | 447 | n/a |
+| flat_300_color.png | colour (8 bit RGB) | 1129151 | 1676 x 1636 |
+| flat_300_color.txt | text, 20 keys | 447 | n/a |
+| flat_600_bw.png | bi-level (1 bit) | 11087 | 1676 x 1636 |
+| flat_600_bw.txt | text, 20 keys | 449 | n/a |
+| flat_600_color.png | colour (8 bit RGB) | 1235349 | 1676 x 1636 |
+| flat_600_color.txt | text, 20 keys | 449 | n/a |
+| fixtures.txt | text, 18 keys (14 sweep inputs `flat_<dpi>_skew_<angle>`, 4 scenario inputs `scenario_<name>`) | 1562 | n/a |
+| MANIFEST.txt | toolchain | 333 | n/a |
+
+The flat_600_bw golden records the behaviour of F-05-1 (output with about 0.1 degrees of residual skew), as D-18 requires.
+
+Checks after recording: `FlatDocumentTestSuite` passes again in Release without `UPDATE_GOLDENS` (114 `GOLDEN-METRIC suite=flat` lines, `git status` shows nothing under `golden/flat`); `ctest --preset macos-debug -R pipeline_tests` passes (114 s) against the Release goldens; `ctest --preset macos-release -R pipeline_tests` passes (24 s).
