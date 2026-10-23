@@ -1,97 +1,349 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
+#include <ExpectedFailure.h>
 #include <PageGenerator.h>
+#include <TruthMetrics.h>
 
 #include <QImage>
+#include <QPoint>
+#include <QRect>
 #include <QRectF>
 #include <QString>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "HeadlessPipeline.h"
 
 namespace {
 
-// D-15 start values.
-const double kAppliedSkewDeg = 1.5;
+// Ground-truth bounds.  Starting values of D-15, then set by the D-15 tightening rule from the measurements in
+// records/scenario-flat.md ("Tolerance decisions").
 const double kAngleToleranceDeg = 0.15;
-const double kMinContentIou = 0.95;
-const double kMinInkFraction = 0.005;
-const double kMaxInkFraction = 0.5;
+const double kMinContentIou = 0.96;  // worst 1 - IoU 0.0187, twice rounded up to 0.005: 0.04
+const double kMaxBinarizationMismatch = 0.005;
+// Colour/greyscale output: mean grey under the truth ink must be at least this many levels below the mean grey
+// under the truth paper.  Not a D-15 value (D-15 names no colour check), so it is not tightened.
+const double kMinInkPaperContrast = 100.0;
+
+const double kAppliedSkewDeg = 1.5;
 const int kOutputDpi = 600;
-const double kMinOutputWidthFactor = 2.0;  // 600 dpi output of a 300 dpi input
+const int kRegistrationRadius = 4;
+// Sanity (D-05): the glyph ink starts within this distance of the stored hard margins, at 600 dpi.
+const double kMarginSlackMm = 5.0;
+const double kMillimetresPerInch = 25.4;
+const double kSanityWidthSlack = 1.2;
+const double kMinInkFractionOfOutput = 0.005;
+const double kMaxInkFractionOfOutput = 0.5;
+
+struct Scenario {
+  const char* name;
+  int dpi;
+  output::ColorMode colorMode;
+};
+
+const Scenario kScenario300Bw = {"flat_300_bw", 300, output::BLACK_AND_WHITE};
+const Scenario kScenario300Color = {"flat_300_color", 300, output::COLOR_GRAYSCALE};
+const Scenario kScenario600Bw = {"flat_600_bw", 600, output::BLACK_AND_WHITE};
+const Scenario kScenario600Color = {"flat_600_color", 600, output::COLOR_GRAYSCALE};
+
+const double kSweepAnglesDeg[] = {-3.0, -1.5, -0.5, 0.5, 1.5, 2.0, 3.0};
+const int kSweepDpis[] = {300, 600};
 
 std::string num(const double value) {
-  return QString::number(value, 'f', 4).toStdString();
+  return QString::number(value, 'g', 10).toStdString();
 }
 
-double intersectionOverUnion(const QRectF& a, const QRectF& b) {
-  const QRectF intersection = a.intersected(b);
-  const double intersectionArea = intersection.isValid() ? intersection.width() * intersection.height() : 0.0;
-  const double unionArea = a.width() * a.height() + b.width() * b.height() - intersectionArea;
-  return unionArea > 0.0 ? intersectionArea / unionArea : 0.0;
+void reportMetric(const std::string& scenario, const char* metric, const double value, const std::string& bound) {
+  BOOST_TEST_MESSAGE("TRUTH-METRIC suite=flat scenario=" << scenario << " metric=" << metric << " value=" << num(value)
+                                                         << " bound=" << bound);
 }
 
-double blackFraction(const QImage& image) {
-  const QImage gray = image.convertToFormat(QImage::Format_Grayscale8);
-  long black = 0;
-  for (int y = 0; y < gray.height(); ++y) {
-    const uchar* const line = gray.constScanLine(y);
-    for (int x = 0; x < gray.width(); ++x) {
-      if (line[x] < 128) {
-        ++black;
+test_support::PageSpec flatSpec(const int dpi, const double skewDeg) {
+  test_support::PageSpec spec;
+  spec.kind = test_support::PageKind::FLAT;
+  spec.dpi = dpi;
+  spec.seed = 1;
+  spec.skewDeg = skewDeg;
+  return spec;
+}
+
+// Generated pages are shared between the scenario cases, the sweep and the fingerprint case: rendering a 600 dpi
+// page in Debug takes seconds.
+const test_support::GeneratedPage& flatPage(const int dpi, const double skewDeg) {
+  static std::map<std::pair<int, int>, test_support::GeneratedPage> cache;
+  const std::pair<int, int> key(dpi, static_cast<int>(std::lround(skewDeg * 10.0)));
+  auto it = cache.find(key);
+  if (it == cache.end()) {
+    it = cache.emplace(key, test_support::generatePage(flatSpec(dpi, skewDeg))).first;
+  }
+  return it->second;
+}
+
+// Angle as used in golden keys: sign letter (p or m), integer part, "p", first decimal: 1.5 is p1p5, -3.0 is m3p0.
+std::string angleLabel(const double angleDeg) {
+  const long tenths = std::lround(std::fabs(angleDeg) * 10.0);
+  return std::string(angleDeg < 0 ? "m" : "p") + std::to_string(tenths / 10) + "p" + std::to_string(tenths % 10);
+}
+
+struct SanityResult {
+  bool ok;
+  QString reason;
+};
+
+// Everything measured for one scenario.
+struct Measured {
+  test_support::GeneratedPage page;
+  PipelineResult result;
+  double deskewErrorDeg = 0.0;
+  double contentIou = 0.0;
+  double binarizationMismatch = -1.0;  // black-and-white scenarios only
+  double inkPaperContrast = -1.0;      // colour scenarios only (paper grey minus ink grey)
+  QPoint registrationOffset;
+  SanityResult sanity{false, QString()};
+};
+
+double meanGreyUnder(const QImage& output, const QImage& mask, const QPoint& offset, const bool ink) {
+  const QImage gray = output.convertToFormat(QImage::Format_Grayscale8);
+  double sum = 0.0;
+  long long count = 0;
+  for (int y = 0; y < mask.height(); ++y) {
+    const uchar* const maskLine = mask.constScanLine(y);
+    const int oy = y + offset.y();
+    if (oy < 0 || oy >= gray.height()) {
+      continue;
+    }
+    const uchar* const outLine = gray.constScanLine(oy);
+    for (int x = 0; x < mask.width(); ++x) {
+      const int ox = x + offset.x();
+      if (ox < 0 || ox >= gray.width()) {
+        continue;
+      }
+      if ((maskLine[x] < 128) == ink) {
+        sum += outLine[ox];
+        ++count;
       }
     }
   }
-  return static_cast<double>(black) / (static_cast<double>(gray.width()) * gray.height());
+  return count > 0 ? sum / static_cast<double>(count) : 0.0;
+}
+
+SanityResult flatSanity(const Scenario& scenario, const test_support::GeneratedPage& page, const SubPageResult& sub) {
+  const QImage& out = sub.output;
+  const double scale = static_cast<double>(kOutputDpi) / scenario.dpi;
+  test_support::SanityExpectation expectation;
+  expectation.minSize = QSize(static_cast<int>(scale * page.truth.textBlock.width()),
+                              static_cast<int>(scale * page.truth.textBlock.height()));
+  expectation.maxSize = QSize(static_cast<int>(scale * page.truth.pageSize.width() * kSanityWidthSlack), 0);
+  expectation.minInk = kMinInkFractionOfOutput;
+  expectation.maxInk = kMaxInkFractionOfOutput;
+  // The default hard margins (10 mm left and right, 5 mm top and bottom) make the whole page of this fixture
+  // nearly square (1676 x 1636 px), so the orientation is checked on the glyph ink box below, not on the page.
+  expectation.portrait = false;
+  const test_support::SanityCheck basic = test_support::outputSanity(out, expectation);
+  if (!basic.ok) {
+    return SanityResult{false, basic.reason};
+  }
+
+  const QRect box = test_support::nonBackgroundBox(out);
+  if (box.isNull()) {
+    return SanityResult{false, QStringLiteral("output has no non-background pixels")};
+  }
+  if (box.width() > box.height()) {
+    return SanityResult{
+        false,
+        QStringLiteral("glyph ink box %1x%2 is landscape but portrait is expected").arg(box.width()).arg(box.height())};
+  }
+  const int bands = test_support::countHorizontalBands(out, box);
+  if (std::abs(bands - page.truth.lineCount) > 1) {
+    return SanityResult{false,
+                        QStringLiteral("found %1 text lines, truth has %2").arg(bands).arg(page.truth.lineCount)};
+  }
+  const double pxPerMm = kOutputDpi / kMillimetresPerInch;
+  const double slackPx = kMarginSlackMm * pxPerMm;
+  const double leftExpected = sub.hardMarginLeftMM * pxPerMm;
+  const double topExpected = sub.hardMarginTopMM * pxPerMm;
+  if (std::fabs(box.left() - leftExpected) > slackPx || std::fabs(box.top() - topExpected) > slackPx) {
+    return SanityResult{false, QStringLiteral("ink box starts at (%1, %2) px, stored margins put it near (%3, %4) px")
+                                   .arg(box.left())
+                                   .arg(box.top())
+                                   .arg(leftExpected)
+                                   .arg(topExpected)};
+  }
+  return SanityResult{true, QString()};
+}
+
+Measured measureScenario(const Scenario& scenario) {
+  Measured m;
+  m.page = flatPage(scenario.dpi, kAppliedSkewDeg);
+  PipelineOptions options;
+  options.colorMode = scenario.colorMode;
+  m.result = runPipeline(m.page.image, options);
+  BOOST_REQUIRE_EQUAL(m.result.pages.size(), 1u);
+  const SubPageResult& sub = m.result.pages.front();
+  BOOST_REQUIRE_MESSAGE(!sub.output.isNull(), scenario.name << ": no output image");
+  BOOST_REQUIRE_MESSAGE(sub.pageRect.isValid() && sub.contentRect.isValid(),
+                        scenario.name << ": select_content found no boxes");
+
+  // The stored angle straightens the page, so it has the opposite sign of the angle the generator applied
+  // (PageGenerator.h).
+  m.deskewErrorDeg = std::fabs(sub.deskewAngleDeg + kAppliedSkewDeg);
+
+  const QPointF truthCentre(m.page.truth.pageSize.width() / 2.0, m.page.truth.pageSize.height() / 2.0);
+  m.contentIou = test_support::centredBoxIoU(QRectF(sub.contentRect), sub.pageRect.center(),
+                                             QRectF(m.page.truth.textBlock), truthCentre);
+
+  // Rotation left on the page after the stored correction, in the generator's convention (positive turns the
+  // content clockwise).
+  const double netRotationDeg = kAppliedSkewDeg + sub.deskewAngleDeg;
+  const QImage mask = test_support::renderInkMask(flatSpec(scenario.dpi, kAppliedSkewDeg), kOutputDpi, netRotationDeg);
+  const test_support::Registration registration = test_support::registerMask(sub.output, mask, kRegistrationRadius);
+  m.registrationOffset = registration.offset;
+  const int edgeRadius = kOutputDpi / scenario.dpi;
+  if (scenario.colorMode == output::BLACK_AND_WHITE) {
+    m.binarizationMismatch = test_support::truthMismatchFraction(sub.output, mask, registration.offset, edgeRadius);
+  } else {
+    m.inkPaperContrast = meanGreyUnder(sub.output, mask, registration.offset, false)
+                         - meanGreyUnder(sub.output, mask, registration.offset, true);
+  }
+  m.sanity = flatSanity(scenario, m.page, sub);
+  return m;
+}
+
+void reportScenario(const Scenario& scenario, const Measured& m) {
+  const SubPageResult& sub = m.result.pages.front();
+  const std::string name = scenario.name;
+  reportMetric(name, "stored_deskew_deg", sub.deskewAngleDeg, "none");
+  reportMetric(name, "deskew_error_deg", m.deskewErrorDeg, num(kAngleToleranceDeg));
+  reportMetric(name, "content_iou", m.contentIou, num(kMinContentIou));
+  if (m.binarizationMismatch >= 0.0) {
+    reportMetric(name, "binarization_mismatch", m.binarizationMismatch, num(kMaxBinarizationMismatch));
+  } else {
+    reportMetric(name, "ink_paper_contrast", m.inkPaperContrast, num(kMinInkPaperContrast));
+  }
+  reportMetric(name, "output_w_px", sub.outputSize.width(), "none");
+  reportMetric(name, "output_h_px", sub.outputSize.height(), "none");
+  reportMetric(name, "hard_margin_left_mm", sub.hardMarginLeftMM, "none");
+  reportMetric(name, "hard_margin_top_mm", sub.hardMarginTopMM, "none");
+  reportMetric(name, "hard_margin_right_mm", sub.hardMarginRightMM, "none");
+  reportMetric(name, "hard_margin_bottom_mm", sub.hardMarginBottomMM, "none");
+  reportMetric(name, "content_w_px", sub.contentRect.width(), "none");
+  reportMetric(name, "content_h_px", sub.contentRect.height(), "none");
+  reportMetric(name, "page_rect_w_px", sub.pageRect.width(), "none");
+  reportMetric(name, "page_rect_h_px", sub.pageRect.height(), "none");
+  reportMetric(name, "registration_offset_x_px", m.registrationOffset.x(), "none");
+  reportMetric(name, "registration_offset_y_px", m.registrationOffset.y(), "none");
+  BOOST_TEST_MESSAGE("TRUTH-METRIC suite=flat scenario=" << name << " metric=sanity value=" << (m.sanity.ok ? 1 : 0)
+                                                         << " bound=1 reason=" << m.sanity.reason.toStdString());
+}
+
+// knownDefect: when not null, the binarization check is an expected failure (D-18) with this tag.
+void checkScenario(const Scenario& scenario, const Measured& m, const char* knownDefect) {
+  const std::string name = scenario.name;
+  BOOST_CHECK_MESSAGE(m.deskewErrorDeg <= kAngleToleranceDeg,
+                      name << ": deskew error " << num(m.deskewErrorDeg) << " deg exceeds " << num(kAngleToleranceDeg));
+  BOOST_CHECK_MESSAGE(m.contentIou >= kMinContentIou,
+                      name << ": content box IoU " << num(m.contentIou) << " is below " << num(kMinContentIou));
+  if (scenario.colorMode == output::BLACK_AND_WHITE) {
+    const bool binarizationOk = m.binarizationMismatch >= 0.0 && m.binarizationMismatch <= kMaxBinarizationMismatch;
+    if (knownDefect != nullptr) {
+      XFAIL_CHECK(binarizationOk, knownDefect);
+    } else {
+      BOOST_CHECK_MESSAGE(binarizationOk, name << ": binarization mismatch " << num(m.binarizationMismatch)
+                                               << " exceeds " << num(kMaxBinarizationMismatch));
+    }
+  } else {
+    BOOST_CHECK_MESSAGE(m.inkPaperContrast >= kMinInkPaperContrast, name << ": ink/paper contrast "
+                                                                         << num(m.inkPaperContrast) << " is below "
+                                                                         << num(kMinInkPaperContrast));
+  }
+  const SubPageResult& sub = m.result.pages.front();
+  BOOST_CHECK_EQUAL(sub.outputDpiX, kOutputDpi);
+  BOOST_CHECK_EQUAL(sub.outputDpiY, kOutputDpi);
+}
+
+void runScenarioCase(const Scenario& scenario, const char* knownDefect = nullptr) {
+  const Measured m = measureScenario(scenario);
+  reportScenario(scenario, m);
+  checkScenario(scenario, m, knownDefect);
 }
 
 }  // namespace
 
 BOOST_AUTO_TEST_SUITE(FlatDocumentTestSuite)
 
+// Tracer case of plan 02-01: stage decisions of the 300 dpi black-and-white page against ground truth.
 BOOST_AUTO_TEST_CASE(test_flat_300_bw_deskew_and_content_box) {
-  test_support::PageSpec spec;
-  spec.kind = test_support::PageKind::FLAT;
-  spec.dpi = 300;
-  spec.seed = 1;
-  spec.skewDeg = kAppliedSkewDeg;
-  const test_support::GeneratedPage page = test_support::generatePage(spec);
-
+  const test_support::GeneratedPage& page = flatPage(300, kAppliedSkewDeg);
   const PipelineResult result = runPipeline(page.image, PipelineOptions());
   BOOST_REQUIRE_EQUAL(result.pages.size(), 1u);
   const SubPageResult& sub = result.pages.front();
 
-  // The stored angle is the angle that straightens the page, so it has the opposite sign of the angle the
-  // generator applied (measured once, see PageGenerator.h).
   const double angleError = std::fabs(sub.deskewAngleDeg + kAppliedSkewDeg);
-  BOOST_TEST_MESSAGE("stored deskew angle " << num(sub.deskewAngleDeg) << ", applied " << num(kAppliedSkewDeg));
   BOOST_CHECK_MESSAGE(angleError <= kAngleToleranceDeg,
                       "deskew angle error " << num(angleError) << " exceeds " << num(kAngleToleranceDeg));
 
-  // The content box lives in the deskewed frame, so both boxes are taken relative to their frame centres.
   BOOST_REQUIRE_MESSAGE(sub.pageRect.isValid() && sub.contentRect.isValid(), "select_content found no boxes");
-  const QRectF truthBox = QRectF(page.truth.textBlock)
-                              .translated(-page.truth.pageSize.width() / 2.0, -page.truth.pageSize.height() / 2.0);
-  const QRectF foundBox = QRectF(sub.contentRect).translated(-sub.pageRect.center());
-  const double iou = intersectionOverUnion(truthBox, foundBox);
-  BOOST_TEST_MESSAGE("content box IoU " << num(iou));
+  const QPointF truthCentre(page.truth.pageSize.width() / 2.0, page.truth.pageSize.height() / 2.0);
+  const double iou = test_support::centredBoxIoU(QRectF(sub.contentRect), sub.pageRect.center(),
+                                                 QRectF(page.truth.textBlock), truthCentre);
   BOOST_CHECK_MESSAGE(iou >= kMinContentIou, "content box IoU " << num(iou) << " is below " << num(kMinContentIou));
 
   BOOST_REQUIRE_MESSAGE(!sub.output.isNull(), "no output image");
-  const double ink = blackFraction(sub.output);
-  BOOST_TEST_MESSAGE("black fraction " << num(ink));
-  BOOST_CHECK_MESSAGE(ink >= kMinInkFraction && ink <= kMaxInkFraction,
-                      "output black fraction " << num(ink) << " is outside [" << num(kMinInkFraction) << ", "
-                                               << num(kMaxInkFraction) << "]");
+  const double ink = test_support::inkFraction(sub.output);
+  BOOST_CHECK_MESSAGE(ink >= kMinInkFractionOfOutput && ink <= kMaxInkFractionOfOutput,
+                      "output black fraction " << num(ink) << " is outside [" << num(kMinInkFractionOfOutput) << ", "
+                                               << num(kMaxInkFractionOfOutput) << "]");
 
   BOOST_CHECK_EQUAL(sub.outputDpiX, kOutputDpi);
   BOOST_CHECK_EQUAL(sub.outputDpiY, kOutputDpi);
-  BOOST_CHECK_MESSAGE(sub.outputSize.width() >= kMinOutputWidthFactor * page.truth.textBlock.width(),
+  BOOST_CHECK_MESSAGE(sub.outputSize.width() >= 2.0 * page.truth.textBlock.width(),
                       "output width " << sub.outputSize.width() << " is smaller than twice the text block width "
                                       << page.truth.textBlock.width());
+}
+
+BOOST_AUTO_TEST_CASE(test_flat_300_bw_truth) {
+  runScenarioCase(kScenario300Bw);
+}
+
+BOOST_AUTO_TEST_CASE(test_flat_300_color_truth) {
+  runScenarioCase(kScenario300Color);
+}
+
+BOOST_AUTO_TEST_CASE(test_flat_600_bw_truth) {
+  // F-05-1: the unmodified output stage leaves about 0.1 degrees of residual rotation on a 600 dpi input although
+  // the stored deskew angle is exact.
+  runScenarioCase(kScenario600Bw,
+                  "output of the 600 dpi flat page keeps about 0.1 deg residual skew, binarization mismatch 8.3% "
+                  "against 0.5% (F-05-1): no requirement");
+}
+
+BOOST_AUTO_TEST_CASE(test_flat_600_color_truth) {
+  runScenarioCase(kScenario600Color);
+}
+
+// Seven applied angles at both DPIs, stopping after the deskew stage.
+BOOST_AUTO_TEST_CASE(test_deskew_angle_sweep) {
+  for (const int dpi : kSweepDpis) {
+    for (const double appliedDeg : kSweepAnglesDeg) {
+      const test_support::GeneratedPage& page = flatPage(dpi, appliedDeg);
+      PipelineOptions options;
+      options.lastStage = LastStage::DESKEW;
+      const PipelineResult result = runPipeline(page.image, options);
+      BOOST_REQUIRE_EQUAL(result.pages.size(), 1u);
+      const double storedDeg = result.pages.front().deskewAngleDeg;
+      const double errorDeg = std::fabs(storedDeg + appliedDeg);
+      const std::string scenario = "sweep_" + std::to_string(dpi) + "_" + angleLabel(appliedDeg);
+      reportMetric(scenario, "applied_deg", appliedDeg, "none");
+      reportMetric(scenario, "stored_deg", storedDeg, "none");
+      reportMetric(scenario, "deskew_error_deg", errorDeg, num(kAngleToleranceDeg));
+      BOOST_CHECK_MESSAGE(errorDeg <= kAngleToleranceDeg,
+                          scenario << ": deskew error " << num(errorDeg) << " deg exceeds " << num(kAngleToleranceDeg));
+    }
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
