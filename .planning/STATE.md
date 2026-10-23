@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-10-23T18:18:06.201Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-10-23T18:44:22.300Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: e12a5a9f48770f6c2494cf8369f06b240a299ea2
+state_head: 7a98fc1a067ea21b61353ca7c3c3b4e889f691f3
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 9
+  completed_plans: 10
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 02 execution started
 
@@ -66,6 +66,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P07 | 5 min | 2 tasks | 3 files |
 | Phase 02 P01 | 10 min | 2 tasks | 12 files |
 | Phase 02 P02 | 19 min | 3 tasks | 14 files |
+| Phase 02 P03 | 24 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-02: A golden replaced in update mode reports no metrics; expected/actual/diff stay in the artifact folder
 - [Phase 02]: 02-02: Non-numeric value under a _deg/_px/_mm key fails; numeric limit gets 1e-9 slack (kTextToleranceSlack)
 - [Phase 02]: 02-02: GoldenStore clearArtifacts re-checks that the path is below the artifact root (a mutation run with validation off deleted build/macos-release)
+- [Phase 02]: 02-03: GroundTruth text boxes are tight ink boxes for every kind; the nominal block frames only place the text
+- [Phase 02]: 02-03: Curl profile is evaluated at the image x coordinate, so mapImageToFlat is closed form (the renderer map) and mapFlatToImage is a fixed-point iteration; mapImageToFlat added to the public interface
+- [Phase 02]: 02-03: straightnessResidual returns valid=false, linesFound 0 and an infinite residual with fewer than two usable strips; a symmetric arc of sagitta h leaves 0.4375 h at 8 strips
+- [Phase 02]: 02-03: HeadlessPipeline needed no change for spread, AUTO dewarp and MIXED output; it is frozen and scenarios use PipelineOptions::configure
 
 ### Pending Todos
 
@@ -116,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T18:18:06.170Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-10-23T18:44:22.271Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
