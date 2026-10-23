@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 5
 waived_count: 0
 fixed_count: 0
-total_count: 3
-last_updated: 2026-10-23T19:43:07.270Z
+total_count: 5
+last_updated: 2026-10-23T20:00:42.800Z
 ---
 
 # Broken Windows Ledger
@@ -18,6 +18,8 @@ last_updated: 2026-10-23T19:43:07.270Z
 | 1 | 02 | unmet-truth | src/pipeline_tests/TestFlatDocument.cpp |  | F-05-1: flat_600_bw binarization mismatch 8.3% against 0.5% (output keeps about 0.1 deg residual skew at 600 dpi input), XFAIL_CHECK, no requirement | open |  | 2026-10-23T19:13:34.694Z |  |
 | 2 | 02 | unmet-truth | src/pipeline_tests/TestBookSpread.cpp |  | F-06-1: page_split cutter 30.4 px (300 dpi) and 55.7 px (600 dpi) from the gutter centre at mid-height against 2 px, XFAIL_CHECK in four spread scenarios, no requirement | open |  | 2026-10-23T19:43:07.149Z |  |
 | 3 | 02 | deviation | src/pipeline_tests/TestBookSpread.cpp |  | F-06-2: TruthMetrics straightnessResidual finds no valid strip on the OFF output of the curved page and has a 4 to 9 px glyph-content noise floor; the dewarp checks use a truth-registered line offset measure local to the test | open |  | 2026-10-23T19:43:07.270Z |  |
+| 4 | 02 | unmet-truth | src/pipeline_tests/TestMixedPage.cpp |  | F-07-1: page_split AUTO cuts the generated mixed page (SINGLE_PAGE_CUT, two cutters) and keeps only a fragment of its picture, dropping the text; the coverage scenarios force SINGLE_PAGE_UNCUT | open |  | 2026-10-23T20:00:42.678Z |  |
+| 5 | 02 | deviation | src/pipeline_tests/TestMixedPage.cpp |  | Plan 02-07 fixture sanity 'at least 90% of the specks present with despeckle off' cannot hold: the output keeps only the content box, 24 of 40 (300 dpi) and 28 of 40 (600 dpi) specks lie outside it; the test checks the specks inside the content box instead | open |  | 2026-10-23T20:00:42.800Z |  |
 
 ````json
 [
@@ -57,6 +59,32 @@ last_updated: 2026-10-23T19:43:07.270Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-23T19:43:07.270Z",
+    "resolved_at": null,
+    "milestone": "v1.0"
+  },
+  {
+    "id": 4,
+    "kind": "unmet-truth",
+    "phase": "02",
+    "file": "src/pipeline_tests/TestMixedPage.cpp",
+    "line": null,
+    "description": "F-07-1: page_split AUTO cuts the generated mixed page (SINGLE_PAGE_CUT, two cutters) and keeps only a fragment of its picture, dropping the text; the coverage scenarios force SINGLE_PAGE_UNCUT",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-23T20:00:42.678Z",
+    "resolved_at": null,
+    "milestone": "v1.0"
+  },
+  {
+    "id": 5,
+    "kind": "deviation",
+    "phase": "02",
+    "file": "src/pipeline_tests/TestMixedPage.cpp",
+    "line": null,
+    "description": "Plan 02-07 fixture sanity 'at least 90% of the specks present with despeckle off' cannot hold: the output keeps only the content box, 24 of 40 (300 dpi) and 28 of 40 (600 dpi) specks lie outside it; the test checks the specks inside the content box instead",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-23T20:00:42.800Z",
     "resolved_at": null,
     "milestone": "v1.0"
   }

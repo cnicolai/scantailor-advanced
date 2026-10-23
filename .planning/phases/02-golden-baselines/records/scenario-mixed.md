@@ -76,3 +76,28 @@ Rule: D-15 as written in plan 02-04. Share steps are 0.05 percentage points (0.0
 - Mark: `XFAIL_CHECK(keepsSinglePage && keepsPage, "page_split AUTO cuts the mixed page and keeps only a fragment of its picture, dropping the text: no requirement")`
 - Fixing requirement: none
 - Backlog: pending (plan 02-10)
+
+## Goldens
+
+Recorded with `UPDATE_GOLDENS=1 build/macos-release/pipeline_tests --run_test=MixedPageTestSuite` from a tree whose non-test paths equal `cde6825` apart from `src/CMakeLists.txt` (the plan's gate command printed `src/CMakeLists.txt` only). Every golden logged `RECORDED mixed/<name>` for its image and its text file, and no `sanity failed`. The suite directory is `src/pipeline_tests/golden/mixed/`. Golden commit: `a796c2a` (`test(02-07): record mixed-page goldens from macos-release`, twelve files, all under `golden/mixed/`, body starting `Reason:`). The manifest names `build_type = Release`, `ffp_contract = off` and `source_commit = 75033e7` (the test-code commit `test(02-07): check mixed-page goldens`).
+
+| File | Kind | Bytes | Pixels |
+|------|------|-------|--------|
+| mixed_300_bw.png | bi-level (1 bit), default despeckle | 14013 | 2080 x 1856 |
+| mixed_300_bw.txt | text, 22 keys | 499 | n/a |
+| mixed_600_bw.png | bi-level (1 bit), default despeckle | 13807 | 2080 x 1856 |
+| mixed_600_bw.txt | text, 22 keys | 502 | n/a |
+| mixed_300_color.png | colour (8 bit RGB), `COLOR_GRAYSCALE` | 1627675 | 2080 x 1856 |
+| mixed_300_color.txt | text, 22 keys | 499 | n/a |
+| mixed_600_color.png | colour (8 bit RGB), `COLOR_GRAYSCALE` | 2134050 | 2080 x 1856 |
+| mixed_600_color.txt | text, 22 keys | 502 | n/a |
+| mixed_300_mixed.png | colour (8 bit RGB), `MIXED` with the picture zone | 592579 | 2080 x 1856 |
+| mixed_300_mixed.txt | text, 22 keys | 489 | n/a |
+| fixtures.txt | text, 2 keys (`mixed_300`, `mixed_600`) | 154 | n/a |
+| MANIFEST.txt | toolchain | 333 | n/a |
+
+The text goldens have the 20 keys of the flat suite plus `color_mode` and `despeckle_level` (and `layout_type = 0`, the forced layout). There is no golden for the despeckle-off runs and none for the AUTO-layout observation (F-07-1).
+
+Sanity values at recording (D-05), identical in the five scenarios unless noted: text block lines found 16 against 15 (limit: within one), text mismatch 0 (limit 0.05), ink fraction 0.193 (bw), 0.119 (colour) and 0.129 (MIXED) against 0.005 to 0.6, not-bi-level share 1 for colour and 0.134 for MIXED (limit 0.05), output 2080 x 1856 px (limits: width 830 to 2400 px, height at least 1610 px, the same for both input dpi once the truth is scaled to 600 dpi), glyph ink box portrait in the mapped text block. The orientation is checked inside the mapped text block, because the box of text and picture is almost square (1608 x 1620 px).
+
+Checks after recording: `MixedPageTestSuite` passes again in Release without `UPDATE_GOLDENS` (132 `GOLDEN-METRIC suite=mixed` lines, none failing, `git status` shows nothing changed under `golden/mixed`); `MixedPageTestSuite` passes in Debug with every golden metric at 0; `ctest --preset macos-debug -R pipeline_tests` passes (205 s for the whole executable).
