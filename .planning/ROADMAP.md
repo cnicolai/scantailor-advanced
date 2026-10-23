@@ -67,7 +67,7 @@ Plans:
   4. The baseline commit comes before every strip or cleanup commit in git history, and its source tree matches the Phase 1 code
   5. A project with non-default parameters in every stage and special characters in names is written, read back and written again with identical results. A single `ctest` command runs the whole suite offscreen with isolated settings and passes. Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it
 
-**Plans:** 4/10 plans executed
+**Plans:** 5/10 plans executed
 
 Plans:
 **Wave 1**
@@ -79,7 +79,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [x] 02-04-PLAN.md — Revived TestBinarize (nine binarizers), TestScale settled in test code (D-17), new dewarping_tests
-- [ ] 02-05-PLAN.md — Flat-document truth checks and deskew sweep at 300/600 dpi, B/W and colour goldens
+- [x] 02-05-PLAN.md — Flat-document truth checks and deskew sweep at 300/600 dpi, B/W and colour goldens
 - [ ] 02-06-PLAN.md — Book-spread split and AUTO-dewarp truth checks, spread and dewarp goldens
 - [ ] 02-07-PLAN.md — Mixed-page despeckle, colour and picture-zone truth checks, mixed goldens, AUTO-layout mis-cut marked
 - [ ] 02-08-PLAN.md — Project round trip with special-character names and non-default parameters in every stage, SAFE-02 disposition
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
-| 2. Golden Baselines | 4/10 | In Progress | - |
+| 2. Golden Baselines | 5/10 | In Progress | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |

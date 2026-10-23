@@ -23,7 +23,7 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 - [ ] **TEST-02**: An image comparator applies per-kind tolerances (bi-level, grey/colour, geometry); a failure writes the actual and diff images
 - [ ] **TEST-03**: Baseline (golden) images change only through an explicit update flag, and a manifest records the toolchain versions they were made with
 - [ ] **TEST-04**: Baselines are recorded from the unmodified codebase before any Qt 5/platform removal or refactor
-- [ ] **TEST-05**: Flat-document tests check the deskew angle, the content box and binarization accuracy against ground truth
+- [x] **TEST-05**: Flat-document tests check the deskew angle, the content box and binarization accuracy against ground truth
 - [ ] **TEST-06**: Book-page tests check the page-split position and that dewarping straightens synthetic curved text lines
 - [ ] **TEST-07**: Mixed-page tests cover picture zones, colour/greyscale output and despeckling
 - [x] **TEST-08**: The disabled binarization test (`TestBinarize`) runs again, with synthetic inputs
@@ -135,7 +135,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 2 | Pending |
 | TEST-04 | Phase 2 | Pending |
-| TEST-05 | Phase 2 | Pending |
+| TEST-05 | Phase 2 | Complete |
 | TEST-06 | Phase 2 | Pending |
 | TEST-07 | Phase 2 | Pending |
 | TEST-08 | Phase 2 | Complete |

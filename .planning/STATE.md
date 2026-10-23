@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-10-23T19:00:46.499Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-10-23T19:14:29.809Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: a232c1b5912b985b65078bd9dd47ba550545a2a5
+state_head: c2e57775c553f9739aac56c4a00dd5585b970c01
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 11
+  completed_plans: 12
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 5 of 10
+Plan: 6 of 10
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 02 execution started
 
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P02 | 19 min | 3 tasks | 14 files |
 | Phase 02 P03 | 24 min | 3 tasks | 8 files |
 | Phase 02 P04 | 11 min | 2 tasks | 10 files |
+| Phase 02 P05 | 12 min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Recent decisions affecting current work:
 - [Phase 02]: D-17: scaleToGray equals the exact area average, Qt 6.12 smooth scaling moved; TestScale compares against an area-average reference
 - [Phase 02]: Binarization tests: every binarizer matches the ink mask exactly, bounds at the D-15 minimum 0.05% of ink area
 - [Phase 02]: Global thresholds reject Format_Grayscale8 (F-04-1, XFAIL); model top curve skips the first line of the curved page, seed 1 (F-04-2, XFAIL)
+- [Phase 02]: 02-05: flat ground-truth tolerances by D-15: deskew 0.15 deg kept (worst 0.125), content IoU 0.96, binarization 0.005 kept with flat_600_bw an XFAIL_CHECK (F-05-1: about 0.1 deg residual skew in the 600 dpi output) — Measured worst cases in records/scenario-flat.md; D-18 mark records current behaviour in the golden
+- [Phase 02]: 02-05: orientation sanity of flat outputs is checked on the glyph ink box, not the page, because default hard margins make the 1676 x 1636 px output wider than high — Page-level portrait check failed on all scenarios although content is upright; other sanity conditions unchanged
 
 ### Pending Todos
 
@@ -125,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T19:00:46.469Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-10-23T19:14:29.777Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
