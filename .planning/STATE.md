@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-07-PLAN.md
-last_updated: "2026-10-23T20:02:23.861Z"
+stopped_at: Completed 02-08-PLAN.md
+last_updated: "2026-10-23T20:16:00.720Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: 832b7c12416ffb1308830824dc3964ac0f4fdeee
+state_head: 0316f1af8bba52977c2c1c536c74703cb294c09b
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 02 execution started
 
@@ -71,6 +71,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P05 | 12 min | 2 tasks | 12 files |
 | Phase 02 P06 | 29min | 3 tasks | 19 files |
 | Phase 02 P07 | 15 min | 3 tasks | 15 files |
+| Phase 02 P08 | 11 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-07: despeckle fixture sanity counts only specks inside the content box (15 of 15 at 300 dpi, 11 of 11 at 600 dpi; 24 and 28 specks are cropped by the output stage), departing from the plan's 90%-of-all-specks stop condition
 - [Phase 02]: 02-07: F-07-1 page_split AUTO cuts the 300 dpi mixed page and keeps a 386x542 px picture fragment without text; XFAIL_CHECK, coverage scenarios force SINGLE_PAGE_UNCUT, no golden for AUTO
 - [Phase 02]: 02-07: D-15 applied to shortfall from the ideal; bounds tightened to speck removal 0.9995, glyph change 0.0005, chroma ratio 0.995, ink/paper contrast 173, picture non-bi-level 0.999, outside bi-level 0.9995
+- [Phase 02]: 02-08: SAFE-02 premise not reproduced for file and directory names; five-page special-character and NFC/NFD project round-trips byte-identically, no expected-failure mark
+- [Phase 02]: 02-08: F-08-1 DefaultParams layout type reaches the page_split element only after the stage ran; the round-trip test runs page_split for every page
 
 ### Pending Todos
 
@@ -136,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T20:02:23.829Z
-Stopped at: Completed 02-07-PLAN.md
+Last session: 2026-10-23T20:16:00.688Z
+Stopped at: Completed 02-08-PLAN.md
 Resume file: None
