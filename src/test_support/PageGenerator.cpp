@@ -211,4 +211,21 @@ GeneratedPage generatePage(const PageSpec& spec) {
   return page;
 }
 
+// Interface stubs for the RED commit of plan 02-03; replaced by the implementation.
+QImage renderInkMask(const PageSpec&, int, double) {
+  return QImage();
+}
+
+QByteArray fingerprint(const QImage&) {
+  return QByteArray();
+}
+
+QPointF mapFlatToImage(const PageSpec&, const QPointF&) {
+  return QPointF();
+}
+
+QPointF mapImageToFlat(const PageSpec&, const QPointF&) {
+  return QPointF();
+}
+
 }  // namespace test_support
