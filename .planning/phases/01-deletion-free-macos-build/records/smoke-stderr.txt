@@ -1,0 +1,37 @@
+QObject::disconnect: wildcard call disconnects from destroyed signal of output::OptionsWidget::output__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_layout::OptionsWidget::page_layout__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of select_content::OptionsWidget::select_content__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of deskew::OptionsWidget::deskew__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_split::OptionsWidget::page_split__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of fix_orientation::OptionsWidget::fix_orientation__OptionsWidget
+qt.qpa.fonts: Populating font family aliases took 142 ms. Replace uses of missing font family "MS Shell Dlg 2" with one that exists to avoid this cost. 
+sh: play: command not found
+TIFFReadDirectory: Warning, Sum of Photometric type-related color channels and ExtraSamples doesn't match SamplesPerPixel. Defining non-color channels as ExtraSamples..
+TIFFReadDirectory: Warning, Sum of Photometric type-related color channels and ExtraSamples doesn't match SamplesPerPixel. Defining non-color channels as ExtraSamples..
+sh: play: command not found
+QObject::disconnect: wildcard call disconnects from destroyed signal of output::OptionsWidget::output__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_layout::OptionsWidget::page_layout__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of select_content::OptionsWidget::select_content__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of deskew::OptionsWidget::deskew__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_split::OptionsWidget::page_split__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of fix_orientation::OptionsWidget::fix_orientation__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of output::OptionsWidget::output__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_layout::OptionsWidget::page_layout__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of select_content::OptionsWidget::select_content__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of deskew::OptionsWidget::deskew__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_split::OptionsWidget::page_split__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of fix_orientation::OptionsWidget::fix_orientation__OptionsWidget
+TIFFReadDirectory: Warning, Sum of Photometric type-related color channels and ExtraSamples doesn't match SamplesPerPixel. Defining non-color channels as ExtraSamples..
+TIFFReadDirectory: Warning, Sum of Photometric type-related color channels and ExtraSamples doesn't match SamplesPerPixel. Defining non-color channels as ExtraSamples..
+QObject::disconnect: wildcard call disconnects from destroyed signal of output::OptionsWidget::output__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_layout::OptionsWidget::page_layout__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of select_content::OptionsWidget::select_content__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of deskew::OptionsWidget::deskew__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_split::OptionsWidget::page_split__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of fix_orientation::OptionsWidget::fix_orientation__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of output::OptionsWidget::output__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_layout::OptionsWidget::page_layout__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of select_content::OptionsWidget::select_content__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of deskew::OptionsWidget::deskew__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of page_split::OptionsWidget::page_split__OptionsWidget
+QObject::disconnect: wildcard call disconnects from destroyed signal of fix_orientation::OptionsWidget::fix_orientation__OptionsWidget
