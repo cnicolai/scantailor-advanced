@@ -1,0 +1,10 @@
+set(sources main.cpp TestDistortionModel.cpp TestCylindricalDewarper.cpp TestTextLineTracer.cpp)
+
+add_executable(dewarping_tests ${sources})
+target_link_libraries(
+    dewarping_tests
+    PRIVATE dewarping imageproc math foundation test_support ${Qt_Xml_lib} ${Qt_Gui_lib} ${Qt_Core_lib}
+    Boost::unit_test_framework ${EXTRA_LIBS})
+
+add_test(NAME dewarping_tests COMMAND dewarping_tests --log_level=message)
+set_tests_properties(dewarping_tests PROPERTIES ENVIRONMENT "LC_ALL=en_US.UTF-8")

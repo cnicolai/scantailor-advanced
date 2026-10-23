@@ -52,6 +52,28 @@ Every binarizer reproduces the truth mask pixel for pixel, with and without the 
 
 D-15 tightening (worst case 0, at most half the starting bound): twice the worst case is 0, rounded up to the step of 0.05 percentage points and never below one step, so every bound is 0.0005 (0.05% of the ink area). No binarizer exceeds the starting bound, so D-18 marks none of the mismatch checks.
 
+## Dewarping measurements
+
+Release and Debug give identical numbers. Fixtures: two circular arcs (top: x 100..900, y 200 at the ends, middle 30 px higher; bottom: y 1000 at the ends, middle 10 px higher; 40 points each) with depth perception 2.0. Equal sagittas on both arcs would be a parallel pair with no depth change: the model then reports arc length 1 and its line at normalised y 0.5 is a straight image line, so the dewarper would have nothing to straighten. The unequal pair gives a directrix arc length above 1 and curved image lines between the directrices.
+
+| Check | Measured | Bound |
+|-------|----------|-------|
+| round trip `mapToDewarpedSpace(mapToWarpedSpace(p))` over a 10 x 10 grid in (0, 1)^2 | maximum error 4.6e-16 | 1e-9 (as planned; the D-15 steps do not cover it) |
+| directrix end points to the corners (0, 0), (1, 0), (0, 1), (1, 1) of the unit square | maximum error 0 | 1e-6 (as planned) |
+| `RasterDewarper::dewarp` output size | exactly the requested size for 800 x 800, 321 x 457 and 64 x 32 | equal |
+| straightness of the dewarped image of the line at normalised y 0.25 (800 x 800 output, model domain equal to the output, region 40..760 squared, 8 strips) | before 10.93 px, after 0.0202 px | 0.5 px |
+| same at normalised y 0.5 | before 8.77 px, after 0.0244 px | 0.5 px |
+| same at normalised y 0.75 | before 6.61 px, after 0.0188 px | 0.5 px |
+| `TextLineTracer` on `CURVED`, 300 dpi, seed 1, content rect = warped bounding box of the text block (157, 175, 689 x 800): model valid | valid | valid |
+| model bottom curve against the centre of the last text line, largest vertical distance at nine x positions | 5.18 px | 10.5 px |
+| model top curve against the centre of the first text line, same positions | 64.40 px (the second line: 5.73 px) | 55 px (one pitch), marked, see F-04-2 |
+
+D-15 tightening. Raster straightness: worst case 0.0244 px, at most half the starting 1.5 px, so twice the worst case (0.049) rounded up to the 0.5 px step gives 0.5 px. Tracer bottom curve: worst case 5.18 px against a starting bound of one line pitch (55 px), at most half of it, so twice the worst case (10.36) rounded up to 0.5 px gives 10.5 px. The top-curve check exceeds its starting bound, so D-18 applies instead. The text-line pitch at 300 dpi is 55 px (11 dots of 5 px) and a glyph row block is 35 px high (`PageGenerator.h`); a line centre is the line top plus 17.5 px.
+
+The content rectangle passed to the tracer is built from 41 samples per edge of the flat text block mapped with `mapFlatToImage`, so it follows the curl (`QRectF::united` ignores rectangles without area, the extremes are tracked by hand).
+
+Out-of-plan survey for F-04-2 (not part of the test, same fixture with other seeds, Release): distance of the model's top curve to the first line / second line: seed 2 7.9 / 54.8 px, seed 3 10.9 / 54.4, seed 4 60.7 / 5.7, seed 5 7.8 / 55.5, seed 6 9.0 / 53.1; bottom curve to the last line: seed 2 4.95, seed 3 5.83, seed 4 4.48, seed 5 4.65, seed 6 57.5 px. Seeds 1 and 4 lose the first line, seed 6 the last, seeds 2, 3 and 5 follow both.
+
 ## Findings
 
 ### F-04-1: global thresholds reject Format_Grayscale8
@@ -62,3 +84,13 @@ D-15 tightening (worst case 0, at most half the starting bound): twice the worst
 - Mark: `XFAIL_CHECK(..., "global thresholds reject Format_Grayscale8 (std::runtime_error): no requirement")`
 - Fixing requirement: none (no production caller passes this format: `BlackOnWhiteEstimator` and `PageFinder` pass the Indexed8 result of `transformToGray`; the local binarizers accept the format)
 - Backlog: pending (plan 02-10)
+
+### F-04-2: the distortion model can leave out the first or last text line
+- Check: `DewarpingTextLineTracerTestSuite/test_model_curves_follow_first_and_last_lines`, top curve against the centre of the first text line
+- Measured: 64.40 px at the worst of nine x positions (at 845.8 px, the right end); the same curve is within 5.73 px of the second text line. `TextLineTracer` traces the first line (it is among the polylines it hands to `DistortionModelBuilder`, see the `filtered2` debug image), but `DistortionModelBuilder::tryBuildModel` builds a model whose top curve is the second line
+- Bound: 55 px (one text line pitch at 300 dpi)
+- Fixture: CURVED, 300 dpi, seed 1
+- Mark: `XFAIL_CHECK(topDistance <= kStartBoundPx, "model top curve skips the first text line of the curved page (seed 1): no requirement")`
+- Fixing requirement: none (the production dewarping stage adds the page edges with `TopBottomEdgeTracer` after the tracer and falls back to a trivial model when the result is invalid, which this unit test does not run; whether the first line then lies outside the model domain is for the dewarp scenario of plan 02-06 to show)
+- Backlog: pending (plan 02-10)
+
