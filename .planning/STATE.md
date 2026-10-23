@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
-status: executing
-stopped_at: Completed 02-09-PLAN.md
-last_updated: "2026-10-23T20:45:02.515Z"
+status: verifying
+stopped_at: Completed 02-10-PLAN.md
+last_updated: "2026-10-23T21:15:27.094Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: 99ad03b9da464b4673e5c3cbab9d8c8033f653c2
+state_head: 403b1fb80e2fadc1c198a75fa1c13af313ea1e16
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
 milestone_name: macOS
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 
 Phase: 02 (Golden Baselines) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-23 — Phase 02 execution started
 
 Progress: [██░░░░░░░░] 17%
@@ -73,6 +73,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P07 | 15 min | 3 tasks | 15 files |
 | Phase 02 P08 | 11 min | 2 tasks | 3 files |
 | Phase 02 P09 | 22 min | 3 tasks | 6 files |
+| Phase 02 P10 | 27 min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-08: F-08-1 DefaultParams layout type reaches the page_split element only after the stage ran; the round-trip test runs page_split for every page
 - [Phase 02]: Plan 02-09: image-kind comparator limits frozen at 0.0001 / 0.001 / 0.05 / 1 (measured Release/Debug spread 0, first grid step above it)
 - [Phase 02]: Plan 02-09: the comparator self-test (planned alterations) also fails under the D-12 ceilings; the freeze rests on the measurement record, an extra +2 level case would discriminate
+- [Phase 02]: 02-10: Baseline commit is a796c2ae (newest commit touching src/pipeline_tests/golden); every Phase 3 strip commit follows it; non-test paths equal cde6825 apart from three add_subdirectory lines
+- [Phase 02]: 02-10: all seven findings (F-04-1 to F-08-1) have backlog items 999.1 to 999.7; D7 and the comparator self-test observation are listed as not-defects without backlog items
+- [Phase 02]: 02-10: ASan/UBSan run of the full suite passes 7 of 7 with 12 UBSan and 0 ASan reports at 9 project locations (7 new), recorded and not fixed
 
 ### Pending Todos
 
@@ -142,6 +146,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T20:45:02.484Z
-Stopped at: Completed 02-09-PLAN.md
+Last session: 2026-10-23T21:15:27.062Z
+Stopped at: Completed 02-10-PLAN.md
 Resume file: None
