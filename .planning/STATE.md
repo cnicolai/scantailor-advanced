@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 01
 current_phase_name: Deletion-Free macOS Build
 status: executing
-stopped_at: Completed 01-06-PLAN.md (BUILD-03 PASS after re-check); 01-07 next
-last_updated: "2026-10-23T13:19:08.103Z"
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-10-23T13:26:14.249Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 01 execution started
-state_head: b374ba0fa227151762db7b6db2d53867dc1afd4c
+state_head: 9b0aca710644b981b444ddb66ff266345f59e1c7
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 milestone_name: macOS
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 01 (Deletion-Free macOS Build) — EXECUTING
-Plan: 6 of 7 summarised (01-01 to 01-06 complete; 01-06 BUILD-03 smoke verdict PASS after the re-check of steps 4, 6, 8); 01-07 is next
-Status: Ready to execute 01-07 (BUILD-03 stays pending in REQUIREMENTS.md until 01-07, which also declares it, has its summary)
-Last activity: 2026-10-23 — Phase 01 execution started
+Plan: 7 of 7 summarised (01-01 to 01-07 complete); closing check records Phase 1 verdict PASS on cde6825 (Phase 2 baseline commit)
+Status: All Phase 1 plans executed; phase verification pending (BUILD-01 to BUILD-07 marked complete in REQUIREMENTS.md)
+Last activity: 2026-10-23 — 01-07 closing check complete
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 25 min | 3 tasks | 9 files |
 | Phase 01 P04 | 5 min | 2 tasks | 4 files |
 | Phase 01 P06 | 44 min | 3 tasks | 2 files |
+| Phase 01 P07 | 5 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-06: HIDPI-01 provisionally needs no embedded Info.plist (probe ratio 2.0, user reports sharp window) — No qt.highdpi line reached the stderr file, so the app's own confirmation is missing
 - [Phase 01]: 01-06: BUILD-03 smoke verdict is PASS after the re-check of steps 4, 6, 8; first run FAIL kept in the record — Re-saved project holds dewarping auto (page 02 left) and one picture zone (page 03); the first run's settings never took effect; no app defect found in save and load
 - [Phase 01]: 01-06: macOS save dialog cannot take the scratchpad path, so the smoke project stays at the user-named Desktop file — Practical dialog constraint, not a user error; a later walkthrough should name a reachable path
+- [Phase 01]: Phase 1 verdict PASS: all five success criteria PASS on cde6825; imageproc_tests ScaleTestSuite/test_random_image remains the recorded baseline failure
+- [Phase 01]: Phase 2 baseline commit is cde6825 (src, CMakeLists.txt, CMakePresets.json equal 11bc573)
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T13:19:08.083Z
-Stopped at: Completed 01-06-PLAN.md (BUILD-03 PASS after re-check); 01-07 next
+Last session: 2026-10-23T13:26:14.229Z
+Stopped at: Completed 01-07-PLAN.md
 Resume file: None
