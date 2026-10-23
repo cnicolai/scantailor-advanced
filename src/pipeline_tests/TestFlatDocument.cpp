@@ -2,7 +2,9 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include <ExpectedFailure.h>
+#include <GoldenChecks.h>
 #include <PageGenerator.h>
+#include <TextGolden.h>
 #include <TruthMetrics.h>
 
 #include <QImage>
@@ -265,10 +267,49 @@ void checkScenario(const Scenario& scenario, const Measured& m, const char* know
   BOOST_CHECK_EQUAL(sub.outputDpiY, kOutputDpi);
 }
 
+QString intText(const long long value) {
+  return QString::number(value);
+}
+
+// Stage decisions of the scenario as text golden values (D-14); the suffix of a key decides its tolerance.
+test_support::TextValues stageDecisions(const Scenario& scenario, const Measured& m) {
+  using test_support::formatNumber;
+  const SubPageResult& sub = m.result.pages.front();
+  test_support::TextValues values;
+  values["seed"] = intText(1);
+  values["input_dpi"] = intText(scenario.dpi);
+  values["applied_skew_deg"] = formatNumber(kAppliedSkewDeg);
+  values["deskew_angle_deg"] = formatNumber(sub.deskewAngleDeg);
+  values["layout_type"] = intText(m.result.layoutType);
+  values["content_x_px"] = intText(sub.contentRect.x());
+  values["content_y_px"] = intText(sub.contentRect.y());
+  values["content_w_px"] = intText(sub.contentRect.width());
+  values["content_h_px"] = intText(sub.contentRect.height());
+  values["page_rect_x_px"] = formatNumber(sub.pageRect.x());
+  values["page_rect_y_px"] = formatNumber(sub.pageRect.y());
+  values["page_rect_w_px"] = formatNumber(sub.pageRect.width());
+  values["page_rect_h_px"] = formatNumber(sub.pageRect.height());
+  values["hard_margin_left_mm"] = formatNumber(sub.hardMarginLeftMM);
+  values["hard_margin_top_mm"] = formatNumber(sub.hardMarginTopMM);
+  values["hard_margin_right_mm"] = formatNumber(sub.hardMarginRightMM);
+  values["hard_margin_bottom_mm"] = formatNumber(sub.hardMarginBottomMM);
+  values["output_w_px"] = intText(sub.outputSize.width());
+  values["output_h_px"] = intText(sub.outputSize.height());
+  values["output_dpi"] = intText(sub.outputDpiX);
+  return values;
+}
+
 void runScenarioCase(const Scenario& scenario, const char* knownDefect = nullptr) {
   const Measured m = measureScenario(scenario);
   reportScenario(scenario, m);
   checkScenario(scenario, m, knownDefect);
+
+  // Goldens are recorded only when the sanity checks of the scenario passed (D-05).
+  const test_support::Sanity sanity{m.sanity.ok, m.sanity.reason};
+  const test_support::ImageKind kind = scenario.colorMode == output::BLACK_AND_WHITE ? test_support::ImageKind::BILEVEL
+                                                                                     : test_support::ImageKind::COLOR;
+  CHECK_IMAGE_GOLDEN("flat", scenario.name, m.result.pages.front().output, kind, sanity);
+  CHECK_TEXT_GOLDEN("flat", scenario.name, stageDecisions(scenario, m), sanity);
 }
 
 }  // namespace
@@ -344,6 +385,25 @@ BOOST_AUTO_TEST_CASE(test_deskew_angle_sweep) {
                           scenario << ": deskew error " << num(errorDeg) << " deg exceeds " << num(kAngleToleranceDeg));
     }
   }
+}
+
+// Fingerprints of every generated flat input, so that a change of the generator shows up as a fixture change and not
+// as a pipeline change.  The four scenario keys repeat the fingerprint of the 1.5 degree sweep input they use.
+BOOST_AUTO_TEST_CASE(test_flat_fixture_fingerprints) {
+  test_support::TextValues values;
+  for (const int dpi : kSweepDpis) {
+    for (const double appliedDeg : kSweepAnglesDeg) {
+      const std::string key = "flat_" + std::to_string(dpi) + "_skew_" + angleLabel(appliedDeg);
+      values[QString::fromStdString(key)]
+          = QString::fromLatin1(test_support::fingerprint(flatPage(dpi, appliedDeg).image));
+    }
+  }
+  for (const Scenario* scenario : {&kScenario300Bw, &kScenario300Color, &kScenario600Bw, &kScenario600Color}) {
+    values[QString("scenario_") + scenario->name]
+        = QString::fromLatin1(test_support::fingerprint(flatPage(scenario->dpi, kAppliedSkewDeg).image));
+  }
+  BOOST_REQUIRE_EQUAL(values.size(), 18u);
+  CHECK_TEXT_GOLDEN("flat", "fixtures", values, (test_support::Sanity{true, QString()}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
