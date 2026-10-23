@@ -12,7 +12,7 @@ This roadmap ports and hardens ScanTailor Advanced 1.2.1 for one Apple Silicon M
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Deletion-Free macOS Build** - Unmodified 1.2.1 builds as arm64 against Homebrew and runs a project end to end; existing test results and FP settings recorded
+- [x] **Phase 1: Deletion-Free macOS Build** - Unmodified 1.2.1 builds as arm64 against Homebrew and runs a project end to end; existing test results and FP settings recorded (completed 2026-10-23)
 - [ ] **Phase 2: Golden Baselines** - Synthetic-image test suite and golden baselines recorded from the unmodified code before anything is removed
 - [ ] **Phase 3: Qt 6 and macOS Only** - Qt 5, Windows, Linux, packaging, CI and translations removed, with baselines unchanged; README documents the Mac build
 - [ ] **Phase 4: Retina Rendering** - Page view, thumbnails, overlays and colour picker are sharp and correct on Retina displays
@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The `-ffp-contract` setting is fixed in the build configuration and recorded. A CMake sanitizer option produces an ASan/UBSan build that runs the existing tests, and its findings are recorded, not fixed
   5. `git diff 5eaac18` (the 1.2.1 release) outside `.planning/` shows only build and launch fixes and added build settings: no deleted code paths and no change to processing behaviour
 
-**Plans:** 7/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 **Wave 1**
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deletion-Free macOS Build | 7/7 | In Progress | - |
+| 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 0/TBD | Not started | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
