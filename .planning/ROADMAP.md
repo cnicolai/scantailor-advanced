@@ -179,3 +179,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.2: Distortion model can leave out the first or last text line (BACKLOG)
+
+**Goal:** `DistortionModelBuilder::tryBuildModel` builds a model whose top curve follows the second text line of the generated curved page (seed 1, 300 dpi) although `TextLineTracer` traced the first: the top curve lies 64.40 px from the first line against a bound of 55 px (one line pitch), and 5.73 px from the second. The production dewarping stage adds the page edges afterwards and falls back to a trivial model, which this unit test does not run. No requirement exists. When fixed, remove the `XFAIL_CHECK` tagged `model top curve skips the first text line of the curved page (seed 1): no requirement` in `src/dewarping/tests/TestTextLineTracer.cpp`. Finding F-04-2 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
