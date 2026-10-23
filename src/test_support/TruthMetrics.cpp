@@ -13,7 +13,7 @@ namespace test_support {
 
 namespace {
 
-const int kInkThreshold = 128;        // grey below this is ink
+const int kInkThreshold = 128;         // grey below this is ink
 const int kBackgroundThreshold = 200;  // grey below this is not background
 const int kChromaThreshold = 30;       // max - min of R, G, B above this is not background
 const int kBandWidthDivisor = 50;      // a band row holds at least 1/50 = 2% of the width in ink

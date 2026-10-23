@@ -64,8 +64,8 @@ struct GroundTruth {
   double gutterHalfWidthPx = 0.0;
 
   // MIXED
-  QRect pictureRect;           // flat frame
-  std::vector<QRect> specks;   // flat frame
+  QRect pictureRect;          // flat frame
+  std::vector<QRect> specks;  // flat frame
 
   // CURVED
   double curlAmplitudePx = 0.0;

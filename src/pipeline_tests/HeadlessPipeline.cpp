@@ -101,8 +101,8 @@ void runChain(const RunContext& ctx, const PageInfo& page, const ChainEnd end) {
     deskewTask = std::make_shared<deskew::Task>(std::shared_ptr<deskew::Filter>(), s.deskew, s.imageSettings,
                                                 selectContentTask, pageId, batch, debug);
   }
-  auto pageSplitTask = std::make_shared<page_split::Task>(std::shared_ptr<page_split::Filter>(), s.pageSplit,
-                                                          ctx.pages, deskewTask, page, batch, debug);
+  auto pageSplitTask = std::make_shared<page_split::Task>(std::shared_ptr<page_split::Filter>(), s.pageSplit, ctx.pages,
+                                                          deskewTask, page, batch, debug);
   auto fixOrientationTask = std::make_shared<fix_orientation::Task>(
       pageId, std::shared_ptr<fix_orientation::Filter>(), s.fixOrientation, s.imageSettings, pageSplitTask, batch);
 

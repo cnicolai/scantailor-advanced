@@ -299,8 +299,7 @@ BOOST_AUTO_TEST_CASE(test_normal_run_never_writes) {
   const Roots roots;
   GoldenStore normal(roots.goldenPath(), roots.artifactPath(), false);
 
-  const GoldenStore::Outcome missing =
-      checkPage(normal, "suite_a", "page_one", 0);
+  const GoldenStore::Outcome missing = checkPage(normal, "suite_a", "page_one", 0);
   BOOST_CHECK(!missing.pass);
   BOOST_CHECK(!missing.written);
   BOOST_CHECK_MESSAGE(missing.message.contains("UPDATE_GOLDENS=1"), missing.message.toStdString());
@@ -325,8 +324,7 @@ BOOST_AUTO_TEST_CASE(test_failure_writes_artifacts_and_reports_metric) {
   const Snapshot before = snapshotOf(roots.goldenPath());
 
   GoldenStore normal(roots.goldenPath(), roots.artifactPath(), false);
-  const GoldenStore::Outcome image =
-      checkPage(normal, "suite_a", "page_one", 1);
+  const GoldenStore::Outcome image = checkPage(normal, "suite_a", "page_one", 1);
   BOOST_CHECK(!image.pass);
   BOOST_CHECK(!image.metrics.empty());
   const QString folder = roots.artifactPath() + "/suite_a/page_one";
@@ -338,8 +336,8 @@ BOOST_AUTO_TEST_CASE(test_failure_writes_artifacts_and_reports_metric) {
     BOOST_CHECK_MESSAGE(QFileInfo::exists(folder + "/" + file), file << " missing in " << folder.toStdString());
   }
 
-  const GoldenStore::Outcome text =
-      normal.checkText("suite_a", "decisions", TextValues{{"angle_deg", "2.0000"}}, sanityOk());
+  const GoldenStore::Outcome text
+      = normal.checkText("suite_a", "decisions", TextValues{{"angle_deg", "2.0000"}}, sanityOk());
   BOOST_CHECK(!text.pass);
   BOOST_CHECK_MESSAGE(text.message.contains("text:angle_deg"), text.message.toStdString());
   const QString textFolder = roots.artifactPath() + "/suite_a/decisions";
@@ -359,8 +357,8 @@ BOOST_AUTO_TEST_CASE(test_update_records_missing_golden_and_manifest) {
   const GoldenStore::Outcome image = checkPage(update, "suite_a", "page_one", 0);
   BOOST_CHECK_MESSAGE(image.pass && image.written, image.message.toStdString());
   BOOST_CHECK(QFileInfo::exists(roots.goldenPath() + "/suite_a/page_one.png"));
-  const GoldenStore::Outcome text =
-      update.checkText("suite_a", "decisions", TextValues{{"output_dpi", "600"}}, sanityOk());
+  const GoldenStore::Outcome text
+      = update.checkText("suite_a", "decisions", TextValues{{"output_dpi", "600"}}, sanityOk());
   BOOST_CHECK_MESSAGE(text.pass && text.written, text.message.toStdString());
   BOOST_CHECK(QFileInfo::exists(roots.goldenPath() + "/suite_a/decisions.txt"));
 
@@ -397,11 +395,9 @@ BOOST_AUTO_TEST_CASE(test_update_rewrites_only_failing) {
   const Snapshot before = snapshotOf(roots.goldenPath());
 
   GoldenStore second(roots.goldenPath(), roots.artifactPath(), true);
-  const GoldenStore::Outcome passing =
-      checkPage(second, "suite_a", "page_one", 0);
+  const GoldenStore::Outcome passing = checkPage(second, "suite_a", "page_one", 0);
   BOOST_CHECK_MESSAGE(passing.pass && !passing.written, passing.message.toStdString());
-  const GoldenStore::Outcome failing =
-      checkPage(second, "suite_a", "page_two", 1);
+  const GoldenStore::Outcome failing = checkPage(second, "suite_a", "page_two", 1);
   BOOST_CHECK_MESSAGE(failing.pass && failing.written, failing.message.toStdString());
 
   const Snapshot after = snapshotOf(roots.goldenPath());
@@ -422,8 +418,8 @@ BOOST_AUTO_TEST_CASE(test_update_twice_is_idempotent) {
     GoldenStore update(roots.goldenPath(), roots.artifactPath(), true);
     const GoldenStore::Outcome a = checkPage(update, "suite_a", "page_one", 0);
     const GoldenStore::Outcome b = checkPage(update, "suite_a", "page_two", 1);
-    const GoldenStore::Outcome c =
-        update.checkText("suite_b", "decisions", TextValues{{"angle_deg", "1.5000"}}, sanityOk());
+    const GoldenStore::Outcome c
+        = update.checkText("suite_b", "decisions", TextValues{{"angle_deg", "1.5000"}}, sanityOk());
     for (const GoldenStore::Outcome* outcome : {&a, &b, &c}) {
       BOOST_CHECK_MESSAGE(outcome->pass, outcome->message.toStdString());
       BOOST_CHECK_EQUAL(outcome->written, expectWritten);
@@ -469,8 +465,7 @@ BOOST_AUTO_TEST_CASE(test_update_leaves_no_temporary_files) {
   color.fill(qRgb(10, 200, 30));
   BOOST_REQUIRE(update.checkImage("suite_a", "page_color", color, ImageKind::COLOR, sanityOk()).written);
 
-  const QStringList files =
-      QDir(roots.goldenPath() + "/suite_a").entryList(QDir::Files | QDir::Hidden, QDir::Name);
+  const QStringList files = QDir(roots.goldenPath() + "/suite_a").entryList(QDir::Files | QDir::Hidden, QDir::Name);
   BOOST_CHECK_EQUAL(files.join(",").toStdString(), "MANIFEST.txt,decisions.txt,page_color.png,page_one.png");
 
   GoldenStore normal(roots.goldenPath(), roots.artifactPath(), false);

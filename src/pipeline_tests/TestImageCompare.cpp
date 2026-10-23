@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(test_failure_produces_diff_image) {
   BOOST_CHECK(result.diff.format() == QImage::Format_RGB32);
 
   const Glyph& g = glyphs[0];
-  const int y = g.y + g.h - 1;  // below the notch, so the whole width is ink
+  const int y = g.y + g.h - 1;                                            // below the notch, so the whole width is ink
   BOOST_CHECK_EQUAL(result.diff.pixel(g.x, y), qRgb(0, 0, 255));          // ink only in expected
   BOOST_CHECK_EQUAL(result.diff.pixel(g.x + g.w, y), qRgb(255, 0, 0));    // ink only in actual
   BOOST_CHECK_EQUAL(result.diff.pixel(g.x + 1, y), qRgb(64, 64, 64));     // ink in both

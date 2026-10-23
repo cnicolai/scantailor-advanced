@@ -38,11 +38,11 @@ enum class LastStage { DESKEW, OUTPUT };
 struct PipelineOptions {
   page_split::LayoutType layout = page_split::AUTO_LAYOUT_TYPE;  // AUTO keeps the default update action
   output::ColorMode colorMode = output::BLACK_AND_WHITE;
-  double despeckleLevel = 1.0;                                    // app default
+  double despeckleLevel = 1.0;  // app default
   output::DewarpingMode dewarping = output::OFF;
-  int outputDpi = 600;                                            // app default, set explicitly
+  int outputDpi = 600;  // app default, set explicitly
   LastStage lastStage = LastStage::OUTPUT;
-  std::function<void(StageSettings&, const PageId&)> configure;   // called after defaults, before processing
+  std::function<void(StageSettings&, const PageId&)> configure;  // called after defaults, before processing
 };
 
 struct SubPageResult {
@@ -53,7 +53,7 @@ struct SubPageResult {
   QSize outputSize;
   int outputDpiX = 0;
   int outputDpiY = 0;
-  QImage output;      // decoded output file (ImageLoader), null for LastStage::DESKEW
+  QImage output;  // decoded output file (ImageLoader), null for LastStage::DESKEW
   // margins of page_layout, recorded in text goldens:
   double hardMarginLeftMM = 0.0;
   double hardMarginTopMM = 0.0;

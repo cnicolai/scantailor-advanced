@@ -40,8 +40,7 @@ inline const char* kindLabel(ImageKind kind) {
 #if defined(GOLDEN_DIR) && defined(ARTIFACT_DIR)
 /// The store of the real golden directory.  Update mode comes from UPDATE_GOLDENS=1 and is read once.
 inline GoldenStore& pipelineGoldenStore() {
-  static GoldenStore store(QString::fromUtf8(GOLDEN_DIR),
-                           QString::fromUtf8(ARTIFACT_DIR),
+  static GoldenStore store(QString::fromUtf8(GOLDEN_DIR), QString::fromUtf8(ARTIFACT_DIR),
                            GoldenStore::updateRequestedFromEnvironment());
   return store;
 }
@@ -52,11 +51,10 @@ inline void reportOutcome(const QString& suite,
                           const char* kind,
                           const GoldenStore::Outcome& outcome) {
   for (const MetricResult& metric : outcome.metrics) {
-    BOOST_TEST_MESSAGE("GOLDEN-METRIC suite=" << detail::utf8(suite) << " name=" << detail::utf8(name)
-                                              << " kind=" << kind << " metric=" << detail::utf8(metric.metric)
-                                              << " value=" << detail::number(metric.value)
-                                              << " limit=" << detail::number(metric.limit)
-                                              << " result=" << (metric.pass ? "pass" : "fail"));
+    BOOST_TEST_MESSAGE("GOLDEN-METRIC suite="
+                       << detail::utf8(suite) << " name=" << detail::utf8(name) << " kind=" << kind
+                       << " metric=" << detail::utf8(metric.metric) << " value=" << detail::number(metric.value)
+                       << " limit=" << detail::number(metric.limit) << " result=" << (metric.pass ? "pass" : "fail"));
   }
   for (const QString& warning : outcome.warnings) {
     BOOST_TEST_MESSAGE("TOOLCHAIN DIFFERS suite=" << detail::utf8(suite) << ": " << detail::utf8(warning));
@@ -64,8 +62,8 @@ inline void reportOutcome(const QString& suite,
   if (outcome.written) {
     BOOST_TEST_MESSAGE("RECORDED " << detail::utf8(suite) << "/" << detail::utf8(name));
   }
-  BOOST_CHECK_MESSAGE(outcome.pass, detail::utf8(suite) << "/" << detail::utf8(name) << ": "
-                                                        << detail::utf8(outcome.message));
+  BOOST_CHECK_MESSAGE(outcome.pass, detail::utf8(suite)
+                                        << "/" << detail::utf8(name) << ": " << detail::utf8(outcome.message));
 }
 
 }  // namespace test_support

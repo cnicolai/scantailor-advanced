@@ -29,8 +29,8 @@ inline ExpectedFailureStatus expectedFailureStatus(bool conditionHolds) {
 
 #define XFAIL_CHECK(cond, tag)                                              \
   do {                                                                      \
-    if (::test_support::expectedFailureStatus(static_cast<bool>(cond)) ==   \
-        ::test_support::ExpectedFailureStatus::KNOWN_DEFECT) {              \
+    if (::test_support::expectedFailureStatus(static_cast<bool>(cond))      \
+        == ::test_support::ExpectedFailureStatus::KNOWN_DEFECT) {           \
       BOOST_TEST_MESSAGE("KNOWN DEFECT " << tag);                           \
     } else {                                                                \
       BOOST_ERROR("expected failure now passes, remove the mark: " << tag); \

@@ -181,16 +181,16 @@ struct Geometry {
   int height = 0;
   int dot = 0;
   std::vector<TextBlockGeometry> blocks;
-  QRect pictureRect;            // MIXED
-  double gutterX = 0.0;         // SPREAD, flat frame
+  QRect pictureRect;     // MIXED
+  double gutterX = 0.0;  // SPREAD, flat frame
   double gutterHalfWidth = 0.0;
   double shadowHalfWidth = 0.0;  // 0 = no shadow
   double shadowDepth = 0.0;
-  double curlAmplitude = 0.0;   // CURVED, pixels; 0 = no curl
-  double curlFar = 0.0;         // x of the far edge of the block
-  double curlSpine = 0.0;       // x of the spine edge
-  double curlTop = 0.0;         // y of the top line
-  double curlHeight = 0.0;      // y extent of the block
+  double curlAmplitude = 0.0;  // CURVED, pixels; 0 = no curl
+  double curlFar = 0.0;        // x of the far edge of the block
+  double curlSpine = 0.0;      // x of the spine edge
+  double curlTop = 0.0;        // y of the top line
+  double curlHeight = 0.0;     // y extent of the block
 };
 
 TextBlockGeometry centredBlock(const int cells,
@@ -225,8 +225,8 @@ Geometry computeGeometry(const PageKind kind, const int dpi) {
           centredBlock(kFlatBlockCells, kFlatBlockLines, false, kStandardPageWidth, kStandardPageHeight, dpi));
       break;
     case PageKind::SPREAD: {
-      TextBlockGeometry left = {scaled(kSpreadLeftX, dpi), scaled(kSpreadTopY, dpi), kSpreadBlockCells,
-                                kSpreadBlockLines, false};
+      TextBlockGeometry left
+          = {scaled(kSpreadLeftX, dpi), scaled(kSpreadTopY, dpi), kSpreadBlockCells, kSpreadBlockLines, false};
       TextBlockGeometry right = left;
       right.originX = scaled(kSpreadRightX, dpi);
       g.blocks.push_back(left);
@@ -238,8 +238,8 @@ Geometry computeGeometry(const PageKind kind, const int dpi) {
       break;
     }
     case PageKind::MIXED: {
-      TextBlockGeometry block = {scaled(kMixedBlockX, dpi), scaled(kMixedBlockY, dpi), kMixedBlockCells,
-                                 kMixedBlockLines, false};
+      TextBlockGeometry block
+          = {scaled(kMixedBlockX, dpi), scaled(kMixedBlockY, dpi), kMixedBlockCells, kMixedBlockLines, false};
       g.blocks.push_back(block);
       g.pictureRect = QRect(scaled(kPictureX, dpi), scaled(kPictureY, dpi), scaled(kPictureWidth, dpi),
                             scaled(kPictureHeight, dpi));

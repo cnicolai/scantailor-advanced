@@ -209,15 +209,15 @@ BOOST_AUTO_TEST_CASE(test_mixed_truth_consistent) {
       BOOST_CHECK_MESSAGE(
           speck.width() == speck.height() && speck.width() >= scaled(1, dpi) && speck.width() <= scaled(3, dpi),
           label(spec) << ": speck " << i << " is not a square of 1 to 3 base px");
-      BOOST_CHECK_MESSAGE(insideEdges.contains(speck),
-                          label(spec) << ": speck " << i << " is within 20 px of the edge");
-      BOOST_CHECK_MESSAGE(!speck.intersects(farFromText),
-                          label(spec) << ": speck " << i << " is within 20 px of the text");
+      BOOST_CHECK_MESSAGE(insideEdges.contains(speck), label(spec)
+                                                           << ": speck " << i << " is within 20 px of the edge");
+      BOOST_CHECK_MESSAGE(!speck.intersects(farFromText), label(spec)
+                                                              << ": speck " << i << " is within 20 px of the text");
       BOOST_CHECK_MESSAGE(!speck.intersects(farFromPicture),
                           label(spec) << ": speck " << i << " is within 20 px of the picture");
       for (size_t j = i + 1; j < t.specks.size(); ++j) {
-        BOOST_CHECK_MESSAGE(!speck.intersects(t.specks[j]),
-                            label(spec) << ": specks " << i << " and " << j << " overlap");
+        BOOST_CHECK_MESSAGE(!speck.intersects(t.specks[j]), label(spec)
+                                                                << ": specks " << i << " and " << j << " overlap");
       }
     }
   }
@@ -230,8 +230,8 @@ BOOST_AUTO_TEST_CASE(test_curved_truth_consistent) {
     const test_support::GroundTruth& t = page.truth;
     const QRect pageRect(QPoint(0, 0), page.image.size());
 
-    BOOST_CHECK_MESSAGE(near(t.curlAmplitudePx, 25.0 * dpi / 300.0, 1e-9),
-                        label(spec) << ": amplitude " << t.curlAmplitudePx);
+    BOOST_CHECK_MESSAGE(near(t.curlAmplitudePx, 25.0 * dpi / 300.0, 1e-9), label(spec)
+                                                                               << ": amplitude " << t.curlAmplitudePx);
     BOOST_CHECK_EQUAL(t.lineCount, 14);
     BOOST_REQUIRE_EQUAL(t.lineTops.size(), static_cast<size_t>(t.lineCount));
     BOOST_CHECK_MESSAGE(!t.textBlock.isEmpty() && pageRect.contains(t.textBlock), label(spec) << ": bad text block");
@@ -246,8 +246,8 @@ BOOST_AUTO_TEST_CASE(test_curved_truth_consistent) {
     const QPointF atFar = test_support::mapFlatToImage(straight, QPointF(t.textBlock.left(), top));
     BOOST_CHECK_MESSAGE(atSpine.y() < top - 0.8 * t.curlAmplitudePx && atSpine.y() > top - 1.0001 * t.curlAmplitudePx,
                         label(spec) << ": top line at the spine edge moves to y = " << atSpine.y() << " from " << top);
-    BOOST_CHECK_MESSAGE(near(atFar.y(), top, 0.5),
-                        label(spec) << ": top line at the far edge moves to y = " << atFar.y());
+    BOOST_CHECK_MESSAGE(near(atFar.y(), top, 0.5), label(spec)
+                                                       << ": top line at the far edge moves to y = " << atFar.y());
     BOOST_CHECK_MESSAGE(atSpine.x() > t.textBlock.right(), label(spec) << ": no compression towards the spine");
   }
 }
@@ -278,8 +278,8 @@ BOOST_AUTO_TEST_CASE(test_ink_mask_inside_text_block) {
     BOOST_CHECK_MESSAGE(inkPixels > 0, label(spec) << ": the mask has no ink");
     BOOST_CHECK_MESSAGE(page.truth.textBlock.contains(inkBox),
                         label(spec) << ": mask ink box is not inside the text block (specks or picture in the mask?)");
-    BOOST_CHECK_MESSAGE(inkBox == page.truth.textBlock,
-                        label(spec) << ": mask ink box differs from the tight text block");
+    BOOST_CHECK_MESSAGE(inkBox == page.truth.textBlock, label(spec)
+                                                            << ": mask ink box differs from the tight text block");
   }
 
   // Rendering at another dpi gives the page of that dpi, not a resampled copy.
@@ -313,8 +313,8 @@ BOOST_AUTO_TEST_CASE(test_invalid_dpi_gives_null_page) {
       BOOST_CHECK_NO_THROW(page = test_support::generatePage(spec));
       BOOST_CHECK_MESSAGE(page.image.isNull(), label(spec) << ": image is not null");
       BOOST_CHECK_MESSAGE(page.truth.dpi == 0, label(spec) << ": truth.dpi is " << page.truth.dpi);
-      BOOST_CHECK_MESSAGE(test_support::renderInkMask(spec, 300, 0.0).isNull(),
-                          label(spec) << ": mask of an invalid spec");
+      BOOST_CHECK_MESSAGE(test_support::renderInkMask(spec, 300, 0.0).isNull(), label(spec)
+                                                                                    << ": mask of an invalid spec");
       BOOST_CHECK_MESSAGE(test_support::renderInkMask(makeSpec(kind, 300), dpi, 0.0).isNull(),
                           kindName(kind) << ": mask at the invalid target dpi " << dpi);
     }
@@ -379,9 +379,9 @@ BOOST_AUTO_TEST_CASE(test_forward_map_inverts_renderer_map) {
         const int px = static_cast<int>(std::floor(image.x()));
         const int py = static_cast<int>(std::floor(image.y()));
         BOOST_REQUIRE_MESSAGE(page.image.rect().contains(px, py), label(spec) << ": mapped point is outside the page");
-        BOOST_CHECK_MESSAGE(qGray(page.image.pixel(px, py)) < 128,
-                            label(spec) << ": pixel (" << px << ", " << py << ") mapped from flat (" << x << ", " << y
-                                        << ") is not ink");
+        BOOST_CHECK_MESSAGE(qGray(page.image.pixel(px, py)) < 128, label(spec) << ": pixel (" << px << ", " << py
+                                                                               << ") mapped from flat (" << x << ", "
+                                                                               << y << ") is not ink");
       }
     }
     BOOST_CHECK_MESSAGE(found, label(spec) << ": no interior ink pixel in the mask");

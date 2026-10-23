@@ -38,14 +38,15 @@ QImage whiteWithBlackBox(const int width, const int height, const QRect& box) {
 
 /// White image with `lines` black bars of `thickness` rows, `pitch` apart, the first starting at `firstTop`.
 /// Bar k is displaced in column x by offset(x, k) rows.  Columns where enabled(x) is false stay empty.
-QImage barImage(const int width,
-                const int height,
-                const int lines,
-                const int pitch,
-                const int thickness,
-                const int firstTop,
-                const std::function<double(int, int)>& offset,
-                const std::function<bool(int)>& enabled = [](int) { return true; }) {
+QImage barImage(
+    const int width,
+    const int height,
+    const int lines,
+    const int pitch,
+    const int thickness,
+    const int firstTop,
+    const std::function<double(int, int)>& offset,
+    const std::function<bool(int)>& enabled = [](int) { return true; }) {
   QImage image = solidGrey(width, height, 255);
   for (int k = 0; k < lines; ++k) {
     for (int x = 0; x < width; ++x) {
@@ -101,11 +102,11 @@ bool matches(const QImage& mask, const int x, const int y, const PixelKind kind)
     case PixelKind::INTERIOR_INK:
       return ink && inkNeighbours == 8;
     case PixelKind::EDGE_INK:
-      return ink && inkNeighbours >= 3 && inkNeighbours <= 6 && !(isInk(mask, x - 1, y) && isInk(mask, x + 1, y)
-                                                                   && isInk(mask, x, y - 1) && isInk(mask, x, y + 1));
+      return ink && inkNeighbours >= 3 && inkNeighbours <= 6
+             && !(isInk(mask, x - 1, y) && isInk(mask, x + 1, y) && isInk(mask, x, y - 1) && isInk(mask, x, y + 1));
     case PixelKind::EDGE_PAPER:
-      return !ink && inkNeighbours >= 3 && inkNeighbours <= 5 && (isInk(mask, x - 1, y) || isInk(mask, x + 1, y)
-                                                                  || isInk(mask, x, y - 1) || isInk(mask, x, y + 1));
+      return !ink && inkNeighbours >= 3 && inkNeighbours <= 5
+             && (isInk(mask, x - 1, y) || isInk(mask, x + 1, y) || isInk(mask, x, y - 1) || isInk(mask, x, y + 1));
   }
   return false;
 }
@@ -151,7 +152,7 @@ BOOST_AUTO_TEST_SUITE(TruthMetricsTestSuite)
 BOOST_AUTO_TEST_CASE(test_ink_fraction_extremes) {
   BOOST_CHECK_EQUAL(inkFraction(solidGrey(100, 100, 255)), 0.0);
   BOOST_CHECK_EQUAL(inkFraction(solidGrey(100, 100, 0)), 1.0);
-  BOOST_CHECK_EQUAL(inkFraction(solidGrey(100, 100, 127)), 1.0);   // grey < 128 is ink
+  BOOST_CHECK_EQUAL(inkFraction(solidGrey(100, 100, 127)), 1.0);  // grey < 128 is ink
   BOOST_CHECK_EQUAL(inkFraction(solidGrey(100, 100, 128)), 0.0);
   BOOST_CHECK_CLOSE(inkFraction(whiteWithBlackBox(100, 100, QRect(0, 0, 100, 50))), 0.5, 1e-9);
   BOOST_CHECK_EQUAL(inkFraction(QImage()), 0.0);
@@ -164,9 +165,9 @@ BOOST_AUTO_TEST_CASE(test_ink_fraction_extremes) {
 
 BOOST_AUTO_TEST_CASE(test_non_background_box) {
   const QRect square = nonBackgroundBox(whiteWithBlackBox(200, 200, QRect(30, 40, 10, 10)));
-  BOOST_CHECK_MESSAGE(square == QRect(30, 40, 10, 10),
-                      "box of the black square is (" << square.x() << ", " << square.y() << ", " << square.width()
-                                                     << " x " << square.height() << ")");
+  BOOST_CHECK_MESSAGE(square == QRect(30, 40, 10, 10), "box of the black square is ("
+                                                           << square.x() << ", " << square.y() << ", " << square.width()
+                                                           << " x " << square.height() << ")");
   BOOST_CHECK_MESSAGE(nonBackgroundBox(solidGrey(50, 50, 255)).isNull(), "an all-white image has no content box");
   BOOST_CHECK_MESSAGE(nonBackgroundBox(QImage()).isNull(), "a null image has no content box");
 
@@ -177,9 +178,9 @@ BOOST_AUTO_TEST_CASE(test_non_background_box) {
   image.setPixel(15, 25, qRgb(199, 199, 199));
   image.setPixel(50, 55, qRgb(200, 200, 200));
   const QRect box = nonBackgroundBox(image);
-  BOOST_CHECK_MESSAGE(box == QRect(10, 20, 6, 6),
-                      "box of the faint pixels is (" << box.x() << ", " << box.y() << ", " << box.width() << " x "
-                                                     << box.height() << ")");
+  BOOST_CHECK_MESSAGE(box == QRect(10, 20, 6, 6), "box of the faint pixels is (" << box.x() << ", " << box.y() << ", "
+                                                                                 << box.width() << " x " << box.height()
+                                                                                 << ")");
 }
 
 BOOST_AUTO_TEST_CASE(test_box_iou) {
@@ -223,9 +224,9 @@ BOOST_AUTO_TEST_CASE(test_register_mask_recovers_offset) {
     }
   }
   const Registration inPadded = registerMask(padded, mask, 4);
-  BOOST_CHECK_MESSAGE(inPadded.offset == by + QPoint(10, 25),
-                      "recovered offset (" << inPadded.offset.x() << ", " << inPadded.offset.y()
-                                           << ") in a padded frame");
+  BOOST_CHECK_MESSAGE(inPadded.offset == by + QPoint(10, 25), "recovered offset (" << inPadded.offset.x() << ", "
+                                                                                   << inPadded.offset.y()
+                                                                                   << ") in a padded frame");
   BOOST_CHECK_EQUAL(inPadded.mismatch, 0);
 }
 
@@ -314,8 +315,8 @@ BOOST_AUTO_TEST_CASE(test_straightness_of_bent_lines) {
 BOOST_AUTO_TEST_CASE(test_straightness_invalid_with_one_strip) {
   const int width = 400;
   const int lines = 5;
-  const QImage image = barImage(
-      width, 280, lines, 40, 4, 30, [](int, int) { return 0.0; }, [](int x) { return x < 50; });
+  const QImage image
+      = barImage(width, 280, lines, 40, 4, 30, [](int, int) { return 0.0; }, [](int x) { return x < 50; });
   // Only the first of eight strips holds lines.
   const StraightnessResult oneStrip = straightnessResidual(image, QRect(0, 0, width, 280), lines, 8);
   BOOST_CHECK_MESSAGE(!oneStrip.valid, "one usable strip must not give a valid residual");
@@ -364,9 +365,9 @@ BOOST_AUTO_TEST_CASE(test_output_sanity_rejections) {
   for (const Case& c : cases) {
     const SanityCheck check = outputSanity(c.image, expectation);
     BOOST_CHECK_MESSAGE(!check.ok, c.name << ": not rejected");
-    BOOST_CHECK_MESSAGE(check.reason.contains(QString::fromLatin1(c.word), Qt::CaseInsensitive),
-                        c.name << ": reason \"" << check.reason.toStdString() << "\" does not name \"" << c.word
-                               << "\"");
+    BOOST_CHECK_MESSAGE(
+        check.reason.contains(QString::fromLatin1(c.word), Qt::CaseInsensitive),
+        c.name << ": reason \"" << check.reason.toStdString() << "\" does not name \"" << c.word << "\"");
   }
 
   // Landscape is fine when it is not forbidden.

@@ -81,8 +81,8 @@ BOOST_AUTO_TEST_CASE(test_spread_yields_two_pages) {
   BOOST_CHECK_EQUAL(static_cast<int>(result.pages[1].pageId.subPage()), static_cast<int>(PageId::RIGHT_PAGE));
   for (const SubPageResult& sub : result.pages) {
     const test_support::SanityCheck sanity = test_support::outputSanity(sub.output, pageExpectation(true));
-    BOOST_CHECK_MESSAGE(sanity.ok, "sub-page " << sub.pageId.subPageAsString().toStdString() << ": "
-                                               << sanity.reason.toStdString());
+    BOOST_CHECK_MESSAGE(
+        sanity.ok, "sub-page " << sub.pageId.subPageAsString().toStdString() << ": " << sanity.reason.toStdString());
     BOOST_CHECK_EQUAL(sub.outputDpiX, 600);
   }
   const QByteArray left = test_support::fingerprint(result.pages[0].output);
