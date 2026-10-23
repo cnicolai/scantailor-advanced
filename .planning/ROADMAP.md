@@ -188,3 +188,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.3: Output of the 600 dpi flat page keeps about 0.1 degrees of residual skew (BACKLOG)
+
+**Goal:** On the generated flat page (skew 1.5 degrees, black-and-white output) the 600 dpi input leaves a residual rotation of about 0.08 to 0.12 degrees that the stored deskew angle (exactly -1.5 degrees) does not show: binarization mismatch against the truth mask 0.0829 against a bound of 0.005 (0 at 300 dpi). The cause inside the output or deskew transformation was not analysed. No requirement exists. When fixed, remove the `XFAIL_CHECK` tagged `output of the 600 dpi flat page keeps about 0.1 deg residual skew, binarization mismatch 8.3% against 0.5% (F-05-1): no requirement` in `src/pipeline_tests/TestFlatDocument.cpp` and re-record the golden `flat_600_bw` (it records this behaviour). Finding F-05-1 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
