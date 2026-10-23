@@ -321,6 +321,7 @@ BOOST_AUTO_TEST_CASE(test_straightness_invalid_with_one_strip) {
   BOOST_CHECK_MESSAGE(!oneStrip.valid, "one usable strip must not give a valid residual");
   BOOST_CHECK_EQUAL(oneStrip.stripsUsed, 1);
   BOOST_CHECK_EQUAL(oneStrip.linesFound, 0);
+  BOOST_CHECK_MESSAGE(!(oneStrip.maxResidualPx <= 1.0e9), "an invalid result must not carry a passing residual");
 
   // Six lines expected on a page with five: no strip is usable.
   const QImage level = barImage(width, 280, lines, 40, 4, 30, [](int, int) { return 0.0; });
