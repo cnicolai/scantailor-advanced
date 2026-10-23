@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-10-23T19:44:47.056Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-10-23T20:02:23.861Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: 1e3820bc1b317a6781357dca238061cc13705d22
+state_head: 832b7c12416ffb1308830824dc3964ac0f4fdeee
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 14
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 02 execution started
 
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P04 | 11 min | 2 tasks | 10 files |
 | Phase 02 P05 | 12 min | 2 tasks | 12 files |
 | Phase 02 P06 | 29min | 3 tasks | 19 files |
+| Phase 02 P07 | 15 min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-06: D-15 outcomes for book scenarios: cutter outside gutter 0.5 px, sub-page deskew 0.01 deg, content IoU 0.95 kept, dewarp residual bound 1.5 px at 300 dpi kept (measured 1.04 px)
 - [Phase 02]: 02-06: F-06-1 page_split cutter is 30.4 px (300 dpi) and 55.7 px (600 dpi) from the gutter centre at mid-height; XFAIL_CHECK in all four spread scenarios, no requirement
 - [Phase 02]: 02-06: F-06-2 TruthMetrics straightnessResidual cannot measure the curved page (no valid OFF strip at 8 strips, 4-9 px noise); dewarp checks use a truth-registered line offset measure local to TestBookSpread.cpp, noise floor 0.58 px
+- [Phase 02]: 02-07: despeckle fixture sanity counts only specks inside the content box (15 of 15 at 300 dpi, 11 of 11 at 600 dpi; 24 and 28 specks are cropped by the output stage), departing from the plan's 90%-of-all-specks stop condition
+- [Phase 02]: 02-07: F-07-1 page_split AUTO cuts the 300 dpi mixed page and keeps a 386x542 px picture fragment without text; XFAIL_CHECK, coverage scenarios force SINGLE_PAGE_UNCUT, no golden for AUTO
+- [Phase 02]: 02-07: D-15 applied to shortfall from the ideal; bounds tightened to speck removal 0.9995, glyph change 0.0005, chroma ratio 0.995, ink/paper contrast 173, picture non-bi-level 0.999, outside bi-level 0.9995
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T19:44:47.022Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-10-23T20:02:23.829Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None
