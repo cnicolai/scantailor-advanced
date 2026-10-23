@@ -2,6 +2,7 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include <ExpectedFailure.h>
+#include <GoldenChecks.h>
 #include <GoldenStore.h>
 #include <Manifest.h>
 #include <TextGolden.h>
@@ -154,6 +155,13 @@ void writeFile(const QString& path, const QByteArray& data) {
   QFile file(path);
   BOOST_REQUIRE(file.open(QIODevice::WriteOnly));
   file.write(data);
+}
+
+// Never called.  Keeps the macros of GoldenChecks.h compiling: no test uses them before the golden suites of
+// plans 02-04 to 02-07.
+[[maybe_unused]] void macrosStayCompilable() {
+  CHECK_IMAGE_GOLDEN("suite_a", "page_one", makePage(0), ImageKind::BILEVEL, sanityOk());
+  CHECK_TEXT_GOLDEN("suite_a", "decisions", TextValues(), sanityOk());
 }
 
 }  // namespace
@@ -368,6 +376,7 @@ BOOST_AUTO_TEST_CASE(test_update_records_missing_golden_and_manifest) {
   BOOST_CHECK_MESSAGE(again.pass, again.message.toStdString());
   BOOST_CHECK(!again.written);
   BOOST_CHECK_MESSAGE(again.warnings.isEmpty(), again.warnings.join("; ").toStdString());
+  reportOutcome("suite_a", "page_one", "bilevel", again);  // prints the GOLDEN-METRIC lines
 }
 
 BOOST_AUTO_TEST_CASE(test_update_rewrites_only_failing) {
@@ -538,6 +547,7 @@ BOOST_AUTO_TEST_CASE(test_update_flag_parsing) {
 BOOST_AUTO_TEST_CASE(test_expected_failure_trip_wire, *boost::unit_test::expected_failures(1)) {
   BOOST_CHECK(expectedFailureStatus(false) == ExpectedFailureStatus::KNOWN_DEFECT);
   BOOST_CHECK(expectedFailureStatus(true) == ExpectedFailureStatus::UNEXPECTED_PASS);
+  BOOST_TEST_MESSAGE("The Boost error that follows is raised on purpose and counted by expected_failures(1).");
   XFAIL_CHECK(false, "no requirement: defect still present (logs only)");
   XFAIL_CHECK(true, "no requirement: raised on purpose by the test of the trip-wire");
 }
