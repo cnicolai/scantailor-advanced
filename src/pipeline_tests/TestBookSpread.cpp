@@ -4,6 +4,9 @@
 #include <ExpectedFailure.h>
 #include <PageGenerator.h>
 #include <TruthMetrics.h>
+#include <filters/output/DewarpingOptions.h>
+#include <filters/output/Params.h>
+#include <filters/page_split/LayoutType.h>
 
 #include <QImage>
 #include <QLineF>
@@ -42,6 +45,14 @@ const double kMillimetresPerInch = 25.4;
 const double kSanityWidthSlack = 1.2;
 const double kMinInkFractionOfOutput = 0.005;
 const double kMaxInkFractionOfOutput = 0.5;
+
+// Dewarp page (D-04, D-15).  Residuals are measured in output pixels and converted to 300 dpi pixels for the bound.
+const int kDewarpInputDpi = 300;
+// D-15 starting value and bound: dewarped baseline residual at 300 dpi.
+const double kMaxDewarpResidual300Px = 1.5;
+// Noise floor of the line offset measure on a page with straight lines, output pixels at 600 dpi.  Measured 0.58 px;
+// twice that, rounded up to 0.5 px.  Not a D-15 value.
+const double kMaxNoiseFloorPx = 1.5;
 
 struct SpreadScenario {
   const char* name;
@@ -325,6 +336,288 @@ BOOST_AUTO_TEST_CASE(test_spread_600_color_split) {
   runSpreadCase(kSpread600Color,
                 "page_split cutter 55.7 px from the gutter centre at mid-height on the 600 dpi spread, bound 2 px "
                 "(F-06-1): no requirement");
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+namespace {
+
+// Line offsets against the truth mask (the straightness measure of the dewarp cases).
+//
+// TruthMetrics::straightnessResidual fits the ink-weighted centre row of each text line band in vertical strips.  On
+// the 5x7 dot font that centre depends on which glyphs sit in the strip (the dots of i and j split a band, descenders
+// and ascenders shift the centre by several pixels), so it has a noise floor of about 4 to 8 px at 600 dpi on this page
+// and, with 8 strips, finds no usable strip at all in the output without dewarping (records/scenario-book.md,
+// "Dewarp measurements").  This measure removes the glyph content from the comparison: for every line and strip it
+// finds the vertical shift of the truth mask's row profile (the same glyphs, flat, at the output dpi) that best matches
+// the output's row profile, and the residual is how far those shifts of one line stray from a straight line over the
+// strips.  A straight, tilted line has residual 0.
+const int kBaseDotPx = 5;  // one glyph dot in base pixels (1/300 in), PageGenerator.h
+const int kGlyphRows = 7;
+const int kTemplatePadPx = 12;
+const int kGlobalSearchPx = 100;
+const int kFirstStripSearchPx = 54;  // less than half the line pitch of 11 dots
+const int kTrackingSearchPx = 30;
+const int kStraightnessStrips = 8;
+
+struct LineOffsets {
+  bool valid = false;
+  double maxResidualPx = 0.0;
+  int worstLine = -1;
+  int worstStrip = -1;
+  std::vector<std::vector<int>> offsets;  // [line][strip]: shift of the truth line, output rows
+};
+
+std::vector<int> rowProfile(const QImage& gray, const int x0, const int x1) {
+  std::vector<int> profile(static_cast<size_t>(gray.height()), 0);
+  const int left = std::max(0, x0);
+  const int right = std::min(gray.width(), x1);
+  for (int y = 0; y < gray.height(); ++y) {
+    const uchar* const line = gray.constScanLine(y);
+    int count = 0;
+    for (int x = left; x < right; ++x) {
+      count += line[x] < 128 ? 1 : 0;
+    }
+    profile[static_cast<size_t>(y)] = count;
+  }
+  return profile;
+}
+
+// Sum of squared differences between the template and the output profile starting at row y0 (rows outside the image
+// count as empty).
+long long profileDistance(const std::vector<int>& outProfile, const int y0, const std::vector<int>& tmpl) {
+  long long sum = 0;
+  const int height = static_cast<int>(outProfile.size());
+  for (size_t r = 0; r < tmpl.size(); ++r) {
+    const int y = y0 + static_cast<int>(r);
+    const long long value = (y >= 0 && y < height) ? outProfile[static_cast<size_t>(y)] : 0;
+    const long long diff = value - tmpl[r];
+    sum += diff * diff;
+  }
+  return sum;
+}
+
+// truthLineTops are the first rows of the glyph cells of the truth mask, dotPx the size of one glyph dot at the mask's
+// dpi.
+LineOffsets measureLineOffsets(const QImage& output,
+                               const QImage& truthMask,
+                               const std::vector<int>& truthLineTops,
+                               const int dotPx,
+                               const int strips) {
+  LineOffsets result;
+  const QImage outGray = output.convertToFormat(QImage::Format_Grayscale8);
+  const QRect outBox = test_support::nonBackgroundBox(outGray);
+  const QRect maskBox = test_support::nonBackgroundBox(truthMask);
+  if (outBox.isNull() || maskBox.isNull() || truthLineTops.empty() || strips < 3) {
+    return result;
+  }
+  const int lines = static_cast<int>(truthLineTops.size());
+  const int cellHeight = kGlyphRows * dotPx;
+  const int templateRows = cellHeight + 2 * kTemplatePadPx;
+  const int rowShift = outBox.top() - maskBox.top();
+
+  std::vector<std::vector<std::vector<int>>> templates(static_cast<size_t>(lines));  // [line][strip][row]
+  std::vector<std::vector<int>> outProfiles;                                         // [strip][row]
+  for (int s = 0; s < strips; ++s) {
+    const int mx0 = maskBox.left() + maskBox.width() * s / strips;
+    const int mx1 = maskBox.left() + maskBox.width() * (s + 1) / strips;
+    const std::vector<int> maskProfile = rowProfile(truthMask, mx0, mx1);
+    for (int k = 0; k < lines; ++k) {
+      const int top = truthLineTops[static_cast<size_t>(k)] - kTemplatePadPx;
+      templates[static_cast<size_t>(k)].emplace_back(maskProfile.begin() + top,
+                                                     maskProfile.begin() + top + templateRows);
+    }
+    const int ox0 = outBox.left() + outBox.width() * s / strips;
+    const int ox1 = outBox.left() + outBox.width() * (s + 1) / strips;
+    outProfiles.push_back(rowProfile(outGray, ox0, ox1));
+  }
+  auto nominalRow = [&](const int k) { return truthLineTops[static_cast<size_t>(k)] - kTemplatePadPx + rowShift; };
+
+  // The first strip is the far edge of the page, where the curl is zero: find the one shift of all lines together.
+  int globalShift = 0;
+  long long bestTotal = -1;
+  for (int dy = -kGlobalSearchPx; dy <= kGlobalSearchPx; ++dy) {
+    long long total = 0;
+    for (int k = 0; k < lines; ++k) {
+      total += profileDistance(outProfiles[0], nominalRow(k) + dy, templates[static_cast<size_t>(k)][0]);
+    }
+    if (bestTotal < 0 || total < bestTotal) {
+      bestTotal = total;
+      globalShift = dy;
+    }
+  }
+
+  result.offsets.assign(static_cast<size_t>(lines), std::vector<int>(static_cast<size_t>(strips), 0));
+  for (int k = 0; k < lines; ++k) {
+    int previous = globalShift;
+    for (int s = 0; s < strips; ++s) {
+      const int radius = s == 0 ? kFirstStripSearchPx : kTrackingSearchPx;
+      int best = previous;
+      long long bestDistance = -1;
+      for (int dy = previous - radius; dy <= previous + radius; ++dy) {
+        const long long distance = profileDistance(outProfiles[static_cast<size_t>(s)], nominalRow(k) + dy,
+                                                   templates[static_cast<size_t>(k)][static_cast<size_t>(s)]);
+        // A tie goes to the shift nearest the previous strip.
+        if (bestDistance < 0 || distance < bestDistance
+            || (distance == bestDistance && std::abs(dy - previous) < std::abs(best - previous))) {
+          bestDistance = distance;
+          best = dy;
+        }
+      }
+      result.offsets[static_cast<size_t>(k)][static_cast<size_t>(s)] = best;
+      previous = best;
+    }
+  }
+
+  // Least-squares line over the strip index for every line, largest absolute deviation.
+  for (int k = 0; k < lines; ++k) {
+    const std::vector<int>& d = result.offsets[static_cast<size_t>(k)];
+    double sumX = 0, sumY = 0, sumXX = 0, sumXY = 0;
+    for (int s = 0; s < strips; ++s) {
+      sumX += s;
+      sumY += d[static_cast<size_t>(s)];
+      sumXX += static_cast<double>(s) * s;
+      sumXY += static_cast<double>(s) * d[static_cast<size_t>(s)];
+    }
+    const double n = strips;
+    const double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const double intercept = (sumY - slope * sumX) / n;
+    for (int s = 0; s < strips; ++s) {
+      const double residual = std::fabs(d[static_cast<size_t>(s)] - (intercept + slope * s));
+      if (residual > result.maxResidualPx) {
+        result.maxResidualPx = residual;
+        result.worstLine = k;
+        result.worstStrip = s;
+      }
+    }
+  }
+  result.valid = true;
+  return result;
+}
+
+test_support::PageSpec curvedSpec() {
+  test_support::PageSpec spec;
+  spec.kind = test_support::PageKind::CURVED;
+  spec.dpi = kDewarpInputDpi;
+  spec.seed = 1;
+  spec.skewDeg = 0.0;
+  return spec;
+}
+
+struct DewarpRun {
+  PipelineResult result;
+  QImage output;
+  LineOffsets offsets;
+  test_support::StraightnessResult planStraightness;  // straightnessResidual with 8 strips, reported for reference
+};
+
+DewarpRun runCurved(const test_support::GeneratedPage& page, const output::DewarpingMode mode) {
+  PipelineOptions options;
+  options.layout = page_split::SINGLE_PAGE_UNCUT;
+  options.colorMode = output::BLACK_AND_WHITE;
+  options.dewarping = mode;
+  DewarpRun run;
+  run.result = runPipeline(page.image, options);
+  BOOST_REQUIRE_EQUAL(run.result.pages.size(), 1u);
+  run.output = run.result.pages.front().output;
+  BOOST_REQUIRE_MESSAGE(!run.output.isNull(), "the curved page produced no output image");
+
+  const int scale = kOutputDpi / kDewarpInputDpi;
+  std::vector<int> truthTops;
+  for (const int top : page.truth.lineTops) {
+    truthTops.push_back(top * scale);
+  }
+  const QImage mask = test_support::renderInkMask(curvedSpec(), kOutputDpi, 0.0);
+  run.offsets = measureLineOffsets(run.output, mask, truthTops, kBaseDotPx * scale, kStraightnessStrips);
+  run.planStraightness = test_support::straightnessResidual(run.output, test_support::nonBackgroundBox(run.output),
+                                                            page.truth.lineCount, kStraightnessStrips);
+  return run;
+}
+
+void reportDewarpRun(const std::string& scenario, const char* label, const DewarpRun& run) {
+  const std::string prefix = label;
+  reportMetric(scenario, (prefix + "_line_offset_residual_px").c_str(), run.offsets.maxResidualPx, "none");
+  reportMetric(scenario, (prefix + "_worst_line").c_str(), run.offsets.worstLine, "none");
+  reportMetric(scenario, (prefix + "_worst_strip").c_str(), run.offsets.worstStrip, "none");
+  reportMetric(scenario, (prefix + "_plan_straightness_valid").c_str(), run.planStraightness.valid ? 1 : 0, "none");
+  reportMetric(scenario, (prefix + "_plan_straightness_strips_used").c_str(), run.planStraightness.stripsUsed, "none");
+  if (run.planStraightness.valid) {
+    reportMetric(scenario, (prefix + "_plan_straightness_residual_px").c_str(), run.planStraightness.maxResidualPx,
+                 "none");
+  }
+}
+
+}  // namespace
+
+BOOST_AUTO_TEST_SUITE(DewarpPageTestSuite)
+
+BOOST_AUTO_TEST_CASE(test_curved_300_auto_dewarp_straightens) {
+  const std::string scenario = "curved_300_dewarp";
+  const test_support::GeneratedPage page = test_support::generatePage(curvedSpec());
+  BOOST_REQUIRE_MESSAGE(!page.image.isNull(), "the generator returned a null curved page");
+
+  const DewarpRun off = runCurved(page, output::OFF);
+  const DewarpRun autoRun = runCurved(page, output::AUTO);
+  const SubPageResult& autoSub = autoRun.result.pages.front();
+  const bool modelValid = autoRun.result.settings.output->getParams(autoSub.pageId).distortionModel().isValid();
+
+  BOOST_REQUIRE_MESSAGE(off.offsets.valid, scenario << ": no line offsets without dewarping");
+  BOOST_REQUIRE_MESSAGE(autoRun.offsets.valid, scenario << ": no line offsets with AUTO dewarping");
+
+  const double residualOff = off.offsets.maxResidualPx;
+  const double residualAuto = autoRun.offsets.maxResidualPx;
+  const double residualAuto300 = residualAuto * kDewarpInputDpi / autoSub.outputDpiX;
+  reportMetric(scenario, "residual_off_px", residualOff, "none");
+  reportMetric(scenario, "residual_auto_px", residualAuto, num(residualOff));
+  reportMetric(scenario, "residual_auto_300dpi_px", residualAuto300, num(kMaxDewarpResidual300Px));
+  reportMetric(scenario, "residual_ratio_auto_over_off", residualOff > 0.0 ? residualAuto / residualOff : -1.0, "<1");
+  reportDewarpRun(scenario, "off", off);
+  reportDewarpRun(scenario, "auto", autoRun);
+  reportMetric(scenario, "distortion_model_valid", modelValid ? 1 : 0, "none");
+  reportMetric(scenario, "output_w_px", autoSub.outputSize.width(), "none");
+  reportMetric(scenario, "output_h_px", autoSub.outputSize.height(), "none");
+  reportMetric(scenario, "output_off_w_px", off.result.pages.front().outputSize.width(), "none");
+  reportMetric(scenario, "output_off_h_px", off.result.pages.front().outputSize.height(), "none");
+
+  // D-04: dewarped text lines are straighter than the same page without dewarping.
+  BOOST_CHECK_MESSAGE(residualAuto < residualOff, scenario << ": AUTO dewarping residual " << num(residualAuto)
+                                                           << " px is not below the residual without dewarping "
+                                                           << num(residualOff) << " px");
+  // D-15 bound.
+  BOOST_CHECK_MESSAGE(residualAuto300 <= kMaxDewarpResidual300Px,
+                      scenario << ": AUTO dewarping leaves " << num(residualAuto300)
+                               << " px residual at 300 dpi, bound " << num(kMaxDewarpResidual300Px) << " px");
+}
+
+// Guard for the measure above: a page whose lines are straight must measure (almost) zero, so the residuals of the
+// curved page are not glyph-content noise.
+BOOST_AUTO_TEST_CASE(test_line_offset_measure_noise_floor_on_flat_page) {
+  const std::string scenario = "flat_300_noise_floor";
+  test_support::PageSpec spec;
+  spec.kind = test_support::PageKind::FLAT;
+  spec.dpi = kDewarpInputDpi;
+  spec.seed = 1;
+  spec.skewDeg = 0.0;
+  const test_support::GeneratedPage page = test_support::generatePage(spec);
+  BOOST_REQUIRE_MESSAGE(!page.image.isNull(), "the generator returned a null flat page");
+  PipelineOptions options;
+  const PipelineResult result = runPipeline(page.image, options);
+  BOOST_REQUIRE_EQUAL(result.pages.size(), 1u);
+
+  const int scale = kOutputDpi / kDewarpInputDpi;
+  std::vector<int> truthTops;
+  for (const int top : page.truth.lineTops) {
+    truthTops.push_back(top * scale);
+  }
+  const QImage mask = test_support::renderInkMask(spec, kOutputDpi, 0.0);
+  const LineOffsets offsets
+      = measureLineOffsets(result.pages.front().output, mask, truthTops, kBaseDotPx * scale, kStraightnessStrips);
+  BOOST_REQUIRE_MESSAGE(offsets.valid, scenario << ": no line offsets");
+  reportMetric(scenario, "line_offset_residual_px", offsets.maxResidualPx, num(kMaxNoiseFloorPx));
+  BOOST_CHECK_MESSAGE(offsets.maxResidualPx <= kMaxNoiseFloorPx, scenario << ": a straight page measures "
+                                                                          << num(offsets.maxResidualPx) << " px, limit "
+                                                                          << num(kMaxNoiseFloorPx));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

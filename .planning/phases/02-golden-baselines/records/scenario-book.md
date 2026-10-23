@@ -36,10 +36,51 @@ Rule: D-15 as written in plan 02-04 (worst case over all fixtures of the check; 
 
 | Check | Starting tolerance | Worst case | Outcome | Constant in `TestBookSpread.cpp` |
 |-------|--------------------|------------|---------|----------------------------------|
-| Cutter outside the gutter, 4 scenarios, 94 samples at 300 dpi and 237 at 600 dpi each | 2 px | 0 px (at least 80.5 px inside) | tightened to one step, 0.5 px | `kMaxOutsideGutterPx = 0.5` |
+| Cutter outside the gutter, 4 scenarios, 120 samples at 300 dpi and 238 at 600 dpi each | 2 px | 0 px (at least 80.5 px inside) | tightened to one step, 0.5 px | `kMaxOutsideGutterPx = 0.5` |
 | Cutter offset from the gutter centre at mid-height (D-15 point check) | 2 px | 30.376 px (300 dpi), 55.736 px (600 dpi) | kept; the worst case exceeds the starting tolerance, so D-18 applies: `XFAIL_CHECK` in all four scenarios (F-06-1) | `kMaxMidHeightOffsetPx = 2.0` |
 | Sub-page deskew error, 8 sub-pages | 0.15 deg | 0 deg | tightened to one step, 0.01 deg (the fixture has one applied angle, 1.0 deg; plan 02-05's sweep shows other angles with errors up to 0.125 deg, which this check does not cover) | `kAngleToleranceDeg = 0.01` |
 | Content-box IoU, 8 sub-pages | 0.95 (1 - IoU 0.05) | 1 - IoU = 0.03186 (spread_300 left) | kept: 0.03186 is above half of 0.05 | `kMinContentIou = 0.95` |
+| Dewarped line residual at 300 dpi (D-15), curved page | 1.5 px | 1.042 px (2.083 px at 600 dpi) | kept: 1.042 is above half of 1.5 (0.75); the worst case is below the starting tolerance, so the check is hard and no mark is needed | `kMaxDewarpResidual300Px = 1.5` |
+| Noise floor of the line offset measure on a straight page (own guard, not D-15) | none | 0.583 px at 600 dpi | twice the worst case rounded up to 0.5 px | `kMaxNoiseFloorPx = 1.5` |
+
+## Dewarp measurements
+
+Fixture: `PageSpec{CURVED, 300, seed 1, skewDeg 0}` (1000 x 1150 px, 14 lines of 23 cells, curl amplitude A = 25 base px, circular-arc profile), layout `SINGLE_PAGE_UNCUT`, `BLACK_AND_WHITE`, `outputDpi` 600, despeckle 1.0; run once with `output::OFF` and once with `output::AUTO`. Both outputs are 1872 x 1824 px; the AUTO run stores a valid distortion model (`distortion_model_valid` 1) and finds all 14 text lines (14 bands over the whole ink box, 13 without dewarping).
+
+Residual measure: for every text line and each of 8 vertical strips of the ink box, the vertical shift of the truth mask's row profile (`renderInkMask`, same glyphs, flat, at 600 dpi) that best matches the output's row profile; the residual of a line is the largest deviation of its 8 shifts from their least-squares straight line, and the page residual is the largest over the 14 lines (output pixels at 600 dpi; the D-15 bound is in 300 dpi pixels, so the value is divided by 2). A straight tilted line has residual 0. Control: the same measure on the output of the generated flat page (`FLAT`, 300 dpi, seed 1, skew 0) gives 0.583 px, so the measure's own noise is below 1 px at 600 dpi.
+
+| Output | Line offset residual (600 dpi px) | In 300 dpi px | Worst line, strip |
+|--------|-----------------------------------|---------------|-------------------|
+| dewarping OFF | 7.833 | 3.917 | line 0, strip 7 |
+| dewarping AUTO | 2.083 | 1.042 | line 0, strip 7 |
+| ratio AUTO / OFF | 0.266 | | |
+
+Cross-check of the OFF value against the generator's closed form: the top line is displaced by -A p(u) with A = 50 px at 600 dpi and p(u) = 1 - sqrt(1 - u^2); its least-squares straight-line residual over eight strips at u = (i + 0.5) / 8 is 6.87 px, the measure gives 7.83 px (strip quantisation and the compression of x towards the spine, which the closed form leaves out). Without dewarping the lines drift by 22 px (line 0) to 42 px (line 13) across the strips; with AUTO dewarping each line stays within 2.1 px of its straight line. In the AUTO output the line pitch is about 5 px (4.5%) larger than the truth's 110 px (shift of line 0 against line 13 in the first strip: 13 px against 78 px, 65 px over 13 pitches); that is a vertical stretch by the dewarper, not a curvature, and the measure's per-line straight-line fit removes it.
+
+Hard truth (D-04): residual(AUTO) 2.083 px is below residual(OFF) 7.833 px. D-15 point check: 1.042 px at 300 dpi is within 1.5 px. Neither check needs an `XFAIL_CHECK`.
+
+Reading F-04-2 (the tracer's top curve follows the second text line of this page): the AUTO output contains all 14 lines and straightens them within 2.1 px, so the tracer's top curve and the `TopBottomEdgeTracer` step of the output stage do not leave a visible curvature residual on this fixture.
+
+### The plan's measure on the same outputs
+
+`straightnessResidual(output, nonBackgroundBox(output), 14, 8)` as named in the plan: dewarping OFF gives no valid result (0 usable strips: seven strips have 15 and one has 16 horizontal bands instead of 14), AUTO gives 4.64 px from 3 usable strips. A sweep of the strip count (2 to 16) shows why it cannot carry the check on this page (residual in 600 dpi px, usable strips in brackets; "invalid" means fewer than two usable strips):
+
+| Strips | OFF | AUTO |
+|--------|-----|------|
+| 4 | 4.11 (3) | 4.13 (4) |
+| 5 | about 0 (2) | 5.73 (3) |
+| 6 | 6.91 (4) | 5.33 (4) |
+| 7 | about 0 (2) | 5.65 (4) |
+| 8 | invalid (0) | 4.64 (3) |
+| 9 | 5.41 (3) | about 0 (2) |
+| 10 | 3.73 (3) | 6.69 (4) |
+| 12 | invalid (1) | 4.76 (4) |
+| 13 | 7.38 (4) | 6.46 (4) |
+| 14 | 6.69 (4) | 7.22 (3) |
+| 15 | 6.39 (5) | 6.35 (4) |
+| 16 | 6.07 (4) | 8.79 (6) |
+
+The ordering of OFF and AUTO flips with the strip count, a two-strip fit is exact by construction (residual about 0), and the values sit at 4 to 9 px for a page whose lines are, by the images and by the truth-registered measure, straight in the AUTO output and curved in the OFF output. The cause is the font: the dots of `i` and `j` form a band of their own in a strip that has no ascender, and the ink-weighted centre of a band moves by several pixels with the ascenders and descenders in the strip. The plan's call is therefore kept in the test as a reported reference (`*_plan_straightness_*` lines) and the checks use the truth-registered measure above; see deviation 1 of the plan summary. `src/test_support` is frozen and was not changed.
 
 ## Findings
 
@@ -52,3 +93,10 @@ Rule: D-15 as written in plan 02-04 (worst case over all fixtures of the check; 
 - Fixing requirement: none (no Phase 3 to 6 requirement concerns the page split position; the cutter stays in the gutter, so the output is not visibly wrong on this fixture)
 - Backlog: pending (plan 02-10)
 - Note: the cutter runs from (783.2, 1182) to (809.0, 0), a slant of 1.25 degrees for an applied tilt of 1.0 degrees, and the gutter centre line lies about 30 px to the right of it along the whole height (top 28 px, bottom 33 px). Research P4 measured a different cutter (795.5,0 to 873.0,1182) on a first version of the fixture. The cause was not analysed.
+
+### F-06-2 (test-support limitation, not a production defect): `straightnessResidual` cannot measure this page
+- Check: the plan's hard truth and D-15 bound for the curved page, as `straightnessResidual(output, nonBackgroundBox(output), lineCount, 8)` on the OFF and AUTO outputs.
+- Measured: no valid result for the output without dewarping (0 of 8 strips usable); 4.64 px for AUTO; ordering of OFF and AUTO depends on the strip count (table above).
+- Consequence: `src/pipeline_tests/TestBookSpread.cpp` measures the line offsets against the truth mask (noise floor 0.583 px on a straight page) and reports the plan's measure as reference only.
+- Fixing requirement: none; plan 02-10 may want a backlog item to give `src/test_support` a glyph-independent straightness measure.
+- Backlog: pending (plan 02-10)
