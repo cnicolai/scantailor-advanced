@@ -215,3 +215,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.6: page_split AUTO cuts the mixed page and keeps only a fragment of its picture (BACKLOG)
+
+**Goal:** On the generated mixed page (300 dpi, seed 1, skew 0) page_split AUTO chooses layout type 1 (SINGLE_PAGE_CUT) with two cutters at x = 588..603 and 893..903, and the output keeps an ink box of 386 x 542 px against 1600 x 1610 px for text and picture (0.241 and 0.337 of the box, bound 0.9), dropping the text column. The coverage scenarios therefore force SINGLE_PAGE_UNCUT. The cause was not analysed. No requirement exists. When fixed, remove the `XFAIL_CHECK` tagged `page_split AUTO cuts the mixed page and keeps only a fragment of its picture, dropping the text: no requirement` in `src/pipeline_tests/TestMixedPage.cpp` and consider the forced layout in the mixed scenarios. Finding F-07-1 in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
