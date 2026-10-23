@@ -53,6 +53,14 @@ const double kMinPictureNonBilevelShare = 0.999;
 const double kMinOutsidePictureBilevelShare = 0.9995;
 
 const int kOutputDpi = 600;
+// Sanity (D-05) of an output before it may become a golden.
+const double kMinInkFractionOfOutput = 0.005;
+const double kMaxInkFractionOfOutput = 0.6;  // the binarized picture adds ink
+const double kSanityWidthSlack = 1.2;
+const double kMaxSanityTextMismatch
+    = 0.05;                               // share of the truth text ink the output gets wrong at the registered offset
+const double kMinNotBilevelShare = 0.05;  // colour and MIXED output: share of pixels that are not bi-level
+const int kMaxLineCountDifference = 1;
 const int kRegistrationRadius = 4;
 const int kSpeckGrowPx = 1;        // a speck is present when its mapped rectangle grown by this holds ink
 const int kTextBlockGrowPx = 4;    // glyph components are counted in the mapped text block grown by this
@@ -319,6 +327,137 @@ PipelineResult runMixed(const int dpi,
   return runPipeline(mixedPage(dpi).image, options);
 }
 
+struct SanityResult {
+  bool ok;
+  QString reason;
+};
+
+// Output sanity (D-05) of one scenario, applied before a golden is recorded: size, ink fraction, orientation and line
+// count of the text block, content where the truth puts it, and for colour and MIXED output that it is not bi-level.
+// The orientation is checked on the ink box inside the mapped text block, because the box of text and picture is almost
+// square (1608 x 1620 px).
+SanityResult mixedSanity(const Scenario& scenario,
+                         const test_support::GeneratedPage& page,
+                         const QImage& out,
+                         const QPoint& offset) {
+  const double scale = static_cast<double>(kOutputDpi) / scenario.dpi;
+  test_support::SanityExpectation expectation;
+  expectation.minSize = QSize(static_cast<int>(scale * page.truth.textBlock.width()),
+                              static_cast<int>(scale * page.truth.textBlock.height()));
+  expectation.maxSize = QSize(static_cast<int>(scale * page.truth.pageSize.width() * kSanityWidthSlack), 0);
+  expectation.minInk = kMinInkFractionOfOutput;
+  expectation.maxInk = kMaxInkFractionOfOutput;
+  expectation.portrait = false;
+  const test_support::SanityCheck basic = test_support::outputSanity(out, expectation);
+  if (!basic.ok) {
+    return SanityResult{false, basic.reason};
+  }
+
+  const QImage mask = test_support::renderInkMask(mixedSpec(scenario.dpi), kOutputDpi, 0.0);
+  const QRect maskRegion = mapToOutput(page.truth.textBlock, scenario.dpi, QPoint(0, 0))
+                               .adjusted(-kTextBlockGrowPx, -kTextBlockGrowPx, kTextBlockGrowPx, kTextBlockGrowPx)
+                               .intersected(mask.rect());
+  const QRect outRegion = maskRegion.translated(offset);
+  if (!out.rect().contains(outRegion)) {
+    return SanityResult{false, QStringLiteral("the text block lies outside the output at the registered offset")};
+  }
+  const QImage outCrop = out.copy(outRegion);
+  const QImage maskCrop = mask.copy(maskRegion);
+  const QRect box = test_support::nonBackgroundBox(outCrop);
+  if (box.isNull()) {
+    return SanityResult{false, QStringLiteral("no ink where the text block should be")};
+  }
+  if (box.width() > box.height()) {
+    return SanityResult{
+        false,
+        QStringLiteral("glyph ink box %1x%2 is landscape but portrait is expected").arg(box.width()).arg(box.height())};
+  }
+  const int bands = test_support::countHorizontalBands(outCrop, box);
+  if (std::abs(bands - page.truth.lineCount) > kMaxLineCountDifference) {
+    return SanityResult{false,
+                        QStringLiteral("found %1 text lines, truth has %2").arg(bands).arg(page.truth.lineCount)};
+  }
+  const double mismatch
+      = test_support::truthMismatchFraction(outCrop, maskCrop, QPoint(0, 0), kOutputDpi / scenario.dpi);
+  reportMetric(scenario.name, "sanity_ink_fraction", test_support::inkFraction(out), "none");
+  reportMetric(scenario.name, "sanity_text_lines", bands, num(page.truth.lineCount));
+  reportMetric(scenario.name, "sanity_text_mismatch", mismatch, num(kMaxSanityTextMismatch));
+  if (mismatch > kMaxSanityTextMismatch) {
+    return SanityResult{false, QStringLiteral("text mismatch %1 exceeds %2").arg(mismatch).arg(kMaxSanityTextMismatch)};
+  }
+  if (scenario.colorMode != output::BLACK_AND_WHITE) {
+    const double notBilevel = nonBilevelShare(out, out.rect());
+    reportMetric(scenario.name, "sanity_not_bilevel_share", notBilevel, num(kMinNotBilevelShare));
+    if (notBilevel < kMinNotBilevelShare) {
+      return SanityResult{false, QStringLiteral("output is bi-level (%1 of the pixels are not)").arg(notBilevel)};
+    }
+  }
+  return SanityResult{true, QString()};
+}
+
+const char* colorModeName(const output::ColorMode mode) {
+  switch (mode) {
+    case output::BLACK_AND_WHITE:
+      return "BLACK_AND_WHITE";
+    case output::COLOR_GRAYSCALE:
+      return "COLOR_GRAYSCALE";
+    case output::MIXED:
+      return "MIXED";
+  }
+  return "UNKNOWN";
+}
+
+QString intText(const long long value) {
+  return QString::number(value);
+}
+
+// Stage decisions of the scenario as text golden values (D-14); the suffix of a key decides its tolerance.
+test_support::TextValues stageDecisions(const Scenario& scenario,
+                                        const PipelineResult& result,
+                                        const double despeckle) {
+  using test_support::formatNumber;
+  const SubPageResult& sub = result.pages.front();
+  test_support::TextValues values;
+  values["seed"] = intText(1);
+  values["input_dpi"] = intText(scenario.dpi);
+  values["applied_skew_deg"] = formatNumber(0.0);
+  values["color_mode"] = QString::fromLatin1(colorModeName(scenario.colorMode));
+  values["despeckle_level"] = formatNumber(despeckle);
+  values["deskew_angle_deg"] = formatNumber(sub.deskewAngleDeg);
+  values["layout_type"] = intText(result.layoutType);
+  values["content_x_px"] = intText(sub.contentRect.x());
+  values["content_y_px"] = intText(sub.contentRect.y());
+  values["content_w_px"] = intText(sub.contentRect.width());
+  values["content_h_px"] = intText(sub.contentRect.height());
+  values["page_rect_x_px"] = formatNumber(sub.pageRect.x());
+  values["page_rect_y_px"] = formatNumber(sub.pageRect.y());
+  values["page_rect_w_px"] = formatNumber(sub.pageRect.width());
+  values["page_rect_h_px"] = formatNumber(sub.pageRect.height());
+  values["hard_margin_left_mm"] = formatNumber(sub.hardMarginLeftMM);
+  values["hard_margin_top_mm"] = formatNumber(sub.hardMarginTopMM);
+  values["hard_margin_right_mm"] = formatNumber(sub.hardMarginRightMM);
+  values["hard_margin_bottom_mm"] = formatNumber(sub.hardMarginBottomMM);
+  values["output_w_px"] = intText(sub.outputSize.width());
+  values["output_h_px"] = intText(sub.outputSize.height());
+  values["output_dpi"] = intText(sub.outputDpiX);
+  return values;
+}
+
+// Goldens are recorded only when the sanity checks of the scenario passed (D-05).  The scenario's output is the one
+// of the default despeckle level; the despeckle-off run and the AUTO observation get no golden.
+void checkGoldens(const Scenario& scenario, const PipelineResult& result, const QPoint& offset) {
+  const QImage& out = result.pages.front().output;
+  const SanityResult sanityResult = mixedSanity(scenario, mixedPage(scenario.dpi), out, offset);
+  BOOST_TEST_MESSAGE("TRUTH-METRIC suite=mixed scenario=" << scenario.name
+                                                          << " metric=sanity value=" << (sanityResult.ok ? 1 : 0)
+                                                          << " bound=1 reason=" << sanityResult.reason.toStdString());
+  const test_support::Sanity sanity{sanityResult.ok, sanityResult.reason};
+  const test_support::ImageKind kind = scenario.colorMode == output::BLACK_AND_WHITE ? test_support::ImageKind::BILEVEL
+                                                                                     : test_support::ImageKind::COLOR;
+  CHECK_IMAGE_GOLDEN("mixed", scenario.name, out, kind, sanity);
+  CHECK_TEXT_GOLDEN("mixed", scenario.name, stageDecisions(scenario, result, 1.0), sanity);
+}
+
 // Everything measured for one black-and-white scenario.
 struct BwMeasured {
   PipelineResult withDespeckle;
@@ -435,6 +574,7 @@ void runBwCase(const Scenario& scenario) {
   const BwMeasured m = measureBw(scenario);
   reportBw(scenario, m);
   checkBw(scenario, m);
+  checkGoldens(scenario, m.withDespeckle, m.offset);
 }
 
 // Everything measured for one colour/greyscale or MIXED scenario.
@@ -527,6 +667,7 @@ void runColorCase(const Scenario& scenario) {
   const ColorMeasured m = measureColor(scenario);
   reportColor(scenario, m);
   checkColor(scenario, m);
+  checkGoldens(scenario, m.result, m.offset);
 }
 
 }  // namespace
@@ -614,6 +755,18 @@ BOOST_AUTO_TEST_CASE(test_mixed_auto_layout_keeps_single_page) {
   XFAIL_CHECK(keepsSinglePage && keepsPage,
               "page_split AUTO cuts the mixed page and keeps only a fragment of its picture, dropping the text: no "
               "requirement");
+}
+
+// Fingerprints of the generated mixed inputs, so that a change of the generator shows up as a fixture change and not as
+// a pipeline change.
+BOOST_AUTO_TEST_CASE(test_mixed_fixture_fingerprints) {
+  test_support::TextValues values;
+  for (const int dpi : {300, 600}) {
+    values[QString("mixed_") + QString::number(dpi)]
+        = QString::fromLatin1(test_support::fingerprint(mixedPage(dpi).image));
+  }
+  BOOST_REQUIRE_EQUAL(values.size(), 2u);
+  CHECK_TEXT_GOLDEN("mixed", "fixtures", values, (test_support::Sanity{true, QString()}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
