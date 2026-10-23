@@ -12,7 +12,9 @@
 #include <QString>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using test_support::GeneratedPage;
@@ -71,6 +73,18 @@ int scaled(const int base, const int dpi) {
   return base * dpi / 300;
 }
 
+// Rendering is slow in a Debug build, so pages that tests only read are rendered once per spec.  The determinism
+// cases render their own copies on purpose.
+const GeneratedPage& cachedPage(const PageSpec& spec) {
+  static std::map<std::tuple<int, int, uint64_t, double>, GeneratedPage> cache;
+  const auto key = std::make_tuple(static_cast<int>(spec.kind), spec.dpi, spec.seed, spec.skewDeg);
+  auto it = cache.find(key);
+  if (it == cache.end()) {
+    it = cache.emplace(key, test_support::generatePage(spec)).first;
+  }
+  return it->second;
+}
+
 double xAtY(const QLineF& line, const double y) {
   return line.p1().x() + (y - line.p1().y()) * (line.p2().x() - line.p1().x()) / (line.p2().y() - line.p1().y());
 }
@@ -104,8 +118,8 @@ BOOST_AUTO_TEST_CASE(test_different_seed_different_pixels) {
     for (const int dpi : kDpis) {
       const PageSpec spec = makeSpec(kind, dpi, 1);
       const PageSpec other = makeSpec(kind, dpi, 2);
-      const QByteArray a = test_support::fingerprint(test_support::generatePage(spec).image);
-      const QByteArray b = test_support::fingerprint(test_support::generatePage(other).image);
+      const QByteArray a = test_support::fingerprint(cachedPage(spec).image);
+      const QByteArray b = test_support::fingerprint(cachedPage(other).image);
       BOOST_CHECK_MESSAGE(!a.isEmpty() && a != b, label(spec) << ": seed 2 gave the same fingerprint as seed 1");
     }
   }
@@ -115,7 +129,7 @@ BOOST_AUTO_TEST_CASE(test_format_size_and_dpi) {
   for (const PageKind kind : kKinds) {
     for (const int dpi : kDpis) {
       const PageSpec spec = makeSpec(kind, dpi);
-      const GeneratedPage page = test_support::generatePage(spec);
+      const GeneratedPage& page = cachedPage(spec);
       const QSize expected(scaled(basePageSize(kind).width(), dpi), scaled(basePageSize(kind).height(), dpi));
       const int dotsPerMeter = static_cast<int>(dpi / 0.0254 + 0.5);
       BOOST_CHECK_MESSAGE(page.image.format() == QImage::Format_RGB32, label(spec) << ": not Format_RGB32");
@@ -132,7 +146,7 @@ BOOST_AUTO_TEST_CASE(test_format_size_and_dpi) {
 BOOST_AUTO_TEST_CASE(test_spread_truth_consistent) {
   for (const int dpi : kDpis) {
     const PageSpec spec = makeSpec(PageKind::SPREAD, dpi);
-    const GeneratedPage page = test_support::generatePage(spec);
+    const GeneratedPage& page = cachedPage(spec);
     const test_support::GroundTruth& t = page.truth;
     const QRect pageRect(QPoint(0, 0), page.image.size());
 
@@ -161,7 +175,7 @@ BOOST_AUTO_TEST_CASE(test_spread_truth_consistent) {
     // Without skew the gutter is the vertical line through the middle of the 227 px gap.
     PageSpec flat = spec;
     flat.skewDeg = 0.0;
-    const test_support::GroundTruth u = test_support::generatePage(flat).truth;
+    const test_support::GroundTruth u = cachedPage(flat).truth;
     const double expectedX = 826.5 * dpi / 300.0;
     BOOST_CHECK_MESSAGE(near(u.gutterCentre.p1().x(), expectedX, 1e-6) && near(u.gutterCentre.p2().x(), expectedX, 1e-6)
                             && near(u.gutterCentre.p1().y(), 0.0, 1e-6)
@@ -173,7 +187,7 @@ BOOST_AUTO_TEST_CASE(test_spread_truth_consistent) {
 BOOST_AUTO_TEST_CASE(test_mixed_truth_consistent) {
   for (const int dpi : kDpis) {
     const PageSpec spec = makeSpec(PageKind::MIXED, dpi);
-    const GeneratedPage page = test_support::generatePage(spec);
+    const GeneratedPage& page = cachedPage(spec);
     const test_support::GroundTruth& t = page.truth;
     const QRect pageRect(QPoint(0, 0), page.image.size());
     const int margin = scaled(20, dpi);
@@ -212,7 +226,7 @@ BOOST_AUTO_TEST_CASE(test_mixed_truth_consistent) {
 BOOST_AUTO_TEST_CASE(test_curved_truth_consistent) {
   for (const int dpi : kDpis) {
     const PageSpec spec = makeSpec(PageKind::CURVED, dpi);
-    const GeneratedPage page = test_support::generatePage(spec);
+    const GeneratedPage& page = cachedPage(spec);
     const test_support::GroundTruth& t = page.truth;
     const QRect pageRect(QPoint(0, 0), page.image.size());
 
@@ -241,7 +255,7 @@ BOOST_AUTO_TEST_CASE(test_curved_truth_consistent) {
 BOOST_AUTO_TEST_CASE(test_ink_mask_inside_text_block) {
   for (const PageKind kind : kKinds) {
     const PageSpec spec = makeSpec(kind, 300);
-    const GeneratedPage page = test_support::generatePage(spec);
+    const GeneratedPage& page = cachedPage(spec);
     const QImage mask = test_support::renderInkMask(spec, 300, 0.0);
     BOOST_REQUIRE_MESSAGE(!mask.isNull(), label(spec) << ": null mask");
     BOOST_CHECK_MESSAGE(mask.format() == QImage::Format_Grayscale8, label(spec) << ": mask is not Grayscale8");
@@ -317,7 +331,8 @@ BOOST_AUTO_TEST_CASE(test_forward_map_inverts_renderer_map) {
       for (const double skew : {0.0, skewFor(kind)}) {
         PageSpec spec = makeSpec(kind, dpi);
         spec.skewDeg = skew;
-        const test_support::GroundTruth truth = test_support::generatePage(spec).truth;
+        // Page size and text block are in the flat frame, so the truth of the skewed page serves both skews.
+        const test_support::GroundTruth truth = cachedPage(makeSpec(kind, dpi)).truth;
         const double w = truth.pageSize.width();
         const double h = truth.pageSize.height();
         const std::vector<QPointF> points = {
@@ -344,7 +359,7 @@ BOOST_AUTO_TEST_CASE(test_forward_map_inverts_renderer_map) {
   // The renderer and the forward map agree: the centre of an interior ink pixel of the flat page lands on ink.
   for (const PageKind kind : kKinds) {
     const PageSpec spec = makeSpec(kind, 300);
-    const GeneratedPage page = test_support::generatePage(spec);
+    const GeneratedPage& page = cachedPage(spec);
     const QImage mask = test_support::renderInkMask(spec, 300, 0.0);
     BOOST_REQUIRE_MESSAGE(!mask.isNull() && !page.image.isNull(), label(spec) << ": null image");
     bool found = false;
