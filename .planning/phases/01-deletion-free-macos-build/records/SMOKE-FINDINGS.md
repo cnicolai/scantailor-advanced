@@ -1,13 +1,17 @@
 # Smoke run findings (plan 01-06, BUILD-03, D-05)
 
-BUILD-03 verdict: FAIL
+BUILD-03 verdict: PASS (after re-check of steps 4, 6, 8; first run FAIL, see below)
 
-Reasons (the plan sets PASS only when every project-file expectation is met; two are not):
+History of the verdict. The first walkthrough ended with `BUILD-03 verdict: FAIL`; the user then re-checked steps 4, 6 and 8 with the GUI state confirmed at each step (section "Re-check of steps 4, 6 and 8" at the end of this file), and the PASS rule is met on the evidence after the re-check. The first run's FAIL, its reasons and its analysis stay in this record unchanged.
 
-1. The saved project file holds no dewarping mode `auto`. The only dewarping `mode` value in it is `off` (expected `auto` among them). See `## Project file`.
-2. The saved project file holds 0 `zone` elements under the output filter's `zones` (expected at least 1). See `## Project file`.
+First run, verdict FAIL. Reasons (the plan sets PASS only when every project-file expectation is met; two were not):
 
-Everything else the plan asks for passed: steps 1 to 11 were reported as successful, the app quit on Command+Q, the four output TIFFs open in Preview, and the depth lines are `ok`. The two failed expectations are unresolved rather than understood. The user's reports do not say that a dewarping `Auto` setting or a picture zone was actually applied (see `## What is open`), so this may be a gap in the walkthrough and not in the app. Deciding which is not a step Claude takes on its own; the decision is handed to the orchestrator and the user.
+1. The saved project file held no dewarping mode `auto`. The only dewarping `mode` value in it was `off` (expected `auto` among them). See `## Project file`.
+2. The saved project file held 0 `zone` elements under the output filter's `zones` (expected at least 1). See `## Project file`.
+
+Everything else the plan asks for passed in the first run: steps 1 to 11 were reported as successful, the app quit on Command+Q, the four output TIFFs open in Preview, and the depth lines are `ok`. The two failed expectations were unresolved rather than understood: the user's reports did not say that a dewarping `Auto` setting or a picture zone was actually applied (see `## What is open`). Deciding which was not a step Claude took on its own; the decision went to the user, who chose to re-check steps 4, 6 and 8.
+
+Re-check, in short: steps 4, 6 and 8 repeated with confirmation (R2 to R5); the re-saved project file now parses, holds dewarping `auto` on the left half of page 02 and one picture zone on page 03; the outputs re-rendered during the re-check pass the depth checks; the app quit on Command+Q. No app defect was found in this path.
 
 ## Environment
 
@@ -51,6 +55,8 @@ At step 8 the user saved the project to their Desktop instead of the planned `{s
 
 ## Output files
 
+First-run result (the re-run is under "Re-check of steps 4, 6 and 8").
+
 `magick identify -format '%f %wx%h %x %y %U %[colorspace] depth=%z %[compression]\n'` on every `.tif` in `{scratch}/smoke/out/`:
 
 ```
@@ -75,6 +81,8 @@ All four files have the same size (4566x7095 at 600 DPI), including the two halv
 
 ## Project file
 
+First-run result (the re-run after the re-check is under "Re-check of steps 4, 6 and 8").
+
 Parsed with `python3 -I` and the standard XML parser. File: `~/Desktop/test.ScanTailor` (the user's named file, see the deviation above).
 
 - Parses: yes (root element `project`).
@@ -96,12 +104,16 @@ The three colour modes match the output depths above and the user's steps 5 and 
 
 ## What is open
 
-The saved file does not carry the dewarping `Auto` setting or a picture zone, although the user reported the reopened project as "as I have left it". Three explanations fit the evidence, and none is excluded:
+Status after the re-check (section "Re-check of steps 4, 6 and 8" at the end of this file). The three explanations from the first run are kept, each with its outcome:
 
-1. The Auto dewarping and the picture zone were not applied, or not on the page the later steps checked. The user's verbatim reports for steps 4 and 6 do not say they were: step 4 says "split into two halves, rows look straighter" (the split alone, or deskew, would explain it) and step 6 says "colour block in colour, text black and white" (Mixed mode can detect a picture block on its own, so a zone is not needed for that result).2. `~/Desktop/test.ScanTailor` is not the file saved in step 8 of this run (for example an earlier file with that name that was not overwritten). Its three colour modes and its page structure match this run's pages, but that would also hold for an earlier attempt.
-3. The app saved the project without these two settings. Reading the code finds no reason: `Settings::setDewarpingOptions` stores the mode in the page's `Params`, `Filter::writePageSettings` writes `params` (with `dewarping-options`) and `zones` for every page, and `Filter::loadSettings` reads them back. This was not tested in the running app.
+1. **Resolved, this is what happened.** The Auto dewarping and the picture zone were not applied in the first walkthrough. Evidence: the first-run file also held `off` in `output-params` (the parameters the last render used) and no zone existed; in the re-check, with the GUI state confirmed (R2: the dewarping status word reads Auto; R3: the zone outline is still there after leaving and returning to the Picture Zones tab), the app applied, saved and reloaded both. The user's first-run reports for steps 4 and 6 ("split into two halves, rows look straighter", "colour block in colour, text black and white") are explained by the page split and by Mixed mode's own picture detection, as suspected.
+2. **Not needed to explain the result.** Whether `~/Desktop/test.ScanTailor` was the file saved in the first run was not determined; the re-saved file's modification time (15:13:17 local) shows it was written during the re-check, so the re-check result does not depend on the answer.
+3. **Excluded on this evidence.** The save and load path wrote and read back `auto` and the zone correctly (R5 reopened the project and the user confirmed both; the file holds both). No app defect was found.
 
-How to settle it is the user's choice; the least effort is to repeat steps 4, 6 and 8 on the scratchpad path, checking after step 4 that the Dewarping box reads `Auto` and after step 6 that the Picture Zones tab shows the zone, then re-run the project-file check. Until then the verdict stays FAIL.
+Remaining open items, none of which blocks the verdict:
+
+- The app's own `qt.highdpi` confirmation of the pixel ratio is still missing (first run: no line reached stderr; re-check: no stderr capture at all), so the HIDPI-01 conclusion stays provisional (see `## Device pixel ratio`).
+- The two TIFFs re-rendered during the re-check (`02-book-spread_1L.tif`, `03-mixed.tif`) were checked with `magick identify` only; the user opened the first run's four files in Preview (step 7) and did not repeat that for the re-rendered ones.
 
 ## Device pixel ratio
 
@@ -153,3 +165,77 @@ Crash reports under `~/Library/Logs/DiagnosticReports` were not read (no yes fro
 ## Checks that no smoke file is in git
 
 No image file and no `.ScanTailor` file was staged or committed in this plan; the smoke outputs stay in `{scratch}/smoke/out/` and the project file stays on the Desktop.
+
+## Re-check of steps 4, 6 and 8
+
+### Reason
+
+The first run ended in FAIL because the saved project held no dewarping `auto` and no picture zone, while the user had reported steps 4, 6 and 8 as successful. The cause was open (settings not applied, wrong file, or a save defect). The user chose "Re-check steps 4, 6, 8". The orchestrator presented five re-check steps, one per message, each asking the user to confirm the GUI state before moving on, so that the project-file check could be repeated on a file whose content was known to match the GUI.
+
+### Steps and user reports
+
+| Step | What the user did | What to look for | User report | Result |
+|------|-------------------|------------------|-------------|--------|
+| R1 | Relaunched the app; File, Open Project, `~/Desktop/test.ScanTailor` | Four pages | open | ok |
+| R2 | Output stage, page 02 left half: read the dewarping status word above "Change ...", then Change ..., "Auto (experimental)", "This page only", OK | The word reads Auto; the page re-renders | first: "what do you mean with sttus line"; after the orchestrator explained it is the word above the "Change ..." button: "pass" | ok (the saved file now holds `auto` for this page, see below) |
+| R3 | Page 03 (Mixed), Picture Zones tab: drew the zone, switched to Output and back | The zone outline is still there | pass | ok (the saved file holds one zone element on this page) |
+| R4 | Save Project As to the scratchpad project path | Project saved | "No I can't paste that. You know, when I saved on the Desktop earlier, then there was a reason for that" | not possible, see the dialog constraint below |
+| R4 revised | File, Save Project, back to `~/Desktop/test.ScanTailor` | Project saved | done | ok (file modification time 2026-10-23 15:13:17 local, written during the re-check) |
+| R5 | File, Close Project; Open Project, `~/Desktop/test.ScanTailor`: 02-left status word Auto? 03 zone outline still there? Then Command+Q | Both settings survive the reopen; the app quits | pass | ok |
+
+### Save dialog constraint (R4)
+
+The macOS save dialog cannot take the scratchpad path: the user could not paste it, and says this is why the project was saved on the Desktop at step 8 of the first run. The Desktop save is therefore a practical constraint of the file dialog and the scratchpad location (a long session path under `/private/tmp`), not a user error. The plan's wording ("save to the scratchpad project path") cannot be followed through the GUI as written; a later walkthrough should name a project path the dialog can reach, or accept a user-chosen path and read it under the same restrictions. The project file stayed at the user's named Desktop path for the check.
+
+### Project file, re-run
+
+`python3 -I` with `xml.etree.ElementTree` on `~/Desktop/test.ScanTailor` (the one file the user allowed; only the parse result, values, counts and per-page mapping are recorded; the file was not copied, hashed, moved or committed):
+
+- File modification time: 2026-10-23 15:13:17 local (the re-check save).
+- Parses: yes (root element `project`).
+- Pages in the project: 4.
+- Distinct `colorMode` values: `bw`, `colorOrGray`, `mixed` (expected: all three; met).
+- Distinct dewarping `mode` values in the page parameters: `auto`, `off` (expected: `auto` among them; met).
+- Distinct dewarping `mode` values in `output-params`: `auto`, `off` (the parameters the last render used; the first-run file also held `off` there, per the orchestrator's check at the time).
+- `zone` elements under the output filter's `zones`: 1 (expected: at least 1; met).
+
+| Page id | Image id | Sub-page | colorMode | Dewarping mode (params) | Dewarping mode (output-params) | Picture zones |
+|---------|----------|----------|-----------|-------------------------|--------------------------------|---------------|
+| 4 | 3 | single (page 01) | `colorOrGray` | `off` | `off` | 0 |
+| 7 | 6 | left (page 02) | `bw` | `auto` | `auto` | 0 |
+| 8 | 6 | right (page 02) | `bw` | `off` | `off` | 0 |
+| 11 | 10 | single (page 03) | `mixed` | `off` | `off` | 1 |
+
+Compared with the first run: the left half of page 02 changed from `off` to `auto` (params and output-params), and page 03 gained its zone. Every other value is unchanged. Edge probe BUILD-03 adjacency (the saved file carries the settings of the walkthrough): met.
+
+### Output files, re-run
+
+`magick identify -format '%f %wx%h %x %y %U %[colorspace] depth=%z %[compression]\n'` on the four `.tif` files in `{scratch}/smoke/out/`:
+
+```
+01-flat-text.tif 4566x7095 600 600 PixelsPerInch Gray depth=8 LZW
+02-book-spread_1L.tif 4566x7095 600 600 PixelsPerInch Gray depth=1 Group4
+02-book-spread_2R.tif 4566x7095 600 600 PixelsPerInch Gray depth=1 Group4
+03-mixed.tif 4566x7095 600 600 PixelsPerInch sRGB depth=8 LZW
+```
+
+`identify` printed the same libtiff `ExtraSamples` warning as before (for `03-mixed.tif`). File times: `02-book-spread_1L.tif` rewritten 15:10 and `03-mixed.tif` rewritten 15:11 (the re-renders during R2 and R3); `01-flat-text.tif` and `02-book-spread_2R.tif` unchanged from 14:53.
+
+| Output file | Mode | Expected depth | Measured depth | Check |
+|-------------|------|----------------|----------------|-------|
+| `01-flat-text.tif` | Color / Grayscale | 8 | 8 | ok |
+| `02-book-spread_1L.tif` | Black and White | 1 | 1 | ok |
+| `02-book-spread_2R.tif` | Black and White | 1 | 1 | ok |
+| `03-mixed.tif` | Mixed | 8 | 8 | ok |
+
+### No stderr capture for the re-check
+
+The re-check has no stderr file: the user apparently launched the app without the redirect, and `{scratch}/smoke/smoke-stderr-recheck.txt` does not exist. `records/smoke-stderr.txt` therefore covers the first run only and stands as recorded. Nothing in the re-check was reported as an error or crash.
+
+### Conclusion
+
+In the first walkthrough the Auto dewarping and the picture zone never took effect: the first file's `output-params` (the parameters the last render used) also said `off`, and no zone existed. In the re-check, with the GUI state confirmed by the user at each step (R2 status word, R3 zone outline, R5 after reopening), the app applied, saved and reloaded both correctly, and the re-saved file holds `auto` on the left half of page 02 and one zone on page 03. No app defect was found in this path; no `src/` file was touched and no launch fix was needed. Why the settings did not take effect in the first run is not established beyond that: the user's first-run reports could not tell the page split and Mixed mode's own picture detection apart from the two settings, and the user did not know the dewarping status word until it was explained in R2.
+
+Verdict rule applied to the evidence after the re-check: steps 1 to 10 succeeded, with 4, 6 and 8 confirmed by R2 to R5; the app quit on Command+Q at step 11 and again at R5; every first-run TIFF opened in Preview (step 7); the depth lines are `ok` for all four files; the project file meets every expectation (`bw`, `colorOrGray`, `mixed`, `auto`, one zone). All conditions hold, so the verdict line at the top reads `BUILD-03 verdict: PASS (after re-check of steps 4, 6, 8; first run FAIL, see below)`.
+
+Caveat: the two TIFFs re-rendered in the re-check were checked with `magick identify`, not re-opened in Preview.
