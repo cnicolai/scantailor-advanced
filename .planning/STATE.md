@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: 2
+current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-10-23T17:10:20.212Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-10-23T17:58:47.813Z"
 last_activity: 2026-10-23
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 72df8959a0efb5e6ea0e4dd787b8ecd6edb12cd6
+last_activity_desc: Phase 02 execution started
+state_head: d6edf4eb04b5e61b0214ec603c95bc4fe22a4f04
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 7
+  completed_plans: 8
 milestone_name: macOS
 ---
 
@@ -24,14 +24,14 @@ milestone_name: macOS
 See: .planning/PROJECT.md (updated 2026-10-18)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 01 — Deletion-Free macOS Build
+**Current focus:** Phase 02 — Golden Baselines
 
 ## Current Position
 
-Phase: 2 (Golden Baselines) — READY TO EXECUTE
-Plan: Not started
+Phase: 02 (Golden Baselines) — EXECUTING
+Plan: 2 of 10
 Status: Ready to execute
-Last activity: 2026-10-23 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-10-23 — Phase 02 execution started
 
 Progress: [██░░░░░░░░] 17%
 
@@ -64,6 +64,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P04 | 5 min | 2 tasks | 4 files |
 | Phase 01 P06 | 44 min | 3 tasks | 2 files |
 | Phase 01 P07 | 5 min | 2 tasks | 3 files |
+| Phase 02 P01 | 10 min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-06: macOS save dialog cannot take the scratchpad path, so the smoke project stays at the user-named Desktop file — Practical dialog constraint, not a user error; a later walkthrough should name a reachable path
 - [Phase 01]: Phase 1 verdict PASS: all five success criteria PASS on cde6825; imageproc_tests ScaleTestSuite/test_random_image remains the recorded baseline failure
 - [Phase 01]: Phase 2 baseline commit is cde6825 (src, CMakeLists.txt, CMakePresets.json equal 11bc573)
+- [Phase 02]: Deskew angle stored by the unmodified stage is the negative of the generator skewDeg (1.5 gives -1.5); GroundTruth textBlock is the tight ink box; runPipeline runs up to page_split first to learn the sub-page count
 
 ### Pending Todos
 
@@ -108,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T14:39:55.497Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-golden-baselines/02-CONTEXT.md
+Last session: 2026-10-23T17:58:47.784Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
