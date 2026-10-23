@@ -26,8 +26,8 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 - [ ] **TEST-05**: Flat-document tests check the deskew angle, the content box and binarization accuracy against ground truth
 - [ ] **TEST-06**: Book-page tests check the page-split position and that dewarping straightens synthetic curved text lines
 - [ ] **TEST-07**: Mixed-page tests cover picture zones, colour/greyscale output and despeckling
-- [ ] **TEST-08**: The disabled binarization test (`TestBinarize`) runs again, with synthetic inputs
-- [ ] **TEST-09**: Dewarping has its own unit tests (distortion model and dewarper)
+- [x] **TEST-08**: The disabled binarization test (`TestBinarize`) runs again, with synthetic inputs
+- [x] **TEST-09**: Dewarping has its own unit tests (distortion model and dewarper)
 - [ ] **TEST-10**: A project-file round trip (write → read → write gives identical files) uses non-default parameters in every stage and special characters in names
 - [ ] **TEST-11**: The whole suite runs with one `ctest` command (offscreen Qt, isolated settings) and passes
 
@@ -138,8 +138,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-05 | Phase 2 | Pending |
 | TEST-06 | Phase 2 | Pending |
 | TEST-07 | Phase 2 | Pending |
-| TEST-08 | Phase 2 | Pending |
-| TEST-09 | Phase 2 | Pending |
+| TEST-08 | Phase 2 | Complete |
+| TEST-09 | Phase 2 | Complete |
 | TEST-10 | Phase 2 | Pending |
 | TEST-11 | Phase 2 | Pending |
 | STRIP-01 | Phase 3 | Pending |

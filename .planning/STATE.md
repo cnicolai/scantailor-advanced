@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-10-23T18:44:22.300Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-10-23T19:00:46.499Z"
 last_activity: 2026-10-23
 last_activity_desc: Phase 02 execution started
-state_head: 7a98fc1a067ea21b61353ca7c3c3b4e889f691f3
+state_head: a232c1b5912b985b65078bd9dd47ba550545a2a5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 10
+  completed_plans: 11
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Last activity: 2026-10-23 — Phase 02 execution started
 
@@ -67,6 +67,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P01 | 10 min | 2 tasks | 12 files |
 | Phase 02 P02 | 19 min | 3 tasks | 14 files |
 | Phase 02 P03 | 24 min | 3 tasks | 8 files |
+| Phase 02 P04 | 11 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: Curl profile is evaluated at the image x coordinate, so mapImageToFlat is closed form (the renderer map) and mapFlatToImage is a fixed-point iteration; mapImageToFlat added to the public interface
 - [Phase 02]: 02-03: straightnessResidual returns valid=false, linesFound 0 and an infinite residual with fewer than two usable strips; a symmetric arc of sagitta h leaves 0.4375 h at 8 strips
 - [Phase 02]: 02-03: HeadlessPipeline needed no change for spread, AUTO dewarp and MIXED output; it is frozen and scenarios use PipelineOptions::configure
+- [Phase 02]: D-17: scaleToGray equals the exact area average, Qt 6.12 smooth scaling moved; TestScale compares against an area-average reference
+- [Phase 02]: Binarization tests: every binarizer matches the ink mask exactly, bounds at the D-15 minimum 0.05% of ink area
+- [Phase 02]: Global thresholds reject Format_Grayscale8 (F-04-1, XFAIL); model top curve skips the first line of the curved page, seed 1 (F-04-2, XFAIL)
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T18:44:22.271Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-10-23T19:00:46.469Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
