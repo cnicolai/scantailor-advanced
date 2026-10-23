@@ -9,4 +9,6 @@ add_subdirectory(app)
 
 if (BUILD_TESTS)
   add_subdirectory(qt_tests)
+  add_subdirectory(test_support)
+  add_subdirectory(pipeline_tests)
 endif()
