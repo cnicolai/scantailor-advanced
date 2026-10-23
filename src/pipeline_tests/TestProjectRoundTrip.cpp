@@ -4,7 +4,6 @@
 #include <DefaultParams.h>
 #include <DefaultParamsProvider.h>
 #include <Dpi.h>
-#include <ExpectedFailure.h>
 #include <FileNameDisambiguator.h>
 #include <FilterData.h>
 #include <ImageId.h>
