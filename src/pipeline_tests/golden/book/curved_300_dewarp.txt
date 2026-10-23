@@ -1,0 +1,8 @@
+distortion_model_valid = 1
+input_dpi = 300
+output_dpi = 600
+output_h_px = 1824
+output_w_px = 1872
+residual_auto_px = 2.0833
+residual_off_px = 7.8333
+seed = 1
