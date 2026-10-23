@@ -99,7 +99,8 @@ QImage renderInkMask(const PageSpec& spec, int targetDpi, double extraRotationDe
 QByteArray fingerprint(const QImage& image);
 
 /// Forward geometric map of the page kind, flat frame to input pixels: the warp of a CURVED page (solved
-/// by fixed-point iteration, 20 steps at most), then the rotation by spec.skewDeg.
+/// by fixed-point iteration, 20 steps at most), then the rotation by spec.skewDeg.  Both maps throw
+/// std::invalid_argument for a dpi outside 75..1200 or an angle outside the supported range.
 QPointF mapFlatToImage(const PageSpec& spec, const QPointF& flatPoint);
 
 /// Inverse of mapFlatToImage, the map the renderer samples with.  mapFlatToImage inverts it to 1e-6 px
