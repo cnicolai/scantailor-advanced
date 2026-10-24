@@ -4,124 +4,105 @@ last_mapped_at: 2026-10-18
 ---
 # Technology Stack
 
-**Analysis Date:** 2026-10-18
+**Analysis Date:** 2026-10-18 (patched after the Phase 3 strip, D-10; not re-mapped)
 
 ## Languages
 
 **Primary:**
-- C++17 - All application code under `src/` (core, imageproc, math, dewarping, foundation, app). Set in `CMakeLists.txt` via `set(CMAKE_CXX_STANDARD 17)`.
+- C++17 - All application code under `src/` (core, imageproc, math, dewarping, foundation, app, plus the test code). Set in `CMakeLists.txt` via `set(CMAKE_CXX_STANDARD 17)`.
 
 **Secondary:**
-- CMake language - Build system in `CMakeLists.txt`, `src/CMakeLists.txt`, per-module `CMakeLists.txt` files, and `cmake/*.cmake`.
+- CMake language - Build system in `CMakeLists.txt`, `CMakePresets.json`, `src/CMakeLists.txt`, per-module `CMakeLists.txt` files, and `cmake/ListItemsPrepend.cmake` and `cmake/SetDefaultBuildType.cmake` (the only two files left in `cmake/` after Phase 3).
 - Qt UI definition files (`*.ui`) - Widget layouts such as `src/core/filters/page_layout/OptionsWidget.ui`, `src/app/AboutDialog.ui`, `src/app/OutOfMemoryDialog.ui`.
 - Qt stylesheets and SVG icons - `src/resources/light_scheme/`, `src/resources/dark_scheme/`.
-- Bash - Packaging and build helpers: `build-deb.sh`, `build-windows.sh`, `scripts/`.
-- Python - `scripts/post_issue_followups.py` (repository maintenance script, not part of the application).
+- Packaging and build helper scripts (`build-deb.sh`, `build-windows.sh`, `scripts/`) were removed in Phase 3. No shell or Python script remains outside `.planning/`.
 
 ## Runtime
 
 **Environment:**
-- Native desktop application (no managed runtime). Targets Linux, Windows (MSVC and MinGW), and macOS-style Unix builds via CMake.
-- Linux runtime is the KDE Flatpak platform: `org.kde.Platform` 5.15-24.08 with `org.kde.Sdk` (`flatpak/org.scantailor.Advanced.json`).
-- Windows is built with MSVC or MinGW; the optional `WIN_XP` option is MSVC-only (`CMakeLists.txt`).
+- Native desktop application (no managed runtime). The only target is macOS on Apple Silicon (arm64); Phase 3 removed every other platform (code, build options and files).
 - Multithreaded: worker thread pool in `src/core/WorkerThreadPool.h`.
 
 **Package Manager:**
-- No language package manager. Native dependencies are resolved by CMake `find_package`.
+- No language package manager. Native dependencies come from Homebrew and are resolved by CMake `find_package` (preset `CMAKE_PREFIX_PATH=/opt/homebrew`).
+- Homebrew packages: `cmake ninja boost qtbase qtsvg jpeg-turbo libpng libtiff`.
 - Lockfile: Not applicable.
-- Dependabot tracks GitHub Actions only (`.github/dependabot.yml`).
+- Dependabot and the other GitHub automation were removed in Phase 3 (no `.github/`).
 
 ## Frameworks
 
 **Core:**
-- Qt - GUI, widgets, XML, networking module linked, SVG, OpenGL. Qt 6 is preferred when found; Qt 5 (minimum 5.9) is the fallback (`CMakeLists.txt`, `find_package(Qt6 ...)` then `find_package(Qt5 5.9 ...)`).
-  - Modules used: Core, Gui, Widgets, Xml, Network, OpenGL, OpenGLWidgets (Qt 6 only), Svg, Test, LinguistTools.
-  - Qt Linguist translations: `src/translations/`, built with `Qt_add_translation` / `Qt5_add_translation`.
-- Boost 1.60+ - Header-heavy use: `boost/multi_index`, `boost/function`, `boost/bind`, `boost/lambda`, `boost/intrusive`, `boost/foreach`, `boost/scoped_array`. Static libraries are the default (`Boost_USE_STATIC_LIBS ON`).
+- Qt 6 only (Qt 5 support removed in Phase 3): `find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)`; targets link `Qt6::<Component>` directly.
+  - Modules used: Core, Gui, Widgets, Xml, Network, OpenGL, OpenGLWidgets, Svg, Test. The OpenGL modules stay until Phase 6 (STRIP-07).
+  - No LinguistTools: the translation catalogues and their CMake support were removed in Phase 3. `tr()` markers and `.ui` strings stay (D-06).
+- Boost 1.60+ - Header-heavy use: `boost/multi_index`, `boost/function`, `boost/bind`, `boost/lambda`, `boost/intrusive`, `boost/foreach`, `boost/scoped_array`. The `unit_test_framework` component is required when `BUILD_TESTS` is on and links dynamically (`BOOST_TEST_DYN_LINK`).
 
 **Testing:**
-- Boost.Test (`unit_test_framework`) - Test executables: `math_tests`, `imageproc_tests`, `core_tests`, `foundation_tests`, `qt_tests`. Test sources live in `src/*/tests/` and `src/qt_tests/`.
+- Boost.Test (`unit_test_framework`) - Seven ctest suites: `foundation_tests`, `math_tests`, `imageproc_tests`, `core_tests`, `qt_tests`, `pipeline_tests`, `dewarping_tests`. Test sources live in `src/*/tests/`, `src/qt_tests/` and `src/pipeline_tests/`; the synthetic page generator and golden store are in `src/test_support/`; goldens are in `src/pipeline_tests/golden/{flat,book,mixed}/`.
 - CTest - Test runner, enabled through the `BUILD_TESTS` option (default ON) in `CMakeLists.txt`.
+- `src/app/ui_snapshot` - offscreen UI snapshot tool, built with the tests, not registered with ctest.
 - See `TESTING.md` for run instructions.
 
 **Build/Dev:**
-- CMake 3.9+ (`cmake_minimum_required(VERSION 3.9 FATAL_ERROR)`) - Build system. In-source builds are rejected.
-- Ninja - Used by the Flatpak build (`"buildsystem": "cmake-ninja"` in `flatpak/org.scantailor.Advanced.json`).
-- clang-format - Code formatting, configured in `.clang-format`, enforced by `.github/workflows/lint.yml`.
-- CPack - Packaging (NSIS for Windows, DEB via `build-deb.sh`, Flatpak via `flatpak/`).
-- Qt Linguist (`lupdate`/`lrelease` via `cmake/UpdateTranslations.cmake`) - Translation maintenance.
+- CMake 3.25+ (`cmake_minimum_required(VERSION 3.25 FATAL_ERROR)`) with `CMakePresets.json`: configure, build and test presets `macos-release`, `macos-debug` and `macos-asan` (Debug with `SANITIZE=address,undefined`). In-source builds are rejected.
+- Ninja - the generator of every preset; binary directory `build/<preset>`.
+- clang-format - Code formatting, configured in `.clang-format`. Phase 3 removed the CI check; formatting is the manual `xcrun clang-format` step documented in `TESTING.md`.
+- Packaging (CPack with NSIS, Debian package, Flatpak) was removed in Phase 3, together with the install rules and the uninstall target. The app runs from `build/<preset>/scantailor-advanced`.
 
 ## Key Dependencies
 
 **Critical (imaging and math):**
-- libjpeg - JPEG image read/write. `find_package(JPEG REQUIRED)` in `CMakeLists.txt`; linked for all image I/O.
+- libjpeg (Homebrew `jpeg-turbo`) - JPEG image read/write. `find_package(JPEG REQUIRED)` in `CMakeLists.txt`; linked for all image I/O.
 - libpng 1.6 - PNG read/write. `find_package(PNG REQUIRED)`.
 - libtiff - TIFF read/write, including multi-page output. `find_package(TIFF REQUIRED)`; `tiffio.h` is included directly in source.
 - zlib - Compression dependency for PNG and TIFF. `find_package(ZLIB REQUIRED)`.
 - Boost - Containers and utility libraries described above.
 
 **Critical (UI):**
-- Qt (Core, Gui, Widgets, Xml, Svg, OpenGL, Network) - Application framework. `QSettings` persists preferences and recent projects (`src/core/ApplicationSettings.cpp`, `src/core/RecentProjects.cpp`). `QDomDocument` handles XML project files (`src/core/` uses `QtXml`).
+- Qt 6 (Core, Gui, Widgets, Xml, Svg, OpenGL, OpenGLWidgets, Network) - Application framework. `QSettings` persists preferences and recent projects (`src/core/ApplicationSettings.cpp`, `src/core/RecentProjects.cpp`). `QDomDocument` handles XML project files (`src/core/` uses `QtXml`).
 
 **In-tree libraries (not external dependencies):**
 - `src/math/` (including `src/math/spfit/` and `src/math/adiff/` automatic differentiation) - numeric and spline fitting code.
 - `src/imageproc/` - image processing primitives, including connected components (`ConnComp.h`, `Connectivity.h`) and the binarizer and eraser code.
 - `src/dewarping/` - page dewarping.
 - `src/foundation/` - base types and utilities.
+- `src/test_support/` - test-only library: page generator, image comparison, truth metrics, golden store and manifest.
 
 **Infrastructure:**
-- `src/core/OpenGLSupport.cpp` - optional OpenGL context probing, used for the viewer.
+- `src/core/OpenGLSupport.cpp` - optional OpenGL context probing, used for the viewer (until Phase 6).
 
 ## Configuration
 
 **Build configuration:**
 - `CMakeLists.txt` - Top-level build definition. Main options:
   - `BUILD_TESTS` (default ON)
-  - `PORTABLE_VERSION` (default ON)
-  - `DEVELOPER_VERSION` (enables internal debug features; default depends on build type)
-  - `WIN_XP` (MSVC only)
-  - `CMAKE_POSITION_INDEPENDENT_CODE` (ON on UNIX)
-- Windows dependency roots: `DEPENDENCIES_ROOT` (default `../libs`) with per-library prefixes for JPEG, ZLIB, PNG, TIFF, Qt, and Boost (`CMakeLists.txt`).
+  - `DEVELOPER_VERSION` (enables internal debug features; default ON for Debug builds)
+  - `SANITIZE` (value for `-fsanitize=`, empty disables; used by `macos-asan`)
+  - `CMAKE_POSITION_INDEPENDENT_CODE` (ON)
+  - The `PORTABLE_VERSION` and `WIN_XP` options and the Windows `DEPENDENCIES_ROOT` prefixes were removed in Phase 3.
 - `config.h.in` and `version.h.in` - CMake-configured headers. Current version is `1.2.1` (`version.h.in` template; `VERSION` macro).
 - `cmake/SetDefaultBuildType.cmake` - Defaults the build type to Release.
 - `.clang-format` - Formatting rules.
 - `.gitignore` - Ignores `build/`, `build-*/`, `cmake-build-*/`, `out/`, and `CMakeLists.txt.user`.
 
 **Runtime configuration:**
-- `QSettings` (platform-native store) for application settings and recent projects.
-- `QStandardPaths::AppDataLocation` for default parameter profiles, `<AppData>/profiles` (`src/core/DefaultParamsProfileManager.cpp`).
-- Environment variables:
-  - `SCANTAILOR_NO_XCB_FALLBACK` - disables the forced X11 fallback on Wayland under Qt5 (see `README.md`).
-  - `QT_QPA_PLATFORM` - standard Qt platform override, documented in `README.md`.
-  - `XDG_SESSION_TYPE` - read by the Wayland fallback logic.
+- `QSettings` in INI format: `~/.config/scantailor-advanced/scantailor-advanced.ini`. No portable mode (removed in Phase 3).
+- `QStandardPaths::AppDataLocation` for default parameter profiles: `~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles` (`src/core/DefaultParamsProfileManager.cpp`).
+- Environment variables: the app reads none. The tests set `QT_QPA_PLATFORM=offscreen`, `LC_ALL` and `TMPDIR` themselves; the Wayland fallback variables were removed in Phase 3.
 
 **Packaging and CI:**
-- `.github/workflows/ci.yml` - Ubuntu build with Qt 5, Boost, and libjpeg/libpng/libtiff/zlib from apt.
-- `.github/workflows/cmake.yml` - Ubuntu CMake build.
-- `.github/workflows/lint.yml` - clang-format check.
-- `.github/workflows/flatpak.yml` - Flatpak build on ubuntu-22.04.
-- `.github/workflows/release.yml` - Release artifacts (DEB, Flatpak, Windows) and GitHub release publishing.
+- None. The `.github/` directory with its workflows was removed in Phase 3; the gate is a local Release and Debug ctest run (`TESTING.md`).
 
 ## Platform Requirements
 
-**Development (Linux, per `README.md` and `ci.yml`):**
-- C++17 compiler (GCC or Clang) and CMake 3.9+
-- Qt 5.9+ or Qt 6 development packages (including Svg, Xml, Network, LinguistTools)
-- Boost 1.60+ development headers, plus `unit_test_framework` for tests
-- libjpeg, libpng, libtiff, zlib development headers
-
-**Development (Windows):**
-- MSVC or MinGW toolchain
-- Prebuilt JPEG, ZLIB, PNG, TIFF, Qt, and Boost under `DEPENDENCIES_ROOT`
-- `build-windows.sh` for scripted builds; MXE is documented in `README.md` for cross-compiling from Linux.
+**Development (macOS on Apple Silicon, per `README.md`):**
+- Apple Clang (Xcode command line tools) with C++17 and CMake 3.25+
+- Homebrew `cmake ninja boost qtbase qtsvg jpeg-turbo libpng libtiff` (Qt 6.5 or newer; Boost 1.60 or newer with `unit_test_framework`)
+- zlib from the macOS SDK
 
 **Production:**
-- Desktop distribution through:
-  - Flatpak (`flatpak/org.scantailor.Advanced.json`, KDE 5.15 runtime)
-  - Debian package (`build-deb.sh`)
-  - Windows installer (CPack NSIS) and portable build (`PORTABLE_VERSION`)
-  - GitHub Releases (`.github/workflows/release.yml`)
+- None. The fork is built from source and run from the build directory on the one target Mac. Flatpak, Debian, Windows installer, portable build and GitHub Releases were removed in Phase 3.
 
 ---
 
-*Stack analysis: 2026-10-18*
+*Stack analysis: 2026-10-18; patched after the Phase 3 strip*

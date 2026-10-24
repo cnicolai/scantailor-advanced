@@ -4,9 +4,9 @@ last_mapped_at: 2026-10-18
 ---
 # External Integrations
 
-**Analysis Date:** 2026-10-18
+**Analysis Date:** 2026-10-18 (patched after the Phase 3 strip, D-10; not re-mapped)
 
-ScanTailor Advanced is a desktop application that runs entirely locally. It has no runtime network API calls, no hosted backend, and no authentication provider. The integrations below are the file formats, OS services, and CI/distribution services it depends on.
+ScanTailor Advanced is a desktop application that runs entirely locally. It has no runtime network API calls, no hosted backend, and no authentication provider. The integrations below are the file formats and OS services it depends on. CI and distribution services were removed in Phase 3.
 
 ## APIs & External Services
 
@@ -20,10 +20,10 @@ ScanTailor Advanced is a desktop application that runs entirely locally. It has 
 - zlib - Linked as `ZLIB::ZLIB` for PNG and TIFF compression.
 - Qt XML (`QtXml`, `QDomDocument`) - Reads and writes project XML files. Used in `src/core/` (for example `src/core/Utils.cpp` and the project persistence code).
 
-**Desktop and OS services (via Qt):**
+**Desktop and OS services (via Qt 6):**
 - Qt Svg - Renders SVG icons from `src/resources/light_scheme/icons/` and `src/resources/dark_scheme/icons/`.
-- Qt OpenGL / OpenGLWidgets - Optional accelerated viewer. Probed in `src/core/OpenGLSupport.cpp`.
-- Qt platform plugins - Chosen at runtime. On Linux with Wayland under Qt5, the app forces `xcb` unless `QT_QPA_PLATFORM` is set or `SCANTAILOR_NO_XCB_FALLBACK=1` is set (`README.md`).
+- Qt OpenGL / OpenGLWidgets - Optional accelerated viewer. Probed in `src/core/OpenGLSupport.cpp`. Stays until Phase 6 (STRIP-07).
+- Qt platform plugin - The macOS `cocoa` plugin. The X11/Wayland fallback in `main.cpp` and the `SCANTAILOR_NO_XCB_FALLBACK` variable were removed in Phase 3. The tests select the `offscreen` plugin themselves.
 
 ## Data Storage
 
@@ -33,7 +33,7 @@ ScanTailor Advanced is a desktop application that runs entirely locally. It has 
 **File storage:**
 - Local filesystem only. Input scans are read from user-selected paths; output images and project files are written to user-selected directories.
 - Project files are XML written with Qt XML (`src/core/`).
-- Default parameter profiles are stored under `QStandardPaths::AppDataLocation`, in a `profiles` subfolder (`src/core/DefaultParamsProfileManager.cpp`).
+- Default parameter profiles are stored under `QStandardPaths::AppDataLocation`, in a `profiles` subfolder: `~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles` (`src/core/DefaultParamsProfileManager.cpp`). Portable mode was removed in Phase 3.
 
 **Caching:**
 - None detected. Processing results are held in memory and in project files.
@@ -45,13 +45,14 @@ ScanTailor Advanced is a desktop application that runs entirely locally. It has 
 
 ## Settings Persistence
 
-**QSettings (platform-native store):**
-- `src/core/ApplicationSettings.cpp` and `src/core/ApplicationSettings.h` - application preferences.
+**QSettings (INI format, set in `src/app/main.cpp`):**
+- File: `~/.config/scantailor-advanced/scantailor-advanced.ini`.
+- `src/core/ApplicationSettings.cpp` and `src/core/ApplicationSettings.h` - application preferences. The Settings dialog has no Language row (translations removed in Phase 3).
 - `src/core/RecentProjects.cpp` - recent project list.
 - `src/core/WorkerThreadPool.h` - thread pool settings.
 - `src/core/CollapsibleGroupBox.cpp` - UI group state.
 - `src/core/filters/page_layout/OptionsWidget.cpp` - filter option persistence.
-- On Linux this maps to `~/.config`; on Windows, the registry or ini store per Qt defaults.
+- The tests keep their own settings in `build/<preset>/test-tmp` and never touch this file.
 
 ## Monitoring & Observability
 
@@ -64,33 +65,21 @@ ScanTailor Advanced is a desktop application that runs entirely locally. It has 
 ## CI/CD & Deployment
 
 **Hosting and distribution:**
-- GitHub Releases - Release artifacts are uploaded and published by `.github/workflows/release.yml` using `softprops/action-gh-release@v2`.
-- Flatpak - Manifest `flatpak/org.scantailor.Advanced.json`, source from `https://github.com/ScanTailor-Advanced/scantailor-advanced.git`, runtime `org.kde.Platform` 5.15-24.08. Built by `.github/workflows/flatpak.yml`.
-- Debian package - `build-deb.sh`, invoked from `.github/workflows/release.yml`.
-- Windows installer and portable build - CPack NSIS plus the `PORTABLE_VERSION` option in `CMakeLists.txt`; scripted by `build-windows.sh`.
+- None. GitHub Releases, Flatpak, the Debian package, the Windows installer and the portable build were all removed in Phase 3. The fork is built from source and run from `build/<preset>/scantailor-advanced`.
 
 **CI Pipeline:**
-- GitHub Actions (`.github/workflows/`):
-  - `ci.yml` - Ubuntu build and CTest on push and pull request to `master` and `main`.
-  - `cmake.yml` - Ubuntu CMake build.
-  - `lint.yml` - clang-format check.
-  - `flatpak.yml` - Flatpak build on ubuntu-22.04.
-  - `release.yml` - release packaging.
-- Dependabot for GitHub Actions (`.github/dependabot.yml`, daily interval).
-- Actions in use: `actions/checkout` (v4/v5), `actions/upload-artifact` (v5/v6), `actions/download-artifact` (v5), `actions/cache` (v4), `softprops/action-gh-release` (v2).
+- None. The `.github/` directory (five workflows and the Dependabot configuration) was removed in Phase 3. The gate before a commit is a local Release and Debug ctest run, 7 of 7 suites (`TESTING.md`).
 
 ## Environment Configuration
 
 **Required environment variables (build time):**
-- None strictly required on Linux. Windows builds read `DEPENDENCIES_ROOT` as a CMake cache variable, not an environment variable.
+- None. Homebrew is found through `CMAKE_PREFIX_PATH=/opt/homebrew` in `CMakePresets.json`.
 
 **Optional environment variables (runtime):**
-- `SCANTAILOR_NO_XCB_FALLBACK` - keeps native Wayland when set to `1`.
-- `QT_QPA_PLATFORM` - standard Qt platform plugin override.
-- `XDG_SESSION_TYPE` - read to detect Wayland.
+- None read by the app. `UPDATE_GOLDENS=1` re-records the golden files of `pipeline_tests` (`TESTING.md`); the tests set `QT_QPA_PLATFORM`, `LC_ALL` and `TMPDIR` themselves.
 
 **Secrets location:**
-- Not applicable for the application. No API keys or credentials are used. CI relies on the default `GITHUB_TOKEN` for release publishing. Environment files were not read in this analysis.
+- Not applicable for the application. No API keys or credentials are used. No CI token exists since Phase 3 removed the GitHub workflows. Environment files were not read in this analysis.
 
 ## Webhooks & Callbacks
 
@@ -102,4 +91,4 @@ ScanTailor Advanced is a desktop application that runs entirely locally. It has 
 
 ---
 
-*Integration audit: 2026-10-18*
+*Integration audit: 2026-10-18; patched after the Phase 3 strip*

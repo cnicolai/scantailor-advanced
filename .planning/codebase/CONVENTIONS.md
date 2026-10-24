@@ -4,7 +4,7 @@ last_mapped_at: 2026-10-18
 ---
 # Coding Conventions
 
-**Analysis Date:** 2026-10-18
+**Analysis Date:** 2026-10-18 (patched after the Phase 3 strip, D-10; not re-mapped)
 
 ## Naming Patterns
 
@@ -49,8 +49,7 @@ last_mapped_at: 2026-10-18
 - `BinPackParameters: false`: when a parameter list wraps, each parameter goes on its own line.
 
 **Enforcement:**
-- CI runs `clang-format --dry-run -Werror` on changed `.cpp` and `.h` files under `src/` only, via `.github/workflows/lint.yml`. Run `clang-format -i <file>` on every touched file before committing.
-- Translation files under `src/translations/` are excluded from the check.
+- The CI check (`.github/workflows/lint.yml`) was removed in Phase 3. Formatting is a manual step: run `xcrun clang-format -i <file>` on every touched C++ file before committing and `xcrun clang-format --dry-run -Werror <file>` to check (`TESTING.md`). `src/dewarping/TextLineTracer.cpp` keeps two older violations.
 
 **Linting:**
 - No dedicated static analyser configuration (no `.clang-tidy` in the repository root). `clang-format` is the only enforced gate.
@@ -112,8 +111,8 @@ last_mapped_at: 2026-10-18
 **Doc comments:**
 - No Doxygen requirement is enforced. Where present, use `///` or `/** */` on public interface declarations in headers.
 
-**Translation markers:**
-- User-visible strings are wrapped in `tr("...")` (in `QObject` subclasses) or `QCoreApplication::translate("namespace::Class", "...")` (in non-QObject code, e.g. `Filter::getName()` in `src/core/filters/deskew/Filter.cpp`). Translation files live in `src/translations/`.
+**Translation markers (kept after the Phase 3 strip, D-06):**
+- User-visible strings are wrapped in `tr("...")` (in `QObject` subclasses) or `QCoreApplication::translate("namespace::Class", "...")` (in non-QObject code, e.g. `Filter::getName()` in `src/core/filters/deskew/Filter.cpp`). The translation catalogues in `src/translations/` were removed in Phase 3; the markers stay.
 
 ## Function Design
 
@@ -144,4 +143,4 @@ last_mapped_at: 2026-10-18
 
 ---
 
-*Convention analysis: 2026-10-18*
+*Convention analysis: 2026-10-18; patched after the Phase 3 strip*

@@ -4,12 +4,12 @@ last_mapped_at: 2026-10-18
 ---
 # Codebase Concerns
 
-**Analysis Date:** 2026-10-18
+**Analysis Date:** 2026-10-18 (patched after Phases 2 and 3, D-10; not re-mapped; line numbers are from the mapping and have drifted)
 
 ## Tech Debt
 
 **Oversized UI and processing files:**
-- Issue: A few translation units carry many responsibilities and are hard to change safely. Largest files: `src/core/filters/output/OutputGenerator.cpp` (2814 lines), `src/app/MainWindow.cpp` (2245 lines), `src/app/ThumbnailSequence.cpp` (1712 lines), `src/core/filters/select_content/ContentBoxFinder.cpp` (1331 lines), `src/dewarping/TopBottomEdgeTracer.cpp` (1197 lines), `src/app/DefaultParamsDialog.cpp` (1117 lines).
+- Issue: A few source files carry many responsibilities and are hard to change safely. Largest files: `src/core/filters/output/OutputGenerator.cpp` (2814 lines), `src/app/MainWindow.cpp` (2245 lines), `src/app/ThumbnailSequence.cpp` (1712 lines), `src/core/filters/select_content/ContentBoxFinder.cpp` (1331 lines), `src/dewarping/TopBottomEdgeTracer.cpp` (1197 lines), `src/app/DefaultParamsDialog.cpp` (1117 lines).
 - Files: `src/core/filters/output/OutputGenerator.cpp`, `src/app/MainWindow.cpp`, `src/app/ThumbnailSequence.cpp`
 - Impact: Changes to one feature touch long files with many interacting members; review and regression risk is high.
 - Fix approach: Split by responsibility (e.g. colour/binarization paths and dewarping paths out of `OutputGenerator.cpp`; menu/action wiring and batch processing out of `MainWindow.cpp`) before adding new features to these files.
@@ -31,9 +31,9 @@ last_mapped_at: 2026-10-18
 - Fix approach: Track each as an issue; for the TIFF case, make the restriction visible in the UI dialog instead of silently skipping pages.
 
 **Dead code kept behind `#if 0`:**
-- Files: `src/core/filters/output/DewarpingView.cpp` (~238), `src/core/filters/page_split/PageLayoutEstimator.cpp` (~660), `src/core/filters/page_split/VertLineFinder.cpp` (~55, ~70), `src/core/IncompleteThumbnail.cpp` (~25), `src/imageproc/tests/TestBinarize.cpp` (~18), `src/imageproc/SavGolFilter.cpp` (~134), `src/dewarping/Curve.cpp` (~150), `src/dewarping/DistortionModelBuilder.cpp` (~500)
-- Impact: Nine disabled blocks (`#if 0`) make the real logic harder to read and drift out of date as the surrounding code changes. `TestBinarize.cpp` disabled means binarization has less test coverage than the file name suggests.
-- Fix approach: Delete blocks that are superseded; for the test file, either restore it or document why it is off.
+- Files: `src/core/filters/output/DewarpingView.cpp` (~238), `src/core/filters/page_split/PageLayoutEstimator.cpp` (~660), `src/core/filters/page_split/VertLineFinder.cpp` (~55, ~70), `src/core/IncompleteThumbnail.cpp` (~25), `src/imageproc/SavGolFilter.cpp` (~134), `src/dewarping/Curve.cpp` (~150), `src/dewarping/DistortionModelBuilder.cpp` (~500)
+- Impact: Eight disabled blocks (`#if 0`) make the real logic harder to read and drift out of date as the surrounding code changes. (`TestBinarize.cpp` was re-enabled in Phase 2.)
+- Fix approach: Delete blocks that are superseded.
 
 **Unescaping FIXME in XML reader:**
 - Issue: `XmlUnmarshaller::string` returns `el.text()` with a `FIXME` saying the value "needs unescaping".
@@ -41,7 +41,7 @@ last_mapped_at: 2026-10-18
 - Impact: Unclear. `QDomDocument` already decodes standard XML entities during parsing, so the FIXME may be stale. If the project file stores text that is escaped twice, round-trips would corrupt strings. Verify with a project file containing `&`, `<`, and `"` before changing the code.
 - Fix approach: Add a round-trip test in `src/foundation/tests/` for special characters; remove the FIXME if the test passes.
 
-**Inconsistent use of "XXX" placeholder strings in code:**
+**Mixed use of "XXX" placeholder strings in code:**
 - Files: `src/core/filters/output/OutputGenerator.cpp` (lines ~2225-2293) use `"XXX"`, `"X ?"`, `"XX?"` as ASCII bitmap glyph strings for a debug or rendering table. Real markers are mixed in with these, which makes grep-based debt tracking unreliable.
 - Fix approach: Use a clearly named constant for the glyph patterns, and search for real markers as `TODO|FIXME`.
 
@@ -50,15 +50,17 @@ last_mapped_at: 2026-10-18
 **Batch completion alarm runs a shell command from settings:**
 - Symptoms: When batch processing finishes and the "beep when finished" option is on, the configured command is executed through the shell.
 - Files: `src/app/MainWindow.cpp` (lines ~1327-1339)
-- Trigger: `QSettings` key `main_window/external_alarm_cmd` is non-empty. On Unix the default is `play /usr/share/sounds/freedesktop/stereo/bell.oga`.
+- Trigger: `QSettings` key `main_window/external_alarm_cmd` is non-empty. The default is `play /usr/share/sounds/freedesktop/stereo/bell.oga`, a command from the Linux desktop that normally does not exist on macOS; Phase 3 left it unchanged, so the beep after a batch run is a candidate for a later phase.
 - Workaround: Clear the setting to use `QApplication::beep()`.
 - Note: Command execution through `std::system` runs whatever string is stored in the settings file. This is a local-user setting, not remote input, but it should be documented as "runs a shell command".
 
-**Platform-dependent startup fallback:**
-- Symptoms: On Wayland sessions the app forces the `xcb` Qt platform plugin unless overridden.
-- Files: `src/app/main.cpp` (lines ~22-24)
-- Trigger: `XDG_SESSION_TYPE=wayland` with `QT_QPA_PLATFORM` unset and `SCANTAILOR_NO_XCB_FALLBACK` unset.
-- Workaround: Set `SCANTAILOR_NO_XCB_FALLBACK=1` to keep native Wayland.
+**Platform-dependent startup fallback (removed in Phase 3):**
+- Phase 3 removed the Wayland/`xcb` forcing in `src/app/main.cpp` and the `SCANTAILOR_NO_XCB_FALLBACK` variable. The app starts on the macOS `cocoa` platform plugin.
+
+**Drive-letter-minded path normaliser (kept in Phase 3, backlog 999.8):**
+- Symptoms: `RelinkablePath::normalize` replaces every backslash by a slash and refuses to resolve `..` past a component ending in `:`. On macOS a backslash is a legal file-name character, so by reading the code a name such as `scan\01.tif` is split into two components (not executed).
+- Files: `src/core/RelinkablePath.cpp`
+- Status: Phase 3 kept the logic because it runs on the Mac and removing it would change behaviour (D-03). Backlog item 999.8 holds the fix with a test.
 
 ## Security Considerations
 
@@ -99,8 +101,8 @@ last_mapped_at: 2026-10-18
 **Output generation pipeline:**
 - Files: `src/core/filters/output/OutputGenerator.cpp`, `src/core/filters/output/Task.cpp`, `src/core/filters/output/OptionsWidget.cpp` (1062 lines)
 - Why fragile: One generator combines picture/fill zones, dewarping, background colour, despeckling, and colour segmentation. Changes in one option change the output of others.
-- Safe modification: Make small changes with a before/after comparison on a fixed set of sample pages; run `core_tests` and `imageproc_tests`.
-- Test coverage: `src/core/filters/output/` has no dedicated test file in the repository; the generator is only exercised manually.
+- Safe modification: Make small changes with a before/after comparison on a fixed set of sample pages; run all seven suites (`ctest --preset macos-release`), the goldens included.
+- Test coverage: `src/core/filters/output/` has no dedicated unit test file; since Phase 2 the generator is exercised end to end by `pipeline_tests` against goldens (flat, book and mixed pages). Run `ctest --preset macos-release` after every change.
 
 **Deskew overlay geometry:**
 - Files: `src/core/filters/deskew/ImageView.cpp`, `src/core/filters/deskew/OptionsWidget.cpp`, `src/core/DefaultParams.cpp`
@@ -136,43 +138,42 @@ last_mapped_at: 2026-10-18
 
 ## Dependencies at Risk
 
-**Qt 5 and Qt 6 both supported:**
-- Risk: `CMakeLists.txt` (lines ~222-229) first looks for Qt 6, then falls back to Qt 5. CI in `.github/workflows/ci.yml` and `.github/workflows/cmake.yml` installs Qt 5 only (`qtbase5-dev`). Qt 6 code paths are therefore not exercised in CI.
-- Impact: Qt 6 build breakage can go unnoticed; Qt 5 end-of-life also affects distributions.
-- Migration plan: Add a Qt 6 job to CI; track Qt 5 removal as a milestone.
+**Qt 6 only, a Homebrew moving target:**
+- Risk: Qt 5 support was removed in Phase 3; `CMakeLists.txt` requires `Qt6 6.5` and Homebrew always provides the newest Qt. A Homebrew upgrade can change Qt behaviour under the goldens.
+- Impact: Golden mismatches after an upgrade. The golden manifests (`src/pipeline_tests/golden/*/MANIFEST.txt`) record the toolchain, and a difference is logged as `TOOLCHAIN DIFFERS` (`TESTING.md`).
+- Migration plan: Read the log before re-recording any golden; re-record only with the Release build and its own commit.
 
 **libtiff and libpng/libjpeg system libraries:**
-- Risk: Found through `find_package(TIFF REQUIRED)`, `PNG`, `JPEG`, and `ZLIB` in `CMakeLists.txt` (lines ~137-161). Version drift on distributions is handled only by the README note about glibc (`README.md`, AppImage section).
-- Impact: Build failures or different TIFF behaviour (for example `TIFFReadRGBAImageOriented` results in `src/core/TiffReader.cpp`) across distributions.
-- Migration plan: Pin minimum versions in CMake and add them to the CI install list.
+- Risk: Found through `find_package(TIFF REQUIRED)`, `PNG`, `JPEG`, and `ZLIB` in `CMakeLists.txt`. The versions are whatever Homebrew provides (`jpeg-turbo`, `libpng`, `libtiff`); no minimum version is pinned.
+- Impact: Different TIFF or PNG behaviour after a Homebrew upgrade (for example `TIFFReadRGBAImageOriented` results in `src/core/TiffReader.cpp`).
+- Migration plan: The golden manifests record the library versions; pin minimum versions in CMake if a difference ever matters.
 
 ## Missing Critical Features
 
 **Automated test gating in CI:**
-- Problem: `.github/workflows/ci.yml` runs `ctest -C Release --output-on-failure || true`, so failing tests never fail the build.
-- Blocks: Regressions in `core_tests`, `imageproc_tests`, `math_tests`, `foundation_tests`, and `qt_tests` are reported but do not stop merges.
+- Problem: The GitHub workflows were removed in Phase 3, so nothing runs the tests automatically. The gate is a manual local run of `ctest --preset macos-release` and `ctest --preset macos-debug`, 7 of 7 suites (`TESTING.md`).
+- Blocks: A forgotten run lets a regression through. Formatting is likewise a manual `xcrun clang-format` step.
 
 **Regression coverage for GUI workflows:**
-- Problem: `src/qt_tests` (6 files) covers only a small part of the UI; the filters (`select_content`, `page_layout`, `output`, `deskew`) have no interaction tests.
+- Problem: `src/qt_tests` (6 files) covers only a small part of the UI, and `src/app/ui_snapshot` only renders the main window and the Settings dialog; the filters (`select_content`, `page_layout`, `output`, `deskew`) have no interaction tests.
 - Blocks: Safe refactoring of `MainWindow.cpp` and the `OptionsWidget` files.
 
 ## Test Coverage Gaps
 
 **Output generation:**
-- What's not tested: `OutputGenerator` end-to-end, colour segmentation, dewarping output, and despeckle output.
+- What's covered since Phase 2: `pipeline_tests` run `OutputGenerator` through the headless pipeline on generated flat, book and mixed pages and compare against goldens. What is still missing: colour segmentation, despeckle output and zone-dependent output are not asserted individually.
 - Files: `src/core/filters/output/OutputGenerator.cpp`, `src/core/filters/output/Task.cpp`
-- Risk: Output regressions are visible only to users on real scans.
-- Priority: High
+- Risk: Output regressions in those options are visible only to users on real scans.
+- Priority: Medium
 
 **Binarization:**
-- What's not tested: The file `src/imageproc/tests/TestBinarize.cpp` is wrapped in `#if 0` (line ~18).
+- Status: `src/imageproc/tests/TestBinarize.cpp` is active again (Phase 2). One known defect is recorded with `XFAIL_CHECK`: the global binarizers reject `Format_Grayscale8` (backlog 999.1).
 - Files: `src/imageproc/Binarize.cpp`, `src/imageproc/tests/TestBinarize.cpp`
-- Risk: Binarization changes (threshold, Sauvola, Otsu variants) are not checked by unit tests.
-- Priority: High
+- Priority: Low
 
 **Dewarping:**
-- What's not tested: Distortion model builder and edge tracers (`src/dewarping/DistortionModelBuilder.cpp` 661 lines, `src/dewarping/TopBottomEdgeTracer.cpp` 1197 lines, `src/dewarping/TextLineTracer.cpp`) have no dedicated test files in `src/dewarping/`.
-- Risk: The disabled blocks and open TODOs in `DistortionModelBuilder.cpp` may hide behaviour changes.
+- Status: `src/dewarping/tests/` (`dewarping_tests`) covers the text line tracer, the distortion model and the cylindrical dewarper. `TopBottomEdgeTracer.cpp` (1197 lines) and the `DistortionModelBuilder.cpp` disabled block have no dedicated test. Backlog 999.2 records a defect in the distortion model.
+- Risk: The disabled block and open TODOs in `DistortionModelBuilder.cpp` may hide behaviour changes.
 - Priority: Medium
 
 **Project file round-trip with special characters:**
@@ -183,4 +184,4 @@ last_mapped_at: 2026-10-18
 
 ---
 
-*Concerns audit: 2026-10-18*
+*Concerns audit: 2026-10-18; patched after Phases 2 and 3*

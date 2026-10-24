@@ -4,15 +4,15 @@ last_mapped_at: 2026-10-18
 ---
 # Testing Patterns
 
-**Analysis Date:** 2026-10-18
+**Analysis Date:** 2026-10-18 (patched after Phases 2 and 3, D-10; not re-mapped)
 
 ## Test Framework
 
 **Runner:**
-- Boost.Test (`Boost::unit_test_framework`) for the core, foundation, math, and imageproc libraries.
+- Boost.Test (`Boost::unit_test_framework`) for the core, foundation, math, imageproc, dewarping and pipeline suites.
 - Qt Test (`QTest`, `QSignalSpy`) for Qt-facing logic and widgets, under `src/qt_tests/`.
 - CTest is the driver: `add_test(NAME core_tests COMMAND core_tests --log_level=message)` in `src/core/tests/CMakeLists.txt`.
-- Config: tests are enabled by the CMake option `BUILD_TESTS` (default ON per `TESTING.md`).
+- Config: tests are enabled by the CMake option `BUILD_TESTS` (default ON). Seven ctest suites: `foundation_tests`, `math_tests`, `imageproc_tests`, `core_tests`, `qt_tests`, `pipeline_tests`, `dewarping_tests`.
 
 **Assertion Library:**
 - Boost: `BOOST_CHECK`, `BOOST_CHECK_EQUAL`, `BOOST_REQUIRE` (for fatal checks).
@@ -21,28 +21,25 @@ last_mapped_at: 2026-10-18
 **Run Commands:**
 
 ```bash
-mkdir build && cd build
-cmake .. -DBUILD_TESTS=ON
-cmake --build .
-ctest --output-on-failure              # Run all registered tests
-./core_tests --log_level=message       # Run one Boost suite with messages
-./foundation_tests --log_level=message
-./math_tests --log_level=message
-./imageproc_tests --log_level=message
-./qt_tests                             # Qt Test executable
+cmake --preset macos-release && cmake --build --preset macos-release
+ctest --preset macos-release                          # all seven suites; good run: "100% tests passed out of 7"
+ctest --preset macos-debug                            # after cmake --preset macos-debug and the build
+ctest --preset macos-asan                             # Debug + address,undefined sanitizers
+build/macos-release/core_tests --log_level=message    # one Boost suite with messages
+ctest --preset macos-release -R core_tests            # one suite through ctest
 ```
 
-Watch mode and coverage targets are not configured in CMake. Coverage is described as a manual gcov/lcov procedure in `TESTING.md`.
+Release and Debug must both pass before a code change is committed (`TESTING.md`). Watch mode and coverage targets are not configured in CMake.
 
 **CI:**
-- `.github/workflows/ci.yml` runs `ctest -C Release --output-on-failure || true` (line 35). Note that the `|| true` means CI does not fail on test failure.
-- `.github/workflows/lint.yml` checks formatting only.
+- None. The `.github/` workflows were removed in Phase 3; the gate is the local Release and Debug ctest run.
+- Formatting is checked by hand with `xcrun clang-format --dry-run -Werror <file>` (`TESTING.md`).
 
 ## Test File Organization
 
 **Location:**
-- Separate `tests/` directory inside each library: `src/core/tests/`, `src/foundation/tests/`, `src/math/tests/`, `src/imageproc/tests/`.
-- Qt tests live in `src/qt_tests/` (not under a library).
+- Separate `tests/` directory inside each library: `src/core/tests/`, `src/foundation/tests/`, `src/math/tests/`, `src/imageproc/tests/`, `src/dewarping/tests/`.
+- Qt tests live in `src/qt_tests/` (not under a library). Pipeline tests live in `src/pipeline_tests/`, with generated-page support code in `src/test_support/` and goldens in `src/pipeline_tests/golden/{flat,book,mixed}/`.
 - Tests are not co-located with source files.
 
 **Naming:**
@@ -114,11 +111,13 @@ Source: `src/core/tests/TestPageId.cpp`, `src/imageproc/tests/TestDpi.cpp`.
 ## Fixtures and Factories
 
 **Test Data:**
-- Inline literals only. Example from `TestPageId.cpp`: `const ImageId img1("/a", 0);`. Paths like `"/path/to/image.tiff"` are used as opaque identifiers; no files are read.
+- Unit tests use inline literals. Example from `TestPageId.cpp`: `const ImageId img1("/a", 0);`. Paths like `"/path/to/image.tiff"` are used as opaque identifiers; no files are read.
 - Image-processing tests build small in-memory buffers rather than loading fixture files.
 
 **Location:**
-- No dedicated fixtures directory exists. Keep any new data inline in the test file, or in a helper at the top of that file.
+- Unit tests keep data inline in the test file, or in a helper at the top of that file.
+- `pipeline_tests` generate their pages in code with fixed seeds (`src/test_support/PageGenerator`). No scan is stored in the repository. Goldens are recorded with `UPDATE_GOLDENS=1` on the Release build only (`TESTING.md`).
+- Known defects are recorded with `XFAIL_CHECK(condition, "tag")` (`src/test_support/ExpectedFailure.h`), one backlog item each in `.planning/ROADMAP.md`.
 
 ## Coverage
 
@@ -128,7 +127,7 @@ Source: `src/core/tests/TestPageId.cpp`, `src/imageproc/tests/TestDpi.cpp`.
 
 ```bash
 
-# Manual gcov/lcov flow described in TESTING.md (compiler-dependent)
+# Manual gcov/lcov flow (compiler-dependent; not part of the presets and not described in TESTING.md any more)
 
 lcov --capture --directory . --output-file coverage.info
 genhtml coverage.info --output-directory coverage-html
@@ -138,16 +137,19 @@ genhtml coverage.info --output-directory coverage-html
 
 **Unit Tests:**
 - Boost suites for `core`, `foundation`, `math`, `imageproc`: pure functions, value types, parsers, serialization (XML round-trips for `Margins`, `Dpi`), and algorithm helpers (`ContentSpanFinder`, `ObliqueFinder`, `Binarize`, `Morphology`, `ConnCompEraser`).
-- About 204 Boost test cases across the tree.
+- Boost test cases in six executables (the count is not tracked here; run `ctest` for the suites).
 
 **Qt Tests:**
-- 11 `test*` slots across `src/qt_tests/`. Cover `Units`, `foundation::Utils`, `SmartFilenameOrdering`, and a set of UX widgets (`CollapsibleGroupBox`, `ErrorWidget`).
+- `test*` slots across `src/qt_tests/` (`TestCoreQt`, `TestUxQt`). Cover `Units`, `foundation::Utils`, `SmartFilenameOrdering`, and a set of UX widgets (`CollapsibleGroupBox`, `ErrorWidget`).
 
 **Integration Tests:**
-- Not present. `TESTING.md` lists it as a gap; there are no tests that open a project or run filters end to end.
+- `pipeline_tests` (Phase 2) run the six stages headlessly on generated flat, book and mixed pages, round-trip a project file and compare the results with goldens.
+
+**UI snapshot:**
+- `src/app/ui_snapshot` renders the main window and Settings dialog offscreen to PNG and text. Built with the tests, not a ctest suite.
 
 **E2E Tests:**
-- Not used. `TESTING.md` mentions Squish as a possible future option only.
+- Not used.
 
 ## Common Patterns
 
@@ -187,9 +189,9 @@ BOOST_CHECK(ok);
 1. Create `src/<module>/tests/Test<Subject>.cpp` with the copyright header.
 2. Add the file to the `set(sources ...)` list in `src/<module>/tests/CMakeLists.txt`.
 3. Wrap cases in `BOOST_AUTO_TEST_SUITE(<Module><Subject>TestSuite)` and name cases `test_<behaviour>`.
-4. Run `clang-format -i` on the new file.
-5. Build and run the suite directly with `--log_level=message` before relying on `ctest`.
+4. Run `xcrun clang-format -i` on the new file.
+5. Build with the `macos-release` preset and run the suite directly with `--log_level=message` before relying on `ctest`.
 
 ---
 
-*Testing analysis: 2026-10-18*
+*Testing analysis: 2026-10-18; patched after Phases 2 and 3*

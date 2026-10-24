@@ -6,7 +6,7 @@ last_mapped_at: 2026-10-18
 
 # Architecture
 
-**Analysis Date:** 2026-10-18
+**Analysis Date:** 2026-10-18 (patched after Phases 2 and 3, D-10; not re-mapped)
 
 ## System Overview
 
@@ -42,7 +42,7 @@ last_mapped_at: 2026-10-18
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Top-level CMake (`CMakeLists.txt`) adds subdirectories in this order: `foundation`, `math`, `imageproc`, `dewarping`, `core`, `app`. Each is built as a library consumed by the layers above it.
+Top-level CMake (`CMakeLists.txt`) adds subdirectories in this order: `foundation`, `math`, `imageproc`, `dewarping`, `core`, `app`; with `BUILD_TESTS` it adds `qt_tests`, `test_support`, `pipeline_tests` and `dewarping/tests`. Each is built as a library consumed by the layers above it.
 
 ## Pattern Overview
 
@@ -164,11 +164,14 @@ Top-level CMake (`CMakeLists.txt`) adds subdirectories in this order: `foundatio
 **Executable:**
 - Location: `src/app/main.cpp` (`int main(int argc, char* argv[])`).
 - Triggers: User launch, or `scantailor-advanced <project.ScanTailor>` from the command line.
-- Responsibilities: Set up Qt high-DPI, install translations, apply the colour scheme, construct `MainWindow`, and enter the Qt event loop.
+- Responsibilities: Set the application and organisation names, switch `QSettings` to INI format, apply the colour scheme, construct `MainWindow`, and enter the Qt event loop. Translation loading and the platform fallbacks were removed in Phase 3.
 
 **Test binaries:**
-- Locations: `src/core/tests/main.cpp`, `src/imageproc/tests/main.cpp`, `src/foundation/tests/`, `src/math/tests/`, `src/qt_tests/`.
-- Triggers: `ctest` or direct execution after `cmake -DBUILD_TESTS=ON` (see `TESTING.md`).
+- Locations: `src/core/tests/main.cpp`, `src/imageproc/tests/main.cpp`, `src/foundation/tests/`, `src/math/tests/`, `src/dewarping/tests/`, `src/qt_tests/`, `src/pipeline_tests/` (seven suites).
+- Triggers: `ctest --preset macos-release` (or `macos-debug`, `macos-asan`) or direct execution from `build/<preset>` (see `TESTING.md`).
+
+**UI snapshot tool:**
+- Location: `src/app/ui_snapshot/main.cpp`. Renders the main window and Settings dialog offscreen; built with the tests, not a ctest suite.
 
 ## Architectural Constraints
 
@@ -209,4 +212,4 @@ Top-level CMake (`CMakeLists.txt`) adds subdirectories in this order: `foundatio
 
 ---
 
-*Architecture analysis: 2026-10-18*
+*Architecture analysis: 2026-10-18; patched after Phases 2 and 3*
