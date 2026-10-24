@@ -22,18 +22,19 @@ The app builds from source and works reliably for daily scanning work on a curre
 - ✓ Batch processing of whole projects — existing
 - ✓ XML project files (`.ScanTailor`) with save/reload, default parameter profiles — existing
 - ✓ Image I/O for TIFF (incl. multi-page), PNG, JPEG — existing
-- ✓ Light and dark colour schemes, translations — existing
+- ✓ Light and dark colour schemes — existing (translations removed in Phase 3; the UI is English only)
 - ✓ Boost.Test unit test executables (math, imageproc, core, foundation, qt) run via CTest — existing
 - ✓ Test suite runs green locally and covers the pipeline paths used for books, flat documents and mixed pages, using synthetic generated test images — Phase 2 (`pipeline_tests` and `dewarping_tests` with goldens from the unmodified code at `a796c2ae`; `ctest` 7/7 in Release and Debug; known shortfalls are `XFAIL_CHECK` with backlog 999.1–999.7)
+- ✓ Qt 6 only — Qt 5 support and version branches removed — Phase 3 (`find_package(Qt6 6.5 …)`; Qt 5 conditionals resolved with `unifdef`; goldens unchanged)
+- ✓ Linux and Windows packaging and platform-specific code paths removed — Phase 3 (also portable mode, install rules and translations)
+- ✓ All GitHub Actions CI disabled — Phase 3 (`.github/` deleted)
+- ✓ README documents the macOS build and test commands — Phase 3 (proven by a fresh clone that ran only README lines)
 
 ### Active
 
 - [ ] Builds on current macOS (Apple Silicon, arm64) with Homebrew dependencies and runs from the build directory
-- [ ] Qt 6 only — Qt 5 support and version branches removed
 - [ ] Page views, thumbnails and icons render sharply on Retina (HiDPI) displays
 - [ ] Mac-conventional shortcuts and menus (Cmd-based shortcuts, standard app menu, native menu bar)
-- [ ] Linux and Windows packaging and platform-specific code paths removed
-- [ ] All GitHub Actions CI disabled
 - [ ] Known-debt cleanup that makes later feature work safe (e.g. disabled tests, dead `#if 0` blocks, oversized files where touched)
 
 ### Out of Scope
@@ -50,8 +51,8 @@ The app builds from source and works reliably for daily scanning work on a curre
 ## Context
 
 - Brownfield: full codebase map in `.planning/codebase/` (STACK, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, INTEGRATIONS, CONCERNS), mapped at commit `5eaac18`.
-- Stack: C++17, CMake 3.9+, Qt 6 preferred with Qt 5.9+ fallback, Boost 1.60+, libjpeg, libpng, libtiff, zlib. Boost.Test + CTest.
-- macOS has had almost no attention: the only `Q_OS_MAC` branches are in `src/core/zones/ZoneContextMenuInteraction.{h,cpp}`. About 8 files carry Windows branches; ~19 files contain Qt version checks.
+- Stack: C++17, CMake 3.25+ with `CMakePresets.json` (`macos-release`, `macos-debug`, `macos-asan`), Qt 6.5+ only, Boost 1.60+, libjpeg (jpeg-turbo), libpng, libtiff, zlib from the macOS SDK. Boost.Test + CTest, seven suites.
+- Since Phase 3 the tree holds only the macOS code path: no platform conditionals, no Qt version checks, no packaging, CI or translations. `RelinkablePath::normalize` still rewrites backslashes in file names (backlog 999.8).
 - The user tried a macOS build a long time ago and it did not work; current state is unknown.
 - Test gaps flagged in CONCERNS.md: output stage (`OutputGenerator.cpp`, 2814 lines) has no tests; `TestBinarize.cpp` is disabled with `#if 0`; dewarping has no tests; project-file XML round-trip with special characters is untested.
 - Fragile areas: output generation, deskew overlay geometry (recent upstream change d710384), hand-written threading/wait code, mixed raw/smart-pointer ownership.
@@ -70,16 +71,17 @@ The app builds from source and works reliably for daily scanning work on a curre
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Qt 6 only, drop Qt 5 | Homebrew ships Qt 6; a single-user Mac fork gains nothing from an untested second code path (user left the choice to Claude) | — Pending |
-| macOS-only: remove Linux/Windows packaging and platform branches | Personal fork, Mac is the only machine | — Pending |
-| Disable all CI | User wants local-only builds and tests | — Pending |
+| Qt 6 only, drop Qt 5 | Homebrew ships Qt 6; a single-user Mac fork gains nothing from an untested second code path (user left the choice to Claude) | ✓ Good — Phase 3: Qt 5 removed with `unifdef`, build commands and goldens unchanged |
+| macOS-only: remove Linux/Windows packaging and platform branches | Personal fork, Mac is the only machine | ✓ Good — Phase 3: platform code, packaging, install rules and portable mode removed; settings and profile locations unchanged |
+| Disable all CI | User wants local-only builds and tests | ✓ Good — Phase 3: `.github/` deleted; formatting is a documented manual `xcrun clang-format` step |
 | Run from build dir, no `.app` bundling | User's choice; bundling can come later | — Pending |
 | Synthetic test images | Keeps personal material out of the repo; deterministic fixtures | ✓ Good — Phase 2: a seeded in-memory page generator (flat, spread, mixed, curved) feeds every golden; no scan is committed |
 | No upstream compatibility | Changes are for personal use only | — Pending |
-| Baselines before strip: first macOS build with compile fixes only, golden images from that unmodified code, then remove Qt 5/Windows/Linux | Proves the strip and later refactors changed no output | ◆ In progress — Phase 1 build and Phase 2 goldens done (baseline `a796c2ae`); the strip follows in Phase 3 |
+| Baselines before strip: first macOS build with compile fixes only, golden images from that unmodified code, then remove Qt 5/Windows/Linux | Proves the strip and later refactors changed no output | ✓ Good — Phase 3: twelve strip commits each passed Release and Debug `ctest` 7/7 with every golden byte-identical to `a796c2ae`; ASan/UBSan findings unchanged |
 | Remove OpenGL viewer | Off by default, deprecated by Apple, no Metal path | — Pending |
-| English-only UI, translations removed | User doesn't need them; less to maintain | — Pending |
+| English-only UI, translations removed | User doesn't need them; less to maintain | ✓ Good — Phase 3: translator code and the Language row removed in one commit; `tr()` calls kept, an existing `language` setting is left untouched |
 | Horizontal-layer phases | Port/hardening where each step protects the next | — Pending |
+| Gate every strip commit (`gate.sh`): Release and Debug `ctest`, goldens, build-command diff | Deletions must not change output; the command diff catches CMake edits that tests would miss | ✓ Good — Phase 3: 12 of 12 commits passed; reusable for later phases |
 
 ## Evolution
 
@@ -99,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-24 after Phase 2*
+*Last updated: 2026-10-25 after Phase 3*

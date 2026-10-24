@@ -22,10 +22,10 @@ milestone_name: macOS
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-24)
+See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 03 — Qt 6 and macOS Only
+**Current focus:** Phase 4 — Retina Rendering
 
 ## Current Position
 
@@ -172,13 +172,14 @@ None yet.
 
 - [Phase 2] `02-UAT.md` still lists gap G-02-3 as `diagnosed`; the re-verification (02-VERIFICATION.md, passed 9/9) confirms it closed. `/gsd-verify-work 02` reconciles the UAT entry.
 - [Phase 2] Four info findings of the re-review are deferred (IN-01 to IN-04 in `02-REVIEW-DISPOSITION.md`). IN-01 matters if a later phase adds a scan resolution: the generator refuses 400 and 450 dpi for SPREAD, MIXED and CURVED, not only 150 and 225 (`dpiSupported`).
-- Phase 3: every strip commit follows golden baseline `a796c2ae` and must pass `ctest --preset macos-release` and `macos-debug` 7/7 with goldens unchanged. Build-tool reads for Phases 3 to 6 are approved in `records/access-approval.md` of Phase 2.
+- [Phase 3] Code review left WR-01 open: `ui_snapshot` recompiles all GUI sources and is built by default under `BUILD_TESTS`, so every preset build compiles the GUI twice. Fix with an OBJECT library plus `EXCLUDE_FROM_ALL`, or drop the tool, in a later phase. Seven info findings are open as well (`03-REVIEW-DISPOSITION.md`); WR-02 is deferred.
+- [Phase 3] Existing build directories still hold stale untracked `.qm`, `.desktop` and CPack files from before the strip; nothing produces them any more. `cmake --fresh --preset <name>` or deleting `build/<preset>` clears them.
+- Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
 - Phase 4 research flag: a Retina experiment on the Mac, covering the unbundled DPR, `widthMM()` and the smoothing heuristic under Qt 6. Verifying Retina is mostly manual (100%/200% zoom, thumbnails, zone mask, colour picker, toolbar icons, moving between displays).
 - Phase 5: check on the Mac whether Backspace works for deleting zones under Qt 6 (low confidence in research).
-- Phase 3: remove Qt 5 code with `unifdef`, not by hand. The polarity of the RANSAC/dewarp branches in `DistortionModelBuilder.cpp` and `DetectVertContentBounds.cpp` changes output if it is wrong.
 
 ## Session Continuity
 
-Last session: 2026-10-24T21:43:59.657Z
-Stopped at: Phase 03 complete, ready to plan Phase 4
+Last session: 2026-10-25
+Stopped at: Phase 3 complete (verified 5/5), ready to plan Phase 4
 Resume file: None
