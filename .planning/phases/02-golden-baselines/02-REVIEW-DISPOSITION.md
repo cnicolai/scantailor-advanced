@@ -5,27 +5,27 @@ titles: json
 findings:
   - id: CR-01
     severity: critical
-    disposition: open
+    disposition: fixed
     title: "`generatePage` / `renderInkMask` write outside the raster for 44 of the documented dpi values"
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`test_golden_directory_untouched` leaves `UPDATE_GOLDENS=1` set when an assertion throws"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A failed manifest write is reported once and then silently skipped for the rest of the suite"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`test_every_stage_carries_non_default_values` is vacuous for the page-split stage"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`spreadPage` returns a reference into a `std::vector` that grows"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Text goldens are written without checking that they parse back"
   - id: IN-01
     severity: info
@@ -55,7 +55,7 @@ findings:
     severity: info
     disposition: deferred
     title: "The test sources need Qt 6.5 and Boost headers, but the build still advertises a Qt 5 fallback"
-open: 6
+open: 0
 total: 13
 recorded: 2026-10-23T21:27:23.648Z
 ---
@@ -64,12 +64,12 @@ recorded: 2026-10-23T21:27:23.648Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | open | - |
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
+| CR-01 | critical | fixed | plan 02-12 (G-02-3) |
+| WR-01 | warning | fixed | plan 02-13 (G-02-3) |
+| WR-02 | warning | fixed | plan 02-13 (G-02-3) |
+| WR-03 | warning | fixed | plan 02-14 (G-02-3) |
+| WR-04 | warning | fixed | plan 02-14 (G-02-3) |
+| WR-05 | warning | fixed | plan 02-13 (G-02-3) |
 | IN-01 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
 | IN-02 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
 | IN-03 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |

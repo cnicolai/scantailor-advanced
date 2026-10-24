@@ -97,3 +97,77 @@ Same environment, `build/macos-asan/pipeline_tests --run_test=GeneratorDetermini
 | `8c47d66e` | pin commit, test file only |
 | `2a4ad510` | `dpiSupported(PageKind, int)`, `layoutFits`, raster guards, maps on the same rule, the sweep |
 | `eb62abd5` | `test_dpi_support_rule`, map checks in the sweep, header contract |
+
+## WR-01 to WR-05
+
+| Finding | Test case that proves it | Fix commit | RED evidence quoted in |
+|---------|--------------------------|------------|------------------------|
+| WR-01 `UPDATE_GOLDENS` left set after a throw | `TestComparatorSelfTest.cpp#test_update_flag_restored_when_an_assertion_throws` (and the guard in `test_golden_directory_untouched`) | `6f625254` | `02-13-SUMMARY.md` (guard destructor emptied temporarily, four checks failed) |
+| WR-02 failed manifest write skipped silently | `TestGoldenStore.cpp#test_failed_manifest_write_fails_every_golden_of_the_suite` | `73a18e3c` (test `7cba3f91`) | `02-13-SUMMARY.md` |
+| WR-03 page-split check vacuous | `TestProjectRoundTrip.cpp#test_every_stage_carries_non_default_values` (direct `layoutType` and `pages type` assertion, both written files) | `9eb6ff6f` (test only; production already wrote the value) | `02-14-SUMMARY.md` (mutated expectation failed 20 times: 5 images x 2 files x 2 attributes) |
+| WR-04 `spreadPage` reference into a growing vector | `TestBookSpread.cpp#test_spread_page_cache_keeps_references` | `46186f71` (test `b422c5dc`) | `02-14-SUMMARY.md` (failed alone with the vector cache) |
+| WR-05 text goldens not checked for parse-back | `TestGoldenStore.cpp#test_text_that_cannot_round_trip_is_refused` | `62dbc761` (test `009f6688`) | `02-13-SUMMARY.md` |
+
+CR-01 is documented above (fix `2a4ad510`, pins `8c47d66e`, rule test `eb62abd5`).
+
+## Closing run
+
+- **Commit tested:** `46186f71a173fe9922b90fafbf60a1b4eab0f0ed` (`git rev-parse HEAD`; `git status --porcelain -- src` empty).
+- **Commands:** `cmake --build --preset macos-release && cmake --build --preset macos-debug`, then `ctest --preset macos-release --output-on-failure`, `ctest --preset macos-debug --output-on-failure` and `build/macos-release/pipeline_tests --random=1 --log_level=test_suite`.
+
+### macos-release
+
+ctest summary: `100% tests passed out of 7` (exit 0).
+
+| # | Test | Result | Time |
+|---|------|--------|------|
+| 1 | foundation_tests | Passed | 0.03 s |
+| 2 | math_tests | Passed | 0.02 s |
+| 3 | imageproc_tests | Passed | 0.61 s |
+| 4 | core_tests | Passed | 0.03 s |
+| 5 | qt_tests | Passed | 0.25 s |
+| 6 | pipeline_tests | Passed | 54.86 s |
+| 7 | dewarping_tests | Passed | 0.21 s |
+
+`Total Test time (real) =  56.01 sec`.
+
+### macos-debug
+
+ctest summary: `100% tests passed out of 7` (exit 0).
+
+| # | Test | Result | Time |
+|---|------|--------|------|
+| 1 | foundation_tests | Passed | 0.03 s |
+| 2 | math_tests | Passed | 0.03 s |
+| 3 | imageproc_tests | Passed | 6.90 s |
+| 4 | core_tests | Passed | 0.37 s |
+| 5 | qt_tests | Passed | 0.61 s |
+| 6 | pipeline_tests | Passed | 228.12 s |
+| 7 | dewarping_tests | Passed | 2.48 s |
+
+`Total Test time (real) = 238.57 sec`.
+
+### Random order
+
+`build/macos-release/pipeline_tests --random=1 --log_level=test_suite`: exit status 0, `*** No errors detected`, 93 test cases entered. The one error line in the log is the deliberate one of `GoldenStoreTestSuite/test_expected_failure_trip_wire` (expected failure).
+
+### Formatting
+
+`git diff --name-only cb88abec -- src` lists ten files, all passing `xcrun clang-format --dry-run -Werror` (no file needed reformatting):
+
+- `src/pipeline_tests/TestBookSpread.cpp`
+- `src/pipeline_tests/TestComparatorSelfTest.cpp`
+- `src/pipeline_tests/TestGeneratorDeterminism.cpp`
+- `src/pipeline_tests/TestGoldenStore.cpp`
+- `src/pipeline_tests/TestProjectRoundTrip.cpp`
+- `src/test_support/GoldenStore.cpp`
+- `src/test_support/PageGenerator.cpp`
+- `src/test_support/PageGenerator.h`
+- `src/test_support/TextGolden.cpp`
+- `src/test_support/TextGolden.h`
+
+### Golden and scope invariants
+
+- `git diff --quiet a796c2ae -- src/pipeline_tests/golden`: exit 0. `git status --porcelain -- src/pipeline_tests/golden`: empty. No golden changed since the baseline commit.
+- `git diff --name-only cb88abec -- src`: only files under `src/test_support/` and `src/pipeline_tests/` (the ten above).
+- `git diff --name-only cde6825 -- src CMakeLists.txt CMakePresets.json cmake ':!src/*/tests/*' ':!src/qt_tests/*' ':!src/test_support/*' ':!src/pipeline_tests/*'`: `src/CMakeLists.txt` and nothing else. D-11, D-16 and the TEST-04 baseline are intact.
