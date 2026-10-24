@@ -39,6 +39,8 @@ const int kMaxDpi = 1200;
 // SPREAD
 const int kSpreadBlockCells = 21;
 const int kSpreadBlockLines = 15;
+const int kSpreadBlockFrameWidth = 640;
+const int kSpreadBlockFrameHeight = 860;
 const int kSpreadLeftX = 73;
 const int kSpreadRightX = 940;
 const int kSpreadTopY = 160;
@@ -70,6 +72,8 @@ const int kSpeckMaxAttempts = 100000;
 // CURVED
 const int kCurvedBlockCells = 23;
 const int kCurvedBlockLines = 14;
+const int kCurvedBlockFrameWidth = 700;
+const int kCurvedBlockFrameHeight = 800;
 const double kCurlAmplitude = 25.0;
 const double kCurlCompression = 0.15;
 
@@ -143,7 +147,7 @@ int clampByte(int v) {
   return std::max(0, std::min(255, v));
 }
 
-bool dpiSupported(const int dpi) {
+bool dpiInRange(const int dpi) {
   return dpi >= kMinDpi && dpi <= kMaxDpi;
 }
 
@@ -258,6 +262,42 @@ Geometry computeGeometry(const PageKind kind, const int dpi) {
     }
   }
   return g;
+}
+
+/// Whether the rounded geometry keeps every text block inside the page and inside its documented frame, and the
+/// MIXED picture inside the page.  The first condition is what keeps the glyph writes inside the raster; the
+/// frames keep the ground truth honest (the SPREAD gutter band starts where the left frame ends, MIXED speck
+/// clearance is measured from the MIXED frame).  FLAT documents no frame.
+bool layoutFits(const Geometry& g) {
+  const QRect page(0, 0, g.width, g.height);
+  for (const TextBlockGeometry& block : g.blocks) {
+    const QRect ink(block.originX, block.originY, block.inkWidth(g.dot), block.inkHeight(g.dot));
+    if (!page.contains(ink)) {
+      return false;
+    }
+    QRect frame;
+    switch (g.kind) {
+      case PageKind::FLAT:
+        break;
+      case PageKind::SPREAD:
+        frame = QRect(block.originX, block.originY, scaled(kSpreadBlockFrameWidth, g.dpi),
+                      scaled(kSpreadBlockFrameHeight, g.dpi));
+        break;
+      case PageKind::MIXED:
+        frame = QRect(block.originX, block.originY, scaled(kMixedBlockFrameWidth, g.dpi),
+                      scaled(kMixedBlockFrameHeight, g.dpi));
+        break;
+      case PageKind::CURVED:
+        frame = QRect(scaled((kStandardPageWidth - kCurvedBlockFrameWidth) / 2, g.dpi),
+                      scaled((kStandardPageHeight - kCurvedBlockFrameHeight) / 2, g.dpi),
+                      scaled(kCurvedBlockFrameWidth, g.dpi), scaled(kCurvedBlockFrameHeight, g.dpi));
+        break;
+    }
+    if (!frame.isNull() && !frame.contains(ink)) {
+      return false;
+    }
+  }
+  return g.kind != PageKind::MIXED || page.contains(g.pictureRect);
 }
 
 /**
@@ -389,6 +429,10 @@ void placeGlyph(Layout& layout,
       }
       const int x0 = block.originX + (cell * kCellDots + col) * dot;
       const int y0 = block.originY + (lineTopDots + row) * dot;
+      // Backstop behind dpiSupported(): unreachable for a supported dpi.
+      if (x0 < 0 || y0 < 0 || x0 + dot > layout.g.width || y0 + dot > layout.g.height) {
+        throw std::logic_error("test_support: glyph dot outside the raster");
+      }
       for (int dy = 0; dy < dot; ++dy) {
         for (int dx = 0; dx < dot; ++dx) {
           layout.raster[layout.index(x0 + dx, y0 + dy)] = TEXT_INK;
@@ -464,6 +508,11 @@ void placeSpecks(Layout& layout, const uint64_t seed) {
     }
   }
   for (const QRect& speck : layout.specks) {
+    // Backstop as in placeGlyph.  Not QRect::contains: a speck of side 0 (1 base px at 75 dpi) is a null rectangle
+    // that writes nothing.
+    if (speck.left() < 0 || speck.top() < 0 || speck.right() >= g.width || speck.bottom() >= g.height) {
+      throw std::logic_error("test_support: speck outside the raster");
+    }
     for (int y = speck.top(); y <= speck.bottom(); ++y) {
       for (int x = speck.left(); x <= speck.right(); ++x) {
         layout.raster[layout.index(x, y)] = SPECK_INK;
@@ -552,9 +601,13 @@ class PictureNoise {
 
 }  // namespace
 
+bool dpiSupported(const PageKind kind, const int dpi) {
+  return dpiInRange(dpi) && layoutFits(computeGeometry(kind, dpi));
+}
+
 GeneratedPage generatePage(const PageSpec& spec) {
   GeneratedPage page;
-  if (!dpiSupported(spec.dpi)) {
+  if (!dpiSupported(spec.kind, spec.dpi)) {
     return page;
   }
   checkAngle(spec.skewDeg);
@@ -646,7 +699,7 @@ GeneratedPage generatePage(const PageSpec& spec) {
 
 QImage renderInkMask(const PageSpec& spec, const int targetDpi, const double extraRotationDeg) {
   checkAngle(extraRotationDeg);
-  if (!dpiSupported(spec.dpi) || !dpiSupported(targetDpi)) {
+  if (!dpiSupported(spec.kind, spec.dpi) || !dpiSupported(spec.kind, targetDpi)) {
     return QImage();
   }
   // The text depends on the seed only, so the layout at the target dpi is the page at that dpi.
@@ -696,7 +749,7 @@ QByteArray fingerprint(const QImage& image) {
 }
 
 QPointF mapFlatToImage(const PageSpec& spec, const QPointF& flatPoint) {
-  if (!dpiSupported(spec.dpi)) {
+  if (!dpiSupported(spec.kind, spec.dpi)) {
     throw std::invalid_argument("mapFlatToImage: unsupported dpi");
   }
   const Geometry g = computeGeometry(spec.kind, spec.dpi);
@@ -708,7 +761,7 @@ QPointF mapFlatToImage(const PageSpec& spec, const QPointF& flatPoint) {
 }
 
 QPointF mapImageToFlat(const PageSpec& spec, const QPointF& imagePoint) {
-  if (!dpiSupported(spec.dpi)) {
+  if (!dpiSupported(spec.kind, spec.dpi)) {
     throw std::invalid_argument("mapImageToFlat: unsupported dpi");
   }
   const Geometry g = computeGeometry(spec.kind, spec.dpi);

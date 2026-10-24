@@ -12,6 +12,7 @@
 #include <QString>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <exception>
 #include <map>
 #include <string>
 #include <tuple>
@@ -91,6 +92,40 @@ double xAtY(const QLineF& line, const double y) {
 
 bool near(const double a, const double b, const double tolerance) {
   return std::fabs(a - b) <= tolerance;
+}
+
+const int kSweepDpis[] = {75, 90, 100, 150, 200, 225, 450};
+
+// Whether the generator must render a page for the kind at a sweep dpi (see test_dpi_sweep_gives_valid_or_null_page).
+bool sweepExpectsPage(const PageKind kind, const int dpi) {
+  if (kind == PageKind::FLAT) {
+    return dpi != 90;
+  }
+  return dpi == 75 || dpi == 200;
+}
+
+// Unlike QRect::contains, an empty rectangle (a speck of side 0 at 75 dpi) counts as inside when it sits on the page.
+bool insidePage(const QRect& r, const QSize& page) {
+  return r.left() >= 0 && r.top() >= 0 && r.right() < page.width() && r.bottom() < page.height();
+}
+
+// An exception from the generator becomes a check failure naming kind and dpi.
+const GeneratedPage* sweepPage(const PageSpec& spec) {
+  try {
+    return &cachedPage(spec);
+  } catch (const std::exception& e) {
+    BOOST_ERROR(label(spec) << ": generatePage threw: " << e.what());
+    return nullptr;
+  }
+}
+
+QImage sweepMask(const PageSpec& spec, const int targetDpi) {
+  try {
+    return test_support::renderInkMask(spec, targetDpi, 0.0);
+  } catch (const std::exception& e) {
+    BOOST_ERROR(label(spec) << " at target dpi " << targetDpi << ": renderInkMask threw: " << e.what());
+    return QImage();
+  }
 }
 
 }  // namespace
@@ -417,6 +452,68 @@ BOOST_AUTO_TEST_CASE(test_pinned_pages_unchanged) {
                     "cddf2d048f0f61cb10d9283730f0c4e9d8138fc6bd41fdea0a7133d9f5485942");
   BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::CURVED, 600)).image).toStdString(),
                     "d7e6fb18871c11675c4909a2e93275102bac3a8b37768dd82fd86ca771c70096");
+}
+
+BOOST_AUTO_TEST_CASE(test_dpi_sweep_gives_valid_or_null_page) {
+  // The generator accepts a dpi only where the rounded geometry fits the page and the documented frames.  The
+  // expectation below comes from a reproduction of the geometry computation at planning time: FLAT fits at
+  // every sweep dpi but 90, the other kinds only at 75 and 200.
+  for (const PageKind kind : kKinds) {
+    for (const int dpi : kSweepDpis) {
+      const PageSpec spec = makeSpec(kind, dpi);
+      const GeneratedPage* const page = sweepPage(spec);
+      if (!page) {
+        continue;
+      }
+      const QImage maskOfSpec = sweepMask(spec, dpi);
+      const QImage maskAtTarget = sweepMask(makeSpec(kind, 300), dpi);
+
+      if (!sweepExpectsPage(kind, dpi)) {
+        BOOST_CHECK_MESSAGE(page->image.isNull(), label(spec) << ": a page was rendered for a dpi that does not fit");
+        BOOST_CHECK_MESSAGE(page->truth.dpi == 0, label(spec) << ": truth.dpi is " << page->truth.dpi);
+        BOOST_CHECK_MESSAGE(maskOfSpec.isNull(), label(spec) << ": mask of a dpi that does not fit");
+        BOOST_CHECK_MESSAGE(maskAtTarget.isNull(), kindName(kind)
+                                                       << ": mask of the 300 dpi spec at target dpi " << dpi);
+        continue;
+      }
+
+      const test_support::GroundTruth& t = page->truth;
+      BOOST_REQUIRE_MESSAGE(!page->image.isNull(), label(spec) << ": null image for a dpi that fits");
+      BOOST_CHECK_EQUAL(t.dpi, dpi);
+      BOOST_CHECK_MESSAGE(page->image.size() == t.pageSize, label(spec) << ": image size differs from truth.pageSize");
+      BOOST_CHECK_MESSAGE(insidePage(t.textBlock, t.pageSize) && !t.textBlock.isEmpty(),
+                          label(spec) << ": text block is not inside the page");
+
+      if (kind == PageKind::SPREAD) {
+        BOOST_CHECK_MESSAGE(insidePage(t.leftBlock, t.pageSize) && insidePage(t.rightBlock, t.pageSize),
+                            label(spec) << ": a block is not inside the page");
+        const double gutterX = xAtY(t.gutterCentre, t.pageSize.height() / 2.0);
+        BOOST_CHECK_MESSAGE(t.leftBlock.right() < gutterX - t.gutterHalfWidthPx + 1,
+                            label(spec) << ": the left block reaches into the gutter band");
+        BOOST_CHECK_MESSAGE(t.rightBlock.left() > gutterX + t.gutterHalfWidthPx - 1,
+                            label(spec) << ": the right block reaches into the gutter band");
+      }
+
+      if (kind == PageKind::MIXED) {
+        const int margin = scaled(20, dpi);
+        BOOST_CHECK_MESSAGE(insidePage(t.pictureRect, t.pageSize), label(spec) << ": picture is not inside the page");
+        BOOST_CHECK_MESSAGE(!t.textBlock.intersects(t.pictureRect), label(spec) << ": picture overlaps the text");
+        const QRect farFromText = t.textBlock.adjusted(-margin, -margin, margin, margin);
+        const QRect farFromPicture = t.pictureRect.adjusted(-margin, -margin, margin, margin);
+        BOOST_CHECK_EQUAL(t.specks.size(), 40u);
+        for (size_t i = 0; i < t.specks.size(); ++i) {
+          BOOST_CHECK_MESSAGE(insidePage(t.specks[i], t.pageSize), label(spec)
+                                                                       << ": speck " << i << " is outside the page");
+          BOOST_CHECK_MESSAGE(!t.specks[i].intersects(farFromText) && !t.specks[i].intersects(farFromPicture),
+                              label(spec) << ": speck " << i << " is within " << margin << " px of text or picture");
+        }
+      }
+
+      BOOST_REQUIRE_MESSAGE(!maskOfSpec.isNull(), label(spec) << ": null ink mask for a dpi that fits");
+      BOOST_CHECK_MESSAGE(maskOfSpec.format() == QImage::Format_Grayscale8, label(spec) << ": mask is not Grayscale8");
+      BOOST_CHECK_MESSAGE(maskOfSpec.size() == t.pageSize, label(spec) << ": mask size differs from the page");
+    }
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

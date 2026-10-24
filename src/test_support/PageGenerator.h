@@ -50,6 +50,15 @@ struct PageSpec {
   double skewDeg = 0.0;
 };
 
+/**
+ * Whether the generator renders a page of the kind at the dpi.  True only for 75 <= dpi <= 1200 where, with every
+ * length rounded to whole pixels, each text block lies inside the page and inside its documented frame (FLAT has
+ * no frame) and the MIXED picture lies inside the page.  Rounding the 5 base px glyph dot up (at 150 and 225 dpi,
+ * for one) makes a block outgrow its frame, so such dpi values are refused rather than drawn with a wrong ground
+ * truth or a write outside the raster.  75, 300, 600 and 1200 dpi are always supported.
+ */
+bool dpiSupported(PageKind kind, int dpi);
+
 struct GroundTruth {
   int dpi = 0;  // 0 for a spec that produced no page
   double skewDeg = 0.0;
