@@ -36,7 +36,12 @@ covered_files:
   - src/test_support/Tolerances.h
 covered_digest: "v3:sha256:9db51775172b31a37145c96da0eb32d326445fbda17d71e988d1b56c51582e22"
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 1
+overrides:
+  - must_have: "Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it"
+    reason: "No v1 requirement covers F-04-1, F-04-2, F-05-1, F-06-1 or F-07-1, and Phase 2 records defects without fixing them (D-18). Each XFAIL_CHECK tag says 'no requirement' and carries its finding code; 02-FINDINGS.md maps each code to its backlog item (999.1, 999.2, 999.3, 999.4, 999.6). The intent of the criterion (known defects do not break the run, stay traceable, and trip when fixed) holds."
+    accepted_by: "Claude (decision delegated by Christoph Nicolai during UAT)"
+    accepted_at: "2026-10-24T13:45:30Z"
 human_verification:
   - test: "Decide whether roadmap criterion 5 is met by the wording 'no requirement' in every XFAIL tag"
     expected: "Criterion 5 asks that each expected failure 'names the requirement that will fix it'. No requirement in Phases 3 to 6 covers F-04-1, F-04-2, F-05-1, F-06-1, F-07-1, so all five tags say 'no requirement' and each has backlog item 999.x. Accept this as meeting the criterion (then add an override), or ask for the criterion to be reworded."

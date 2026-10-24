@@ -29,33 +29,33 @@ findings:
     title: "Text goldens are written without checking that they parse back"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: deferred
     title: "Stale and misleading constants comment in the book suite"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: deferred
     title: "`areaAverageReference` can read one row/column past the source if sizes change"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: deferred
     title: "The NFD file name depends on raw combining bytes in the source file"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: deferred
     title: "Nearly identical sanity and reporting code in three scenario files"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: deferred
     title: "Test code carries plan and decision identifiers that mean nothing outside `.planning`"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: deferred
     title: "`ExpectedFailure.h` is included but unused"
   - id: IN-07
     severity: info
-    disposition: open
+    disposition: deferred
     title: "The test sources need Qt 6.5 and Boost headers, but the build still advertises a Qt 5 fallback"
-open: 13
+open: 6
 total: 13
 recorded: 2026-10-23T21:27:23.648Z
 ---
@@ -70,13 +70,13 @@ recorded: 2026-10-23T21:27:23.648Z
 | WR-03 | warning | open | - |
 | WR-04 | warning | open | - |
 | WR-05 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
+| IN-01 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
+| IN-02 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
+| IN-03 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
+| IN-04 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
+| IN-05 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
+| IN-06 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
+| IN-07 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
