@@ -3,7 +3,7 @@ set(sources main.cpp TestDistortionModel.cpp TestCylindricalDewarper.cpp TestTex
 add_executable(dewarping_tests ${sources})
 target_link_libraries(
     dewarping_tests
-    PRIVATE dewarping imageproc math foundation test_support ${Qt_Xml_lib} ${Qt_Gui_lib} ${Qt_Core_lib}
+    PRIVATE dewarping imageproc math foundation test_support Qt6::Xml Qt6::Gui Qt6::Core
     Boost::unit_test_framework ${EXTRA_LIBS})
 
 add_test(NAME dewarping_tests COMMAND dewarping_tests --log_level=message)

@@ -3,7 +3,7 @@ file(GLOB pipeline_tests_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/
 add_executable(pipeline_tests ${pipeline_tests_sources})
 target_link_libraries(
     pipeline_tests
-    PRIVATE core dewarping test_support ${Qt_Widgets_lib} ${Qt_Xml_lib} Boost::unit_test_framework ${EXTRA_LIBS})
+    PRIVATE core dewarping test_support Qt6::Widgets Qt6::Xml Boost::unit_test_framework ${EXTRA_LIBS})
 target_compile_definitions(
     pipeline_tests
     PRIVATE GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/golden"
