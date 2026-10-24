@@ -93,3 +93,19 @@ if (Qt6_FOUND AND WIN32)
 endif()
 
 translation_sources(${target_name} ${gui_only_sources} ${gui_only_ui_files})
+
+# Offscreen UI snapshot tool for Phase 3 D-12; built with the tests, not registered with ctest (TESTING.md lists
+# seven suites).
+if (BUILD_TESTS)
+  set(ui_snapshot_sources ${gui_only_sources})
+  list(REMOVE_ITEM ui_snapshot_sources main.cpp)
+  add_executable(
+      ui_snapshot ui_snapshot/main.cpp ${ui_snapshot_sources}
+      ${gui_only_ui_files} ${resource_files})
+  target_link_libraries(ui_snapshot PRIVATE core)
+  target_include_directories(
+      ui_snapshot
+      PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+      "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
+  target_compile_definitions(ui_snapshot PRIVATE UI_SNAPSHOT_ROOT="${CMAKE_SOURCE_DIR}/build")
+endif()
