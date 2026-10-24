@@ -495,6 +495,26 @@ BOOST_AUTO_TEST_CASE(test_text_that_cannot_round_trip_is_refused) {
   BOOST_CHECK_MESSAGE(normalValue.message == value.message, normalValue.message.toStdString());
   BOOST_CHECK(snapshotOf(roots.goldenPath()).empty());
   BOOST_CHECK_MESSAGE(snapshotOf(roots.artifactPath()).empty(), "normal mode left an artifact for refused values");
+
+  QString offender;
+  BOOST_CHECK(textRoundTrips(TextValues(), &offender));
+  BOOST_CHECK(textRoundTrips(TextValues{{"a", "1"}, {"expr", "x = y"}, {"empty", ""}}, nullptr));
+
+  const struct {
+    TextValues values;
+    const char* offender;
+  } refused[] = {
+      {TextValues{{"a = b", "1"}}, "a = b"},
+      {TextValues{{"ok", "1"}, {"multi", "1\n2"}}, "multi"},
+      {TextValues{{"line\nkey", "1"}}, "line\nkey"},
+      {TextValues{{"", "1"}}, ""},
+  };
+  for (const auto& c : refused) {
+    offender = "unset";
+    BOOST_CHECK(!textRoundTrips(c.values, &offender));
+    BOOST_CHECK_MESSAGE(offender == QString(c.offender), "offending key: '" << offender.toStdString() << "'");
+    BOOST_CHECK(!textRoundTrips(c.values, nullptr));
+  }
 }
 
 BOOST_AUTO_TEST_CASE(test_sanity_failure_blocks_write) {

@@ -88,6 +88,21 @@ TextValues parseText(const QByteArray& data, bool* ok) {
   return values;
 }
 
+bool textRoundTrips(const TextValues& values, QString* offendingKey) {
+  for (const auto& entry : values) {
+    const TextValues single{entry};
+    bool ok = false;
+    const TextValues parsed = parseText(serializeText(single), &ok);
+    if (!ok || parsed != single) {
+      if (offendingKey) {
+        *offendingKey = entry.first;
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
 CompareResult compareText(const TextValues& expected, const TextValues& actual) {
   CompareResult result{true, {}, QImage()};
 

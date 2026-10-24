@@ -306,6 +306,15 @@ GoldenStore::Outcome GoldenStore::checkText(const QString& suite,
     return outcome;
   }
 
+  QString offendingKey;
+  if (!textRoundTrips(actual, &offendingKey)) {
+    outcome.message = QString(
+                          "text values for %1/%2 cannot be stored: key '%3' does not survive serializeText and "
+                          "parseText (keys must not contain \" = \" or a line break, values no line break)")
+                          .arg(suite, name, offendingKey);
+    return outcome;
+  }
+
   const QString path = m_goldenRoot + "/" + suite + "/" + name + ".txt";
   const QString folder = m_artifactRoot + "/" + suite + "/" + name;
   SuiteManifest manifest(m_goldenRoot, suite, m_handledSuites);

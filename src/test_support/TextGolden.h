@@ -12,7 +12,8 @@
 
 namespace test_support {
 
-/// Stage decisions as readable key/value pairs.  Keys must not contain " = " or line breaks, values no line breaks.
+/// Stage decisions as readable key/value pairs.  Keys must not be empty or contain " = " or line breaks, values no line
+/// breaks.  GoldenStore::checkText refuses values that break this (textRoundTrips).
 using TextValues = std::map<QString, QString>;
 
 /// QString::number(value, 'f', decimals), independent of the process locale; a negative zero prints without sign.
@@ -24,6 +25,10 @@ QByteArray serializeText(const TextValues& values);
 /// Inverse of serializeText.  *ok (when given) is false for a line without " = ", an empty key or a repeated key; the
 /// result is then empty.
 TextValues parseText(const QByteArray& data, bool* ok);
+
+/// True when every entry survives serializeText and parseText on its own.  Otherwise false, and *offendingKey (when
+/// given) is the first such key in key order.
+bool textRoundTrips(const TextValues& values, QString* offendingKey);
 
 /**
  * Per-key tolerance by key suffix: _deg, _px and _mm are numbers compared with the D-14 limits from Tolerances.h
