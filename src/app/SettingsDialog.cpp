@@ -50,16 +50,6 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   ui.tiffCompressionColorBox->addItem(tr("JPEG"), COMPRESSION_JPEG);
   ui.tiffCompressionColorBox->setCurrentIndex(ui.tiffCompressionColorBox->findData(settings.getTiffColorCompression()));
 
-  {
-    auto* app = static_cast<Application*>(qApp);
-    for (const QString& locale : app->getLanguagesList()) {
-      QString languageName = QLocale::languageToString(QLocale(locale).language());
-      ui.languageBox->addItem(languageName, locale);
-    }
-    ui.languageBox->setCurrentIndex(ui.languageBox->findData(app->getCurrentLocale()));
-    ui.languageBox->setEnabled(ui.languageBox->count() > 1);
-  }
-
   ui.blackOnWhiteDetectionCB->setChecked(settings.isBlackOnWhiteDetectionEnabled());
   ui.blackOnWhiteDetectionAtOutputCB->setEnabled(ui.blackOnWhiteDetectionCB->isChecked());
   ui.blackOnWhiteDetectionAtOutputCB->setChecked(settings.isBlackOnWhiteDetectionOutputEnabled());
@@ -97,7 +87,6 @@ void SettingsDialog::commitChanges() {
 
   settings.setTiffBwCompression(ui.tiffCompressionBWBox->currentData().toInt());
   settings.setTiffColorCompression(ui.tiffCompressionColorBox->currentData().toInt());
-  settings.setLanguage(ui.languageBox->currentData().toString());
 
   settings.setDeskewDeviationCoef(ui.deskewDeviationCoefSB->value());
   settings.setDeskewDeviationThreshold(ui.deskewDeviationThresholdSB->value());

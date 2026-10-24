@@ -25,7 +25,6 @@ const double ApplicationSettings::DEFAULT_MARGINS_DEVIATION_THRESHOLD = 1.0;
 const QSize ApplicationSettings::DEFAULT_THUMBNAIL_QUALITY = QSize(200, 200);
 const QSizeF ApplicationSettings::DEFAULT_MAX_LOGICAL_THUMBNAIL_SIZE = QSizeF(250, 160);
 const bool ApplicationSettings::DEFAULT_SINGLE_COLUMN_THUMBNAIL_DISPLAY = false;
-const QString ApplicationSettings::DEFAULT_LANGUAGE = QLocale::system().name();
 const QString ApplicationSettings::DEFAULT_UNITS = "mm";
 const QString ApplicationSettings::DEFAULT_PROFILE = "Default";
 const bool ApplicationSettings::DEFAULT_SHOW_CANCELING_SELECTION_QUESTION = true;
@@ -48,7 +47,6 @@ const QString ApplicationSettings::MARGINS_DEVIATION_THRESHOLD_KEY = "margins_de
 const QString ApplicationSettings::THUMBNAIL_QUALITY_KEY = "thumbnail_quality";
 const QString ApplicationSettings::MAX_LOGICAL_THUMBNAIL_SIZE_KEY = "max_logical_thumb_size";
 const QString ApplicationSettings::SINGLE_COLUMN_THUMBNAIL_DISPLAY_KEY = "single_column_thumbnail_display";
-const QString ApplicationSettings::LANGUAGE_KEY = "language";
 const QString ApplicationSettings::UNITS_KEY = "units";
 const QString ApplicationSettings::CURRENT_PROFILE_KEY = "current_profile";
 const QString ApplicationSettings::SHOW_CANCELING_SELECTION_QUESTION_KEY = "selection_canceling_question";
@@ -205,14 +203,6 @@ bool ApplicationSettings::isSingleColumnThumbnailDisplayEnabled() const {
 
 void ApplicationSettings::setSingleColumnThumbnailDisplayEnabled(bool enabled) {
   m_settings.setValue(getKey(SINGLE_COLUMN_THUMBNAIL_DISPLAY_KEY), enabled);
-}
-
-QString ApplicationSettings::getLanguage() const {
-  return m_settings.value(getKey(LANGUAGE_KEY), DEFAULT_LANGUAGE).toString();
-}
-
-void ApplicationSettings::setLanguage(const QString& language) {
-  m_settings.setValue(getKey(LANGUAGE_KEY), language);
 }
 
 QString ApplicationSettings::getUnits() const {

@@ -28,8 +28,6 @@ int main(int argc, char* argv[]) {
   QSettings::setDefaultFormat(QSettings::IniFormat);
   QSettings settings;
 
-  app.installLanguage(ApplicationSettings::getInstance().getLanguage());
-
   {
     std::unique_ptr<ColorScheme> scheme
         = ColorSchemeFactory().create(ApplicationSettings::getInstance().getColorScheme());

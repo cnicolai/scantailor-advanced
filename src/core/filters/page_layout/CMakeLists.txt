@@ -24,5 +24,3 @@ set(sources
 
 add_library(page_layout STATIC ${sources} ${ui_files})
 target_link_libraries(page_layout PUBLIC core)
-
-translation_sources(scantailor ${sources} ${ui_files})

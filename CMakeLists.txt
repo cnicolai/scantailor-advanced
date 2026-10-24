@@ -55,7 +55,6 @@ endif()
 option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
 
 include(cmake/SetDefaultBuildType.cmake)
-include(cmake/UpdateTranslations.cmake)
 include(cmake/ListItemsPrepend.cmake)
 
 st_set_default_build_type(Release)
@@ -103,7 +102,7 @@ endif()
 
 #=================================== Qt ===================================#
 
-find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)
+find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)
 
 #=================================== Threads ===================================#
 
@@ -121,8 +120,6 @@ endif()
 
 # Prepare config.h
 set(APPLICATION_NAME "${target_name}")
-set(TRANSLATION_DIRS ".:translations:../share/${APPLICATION_NAME}/translations")
-set(PLUGIN_DIRS ".:../lib/${APPLICATION_NAME}")
 configure_file(config.h.in "${CMAKE_BINARY_DIR}/config.h" @ONLY)
 file(READ "${CMAKE_BINARY_DIR}/config.h" config_h_contents)
 set(enable_developer_version_default OFF)
@@ -156,16 +153,5 @@ endif()
 configure_file(version.h.in "${CMAKE_BINARY_DIR}/version.h" COPYONLY)
 
 set(SCANTAILOR_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/src/resources")
-set(SCANTAILOR_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/src/translations")
 
 add_subdirectory(src)
-
-# Translations
-file(GLOB translation_files "${SCANTAILOR_TRANSLATIONS_DIR}/${target_name}_*.ts")
-
-finalize_translations(scantailor ${translation_files})
-update_translations_target(update_translations scantailor)
-
-list(FILTER translation_files EXCLUDE REGEX ".*untranslated.ts")
-Qt_add_translation(qm_files ${translation_files})
-add_custom_target(compile_translations ALL DEPENDS ${qm_files})

@@ -88,10 +88,6 @@ class ApplicationSettings {
 
   void setSingleColumnThumbnailDisplayEnabled(bool enabled);
 
-  QString getLanguage() const;
-
-  void setLanguage(const QString& language);
-
   QString getUnits() const;
 
   void setUnits(const QString& units);
@@ -134,7 +130,6 @@ class ApplicationSettings {
   static const QSize DEFAULT_THUMBNAIL_QUALITY;
   static const QSizeF DEFAULT_MAX_LOGICAL_THUMBNAIL_SIZE;
   static const bool DEFAULT_SINGLE_COLUMN_THUMBNAIL_DISPLAY;
-  static const QString DEFAULT_LANGUAGE;
   static const QString DEFAULT_UNITS;
   static const QString DEFAULT_PROFILE;
   static const bool DEFAULT_SHOW_CANCELING_SELECTION_QUESTION;
@@ -157,7 +152,6 @@ class ApplicationSettings {
   static const QString THUMBNAIL_QUALITY_KEY;
   static const QString MAX_LOGICAL_THUMBNAIL_SIZE_KEY;
   static const QString SINGLE_COLUMN_THUMBNAIL_DISPLAY_KEY;
-  static const QString LANGUAGE_KEY;
   static const QString UNITS_KEY;
   static const QString CURRENT_PROFILE_KEY;
   static const QString SHOW_CANCELING_SELECTION_QUESTION_KEY;

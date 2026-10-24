@@ -6,7 +6,6 @@
 
 #include <QApplication>
 #include <QTimer>
-#include <QtCore/QTranslator>
 
 class Application : public QApplication {
   Q_OBJECT
@@ -15,20 +14,8 @@ class Application : public QApplication {
 
   bool notify(QObject* receiver, QEvent* e) override;
 
-  const QString& getCurrentLocale() const;
-
-  void installLanguage(const QString& locale);
-
-  std::list<QString> getLanguagesList() const;
-
  private:
-  void initTranslations();
-
   void loadFonts();
-
-  QTranslator m_translator;
-  QString m_currentLocale;
-  std::map<QString, QString> m_translationsMap;
 };
 
 

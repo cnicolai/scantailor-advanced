@@ -1530,8 +1530,6 @@ void MainWindow::onSettingsChanged() {
   ApplicationSettings& settings = ApplicationSettings::getInstance();
   bool needInvalidate = true;
 
-  static_cast<Application*>(qApp)->installLanguage(settings.getLanguage());
-
   if (m_thumbnailCache) {
     const QSize maxThumbSize = settings.getThumbnailQuality();
     if (m_thumbnailCache->getMaxThumbSize() != maxThumbSize) {

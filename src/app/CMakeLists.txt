@@ -57,7 +57,6 @@ target_include_directories(
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
     "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
 
-translation_sources(${target_name} ${gui_only_sources} ${gui_only_ui_files})
 
 # Offscreen UI snapshot tool for Phase 3 D-12; built with the tests, not registered with ctest (TESTING.md lists
 # seven suites).
