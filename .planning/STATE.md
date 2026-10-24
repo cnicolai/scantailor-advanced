@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
-status: executing
-stopped_at: Completed 02-13-PLAN.md
-last_updated: "2026-10-24T15:17:05.747Z"
+status: verifying
+stopped_at: Completed 02-14-PLAN.md
+last_updated: "2026-10-24T15:29:20.064Z"
 last_activity: 2026-10-24
 last_activity_desc: Phase 02 execution started
-state_head: 6f6252545c5ff101f2f3b0ec6d51c5d87d58b809
+state_head: c4349a8ceaf1ba148d2a3b21c53ea77b89fea4e7
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 milestone_name: macOS
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 
 Phase: 02 (Golden Baselines) — EXECUTING
 Plan: 14 of 14
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-24 — Phase 02 execution started
 
 Progress: [██░░░░░░░░] 17%
@@ -77,6 +77,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P11 | 5 min | 2 tasks | 1 files |
 | Phase 02 P12 | 12 min | 2 tasks | 4 files |
 | Phase 02 P13 | 4 min | 3 tasks | 5 files |
+| Phase 02 P14 | 9 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-12: dpi fit rule computed from the scaled geometry (ink box inside page and documented frame), not a divisibility rule; raster guards compare coordinates because a side-0 speck at 75 dpi is a null QRect
 - [Phase 02]: 02-13: textRoundTrips checks each text golden entry on its own; GoldenStore::checkText refuses non-round-tripping values in both modes before any read or write
 - [Phase 02]: 02-13: SuiteManifest marks a suite handled only after its manifest is on disk, so a failed manifest write fails every later golden of the suite
+- [Phase 02]: 02-14: page-split value asserted against the file-format string single-uncut in both written files; spread page cache is a std::map so handed-out references stay valid
 
 ### Pending Todos
 
@@ -153,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T15:17:05.649Z
-Stopped at: Completed 02-13-PLAN.md
+Last session: 2026-10-24T15:29:19.955Z
+Stopped at: Completed 02-14-PLAN.md
 Resume file: None
