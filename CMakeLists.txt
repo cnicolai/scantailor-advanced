@@ -24,27 +24,6 @@ project("ScanTailor Advanced")
 set(CMAKE_CXX_STANDARD 17)
 
 if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
-  if (MSVC)
-    option(WIN_XP "Whether to build for Windows XP." OFF)
-    if (WIN_XP)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D_USING_V110_SDK71_")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_USING_V110_SDK71_")
-      set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:CONSOLE,5.01 /SUBSYSTEM:WINDOWS,5.01 ${CMAKE_EXE_LINKER_FLAGS}")
-    endif()
-
-    # Disable checked iterators for extra performance.
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D_SECURE_SCL=0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SECURE_SCL=0")
-
-    if (DEBUG_CLI)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DDEBUG_CLI")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DDEBUG_CLI")
-    endif()
-  elseif (WIN_XP)
-    unset(WIN_XP CACHE)
-    message(WARNING "Only MSVC toolchain is supported to build for Windows XP.")
-  endif()
-
   if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused")
@@ -86,10 +65,6 @@ endif()
 include(cmake/SetDefaultBuildType.cmake)
 include(cmake/UpdateTranslations.cmake)
 include(cmake/ListItemsPrepend.cmake)
-if (WIN32)
-  include(cmake/CopyToBuildDir.cmake)
-  include(cmake/AddDynamicLibraryLocations.cmake)
-endif()
 
 st_set_default_build_type(Release)
 
@@ -100,116 +75,26 @@ if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
 
-#=================================== Dependencies ===================================#
-
-if (WIN32)
-  macro(real_path_find_glob Var Glob)
-    file(GLOB ${Var} "${Glob}")
-    if (${Var})
-      list(GET ${Var} -1 ${Var})
-      get_filename_component("${Var}" "${${Var}}" REALPATH)
-    endif()
-  endmacro()
-
-  get_filename_component(lib_dir "${PROJECT_SOURCE_DIR}/../libs" REALPATH)
-  set(DEPENDENCIES_ROOT "${lib_dir}" CACHE PATH
-      "The assumed directory where all the required libraries are installed.")
-  if (EXISTS "${DEPENDENCIES_ROOT}")
-    real_path_find_glob(jpeg_dir_assumed "${DEPENDENCIES_ROOT}/jpeg-[0-9]*")
-    real_path_find_glob(zlib_dir_assumed "${DEPENDENCIES_ROOT}/zlib-[0-9]*.[0-9]*.[0-9]*")
-    real_path_find_glob(png_dir_assumed "${DEPENDENCIES_ROOT}/libpng-[0-9]*.[0-9]*.[0-9]*")
-    real_path_find_glob(tiff_dir_assumed "${DEPENDENCIES_ROOT}/tiff-[0-9]*.[0-9]*.[0-9]*")
-    get_filename_component(qt_dir_assumed "${DEPENDENCIES_ROOT}/Qt" REALPATH)
-    get_filename_component(boost_dir_assumed "${DEPENDENCIES_ROOT}/Boost" REALPATH)
-  endif()
-  set(JPEG_INSTALL_PREFIX "${jpeg_dir_assumed}" CACHE PATH "Prefix where jpeg is installed")
-  set(ZLIB_INSTALL_PREFIX "${zlib_dir_assumed}" CACHE PATH "Prefix where zlib is installed")
-  set(PNG_INSTALL_PREFIX "${png_dir_assumed}" CACHE PATH "Prefix where png is installed")
-  set(TIFF_INSTALL_PREFIX "${tiff_dir_assumed}" CACHE PATH "Prefix where tiff is installed")
-  set(QT_INSTALL_PREFIX "${qt_dir_assumed}" CACHE PATH "Prefix where Qt is installed")
-  set(BOOST_ROOT "${boost_dir_assumed}" CACHE PATH "Prefix where Boost is installed")
-
-  macro(list_append_existing_path Var Path)
-    get_filename_component(_real_path "${Path}" REALPATH)
-    if (EXISTS "${_real_path}")
-      list(APPEND "${Var}" "${_real_path}")
-    endif()
-  endmacro()
-
-  foreach(_prefix
-      "${JPEG_INSTALL_PREFIX}" "${ZLIB_INSTALL_PREFIX}" "${PNG_INSTALL_PREFIX}"
-      "${TIFF_INSTALL_PREFIX}" "${QT_INSTALL_PREFIX}" "${BOOST_ROOT}")
-    list_append_existing_path(CMAKE_PREFIX_PATH "${_prefix}")
-    list_append_existing_path(CMAKE_INCLUDE_PATH "${_prefix}")
-    list_append_existing_path(CMAKE_LIBRARY_PATH "${_prefix}/stage/lib")
-  endforeach()
-  list_append_existing_path(CMAKE_INCLUDE_PATH "${TIFF_INSTALL_PREFIX}/libtiff")
-endif()
-
 #=================================== JPEG ===================================#
 
 find_package(JPEG REQUIRED)
-
-if (WIN32)
-  add_dynamic_library_locations(JPEG::JPEG "libjpeg-62.dll")
-endif()
 
 #=================================== ZLIB ===================================#
 
 find_package(ZLIB REQUIRED)
 
-if (WIN32)
-  add_dynamic_library_locations(ZLIB::ZLIB)
-endif()
-
 #================================== PNG ==================================#
 
 find_package(PNG REQUIRED)
-
-if (WIN32)
-  add_dynamic_library_locations(PNG::PNG "libpng16.dll")
-endif()
 
 #=================================== TIFF ===================================#
 
 find_package(TIFF REQUIRED)
 
-if (WIN32)
-  add_dynamic_library_locations(TIFF::TIFF)
-  set_target_properties(
-      TIFF::TIFF PROPERTIES
-      INTERFACE_COMPILE_DEFINITIONS USE_LIBTIFF_DLL)
-endif()
-
 #================================= Boost ================================#
 
 #set(Boost_NO_WARN_NEW_VERSIONS ON)
 
-if (WIN32)
-  if (MINGW)
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-      set(_boost_architecture "-x64")
-    else()
-      set(_boost_architecture "-x32")
-    endif()
-    set(Boost_ARCHITECTURE ${_boost_architecture} CACHE STRING "")
-
-    #set(Boost_DEBUG ON)
-    string(REGEX MATCHALL "[0-9]+" _boost_compiler_version ${CMAKE_CXX_COMPILER_VERSION})
-    list(GET _boost_compiler_version 0 _boost_compiler_version_major)
-    list(GET _boost_compiler_version 1 _boost_compiler_version_minor)
-    set(Boost_COMPILER "-mgw${_boost_compiler_version_major}" CACHE STRING "")
-  endif()
-
-  real_path_find_glob(boost_include_dir_hints "${BOOST_ROOT}/include/boost-[_0-9]*/boost")
-  list(APPEND boost_include_dir_hints "${BOOST_ROOT}/include/boost" "${BOOST_ROOT}/boost")
-  find_path(
-      BOOST_INCLUDEDIR config.hpp
-      HINTS ${boost_include_dir_hints}
-      DOC "Boost include directory.")
-
-  set(Boost_USE_STATIC_LIBS ON)
-endif()
 set(Boost_USE_MULTITHREADED ON)
 
 if (BUILD_TESTS)
@@ -221,12 +106,7 @@ endif()
 include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(-DBOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
 if (BUILD_TESTS)
-  if (NOT Boost_USE_STATIC_LIBS)
-    if (WIN32)
-      add_dynamic_library_locations(Boost::unit_test_framework)
-    endif()
-    add_definitions(-DBOOST_TEST_DYN_LINK)
-  endif()
+  add_definitions(-DBOOST_TEST_DYN_LINK)
 endif()
 
 #=================================== Qt ===================================#
@@ -241,20 +121,9 @@ if (UNIX)
   link_libraries(Threads::Threads)
 endif()
 
-#=================================== System ===================================#
-
-set(EXTRA_LIBS "")
-if (WIN32)
-  list(APPEND EXTRA_LIBS winmm imm32 ws2_32 ole32 oleaut32 uuid gdi32 comdlg32 winspool)
-endif()
-
 #=================================== Main ===================================#
 
 set(CMAKE_AUTOMOC ON)
-
-if (WIN32 AND MSVC)
-  add_definitions(-DNOMINMAX)
-endif()
 
 if (BUILD_TESTS)
   enable_testing()
@@ -266,13 +135,8 @@ if (PORTABLE_VERSION)
   set(PORTABLE_CONFIG_DIR "config")
 endif()
 set(APPLICATION_NAME "${target_name}")
-if (WIN32)
-  set(TRANSLATION_DIRS ".:translations")
-  set(PLUGIN_DIRS ".")
-else()
-  set(TRANSLATION_DIRS ".:translations:../share/${APPLICATION_NAME}/translations")
-  set(PLUGIN_DIRS ".:../lib/${APPLICATION_NAME}")
-endif()
+set(TRANSLATION_DIRS ".:translations:../share/${APPLICATION_NAME}/translations")
+set(PLUGIN_DIRS ".:../lib/${APPLICATION_NAME}")
 configure_file(config.h.in "${CMAKE_BINARY_DIR}/config.h" @ONLY)
 file(READ "${CMAKE_BINARY_DIR}/config.h" config_h_contents)
 set(enable_developer_version_default OFF)
@@ -304,9 +168,6 @@ if ("${VERSION_QUAD}" STREQUAL "${version_h_contents}")
   message(FATAL_ERROR "Failed to extract VERSION_QUAD from version.h")
 endif()
 configure_file(version.h.in "${CMAKE_BINARY_DIR}/version.h" COPYONLY)
-string(REGEX REPLACE "([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" APPLICATION_VERSION_MAJOR "${VERSION}")
-string(REGEX REPLACE "[0-9]+\\.([0-9]+)\\.[0-9]+" "\\1" APPLICATION_VERSION_MINOR "${VERSION}")
-string(REGEX REPLACE "[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" APPLICATION_VERSION_PATCH "${VERSION}")
 
 set(SCANTAILOR_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 set(SCANTAILOR_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/src/translations")

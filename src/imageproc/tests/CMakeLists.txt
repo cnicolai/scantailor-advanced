@@ -23,6 +23,6 @@ add_executable(imageproc_tests ${sources})
 target_link_libraries(
     imageproc_tests
     PRIVATE imageproc math foundation test_support Qt6::Widgets Qt6::Xml
-    Boost::unit_test_framework ${EXTRA_LIBS})
+    Boost::unit_test_framework)
 
 add_test(NAME imageproc_tests COMMAND imageproc_tests --log_level=message)
