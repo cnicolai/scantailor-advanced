@@ -19,7 +19,7 @@
 namespace {
 
 /**
- * Creates the core Application (not a plain QApplication: DefaultParamsProfileManager casts qApp to it)
+ * Creates the core Application (the class the application itself uses)
  * offscreen, with settings and temporary files redirected into the build tree.  Everything the tests
  * need from the environment is set here with qputenv before the application object exists, so a direct
  * run of the binary behaves like a ctest run.

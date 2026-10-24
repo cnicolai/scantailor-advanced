@@ -26,9 +26,6 @@ int main(int argc, char* argv[]) {
   Application::setOrganizationName(ORGANIZATION_NAME);
 
   QSettings::setDefaultFormat(QSettings::IniFormat);
-  if (app.isPortableVersion()) {
-    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, app.getPortableConfigPath());
-  }
   QSettings settings;
 
   app.installLanguage(ApplicationSettings::getInstance().getLanguage());

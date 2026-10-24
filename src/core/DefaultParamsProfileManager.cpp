@@ -8,7 +8,6 @@
 #include <QtGui/QtGui>
 #include <QtXml/QDomDocument>
 
-#include "Application.h"
 #include "DefaultParams.h"
 #include "version.h"
 
@@ -17,12 +16,7 @@ using namespace output;
 using namespace page_layout;
 
 DefaultParamsProfileManager::DefaultParamsProfileManager() {
-  auto* app = static_cast<Application*>(qApp);
-  if (app->isPortableVersion()) {
-    m_path = app->getPortableConfigPath() + "/profiles";
-  } else {
-    m_path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/profiles";
-  }
+  m_path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/profiles";
 }
 
 DefaultParamsProfileManager::DefaultParamsProfileManager(const QString& path) : m_path(path) {}

@@ -8,13 +8,11 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFontDatabase>
-#include <QTemporaryDir>
 
 #include "OutOfMemoryHandler.h"
 
 Application::Application(int& argc, char** argv) : QApplication(argc, argv), m_currentLocale("en") {
   initTranslations();
-  initPortableVersion();
   loadFonts();
 }
 
@@ -77,30 +75,9 @@ void Application::initTranslations() {
   }
 }
 
-void Application::initPortableVersion() {
-  const QString portableConfigDirName = QString::fromUtf8(PORTABLE_CONFIG_DIR);
-  if (portableConfigDirName.isEmpty()) {
-    return;
-  }
-
-  const QDir portableConfigPath(applicationDirPath() + '/' + portableConfigDirName);
-  if ((portableConfigPath.exists() && QTemporaryDir(portableConfigPath.absolutePath()).isValid())
-      || (!portableConfigPath.exists() && portableConfigPath.mkpath("."))) {
-    m_portableConfigPath = portableConfigPath.absolutePath();
-  }
-}
-
 void Application::loadFonts() {
   QDirIterator it(":/fonts");
   while (it.hasNext()) {
     QFontDatabase::addApplicationFont(it.next());
   }
-}
-
-bool Application::isPortableVersion() const {
-  return !m_portableConfigPath.isNull();
-}
-
-const QString& Application::getPortableConfigPath() const {
-  return m_portableConfigPath;
 }

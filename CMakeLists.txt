@@ -120,10 +120,6 @@ if (BUILD_TESTS)
 endif()
 
 # Prepare config.h
-option(PORTABLE_VERSION "Whether to build the portable version." ON)
-if (PORTABLE_VERSION)
-  set(PORTABLE_CONFIG_DIR "config")
-endif()
 set(APPLICATION_NAME "${target_name}")
 set(TRANSLATION_DIRS ".:translations:../share/${APPLICATION_NAME}/translations")
 set(PLUGIN_DIRS ".:../lib/${APPLICATION_NAME}")
