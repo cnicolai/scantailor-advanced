@@ -5,3 +5,4 @@ Each strip commit was gated by `gate.sh check <label>` on the committed tree: co
 | Label | Commit | Subject | Release ctest | Debug ctest | Goldens | Command diff (release / debug) | Expected diff met |
 |-------|--------|---------|---------------|-------------|---------|--------------------------------|-------------------|
 | c00-ui-snapshot | 8d0105ab | test(03-01): add offscreen UI snapshot harness | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 28 / 28 | yes: only ui_snapshot added |
+| c01-qt5-cpp | 9a68f985 | refactor(03-02): resolve Qt 5 conditionals in C++ with unifdef | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 14 / 14 | yes: only ST_QT_COMPILE_VERSION on test_support (7 compile lines per preset, value 6.12.0; no TOOLCHAIN DIFFERS line, 0 as in before-state) |
