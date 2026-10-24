@@ -15,3 +15,4 @@ Each strip commit was gated by `gate.sh check <label>` on the committed tree: co
 | c08-linux | 450ff19f | refactor(03-05): remove Linux code paths and files | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
 | c09-portable | 1b1bec27 | refactor(03-05): remove portable mode | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
 | c10-translations | 56b5a540 | refactor(03-06): remove translations | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
+| c11-docs | cf4da61c | docs(03-07): rewrite README and TESTING.md for the macOS build | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (documentation only) |
