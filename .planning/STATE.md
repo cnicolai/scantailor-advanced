@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 03
 current_phase_name: Qt 6 and macOS Only
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-10-24T20:43:05.192Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-10-24T20:57:23.884Z"
 last_activity: 2026-10-24
 last_activity_desc: Phase 03 execution started
-state_head: 98280f22912130c5b6f3899467fa15f93e23fe6f
+state_head: 2ca1c42b1a4d094d65ed1399d70ba52e017739ab
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 30
-  completed_plans: 25
+  completed_plans: 26
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-24)
 ## Current Position
 
 Phase: 03 (Qt 6 and macOS Only) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-10-24 — Phase 03 execution started
 
@@ -83,6 +83,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03 P02 | 20 min | 3 tasks | 30 files |
 | Phase 03 P03 | 13 min | 2 tasks | 14 files |
 | Phase 03 P04 | 25 min | 2 tasks | 20 files |
+| Phase 03 P05 | 13min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -150,6 +151,8 @@ Recent decisions affecting current work:
 - [Phase 03]: Lint workflow was the only .clang-format enforcement; formatting becomes a documented manual step (TESTING.md, plan 03-07)
 - [Phase 03]: 03-04: RelinkablePath::normalize keeps its unlabelled backslash/drive-letter logic (D-03); tracked as backlog 999.8
 - [Phase 03]: 03-04: Boost.Test define -DBOOST_TEST_DYN_LINK is unconditional after Windows removal
+- [Phase 03]: 03-05: Clang flag block comment (refers to the removed GNU warning set) kept byte-for-byte equal to a796c2ae
+- [Phase 03]: 03-05: CMAKE_POSITION_INDEPENDENT_CODE and Threads lines unwrapped, not deleted, because the Mac compile and link commands use them
 
 ### Pending Todos
 
@@ -166,6 +169,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T20:43:05.098Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-10-24T20:57:23.789Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None
