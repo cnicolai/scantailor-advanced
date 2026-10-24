@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Deletion-Free macOS Build** - Unmodified 1.2.1 builds as arm64 against Homebrew and runs a project end to end; existing test results and FP settings recorded (completed 2026-10-23)
 - [x] **Phase 2: Golden Baselines** - Synthetic-image test suite and golden baselines recorded from the unmodified code before anything is removed (completed 2026-10-24)
-- [ ] **Phase 3: Qt 6 and macOS Only** - Qt 5, Windows, Linux, packaging, CI and translations removed, with baselines unchanged; README documents the Mac build
+- [x] **Phase 3: Qt 6 and macOS Only** - Qt 5, Windows, Linux, packaging, CI and translations removed, with baselines unchanged; README documents the Mac build (completed 2026-10-24)
 - [ ] **Phase 4: Retina Rendering** - Page view, thumbnails, overlays and colour picker are sharp and correct on Retina displays
 - [ ] **Phase 5: Mac Menus and Shortcuts** - Standard application menu, Cmd shortcuts, Mac key names, native dialogs and Mac-friendly input
 - [ ] **Phase 6: Hardening and Cleanup** - Safety defects fixed, OpenGL viewer removed, oversized files split and dead code removed, with baselines unchanged
@@ -118,7 +118,7 @@ Plans:
   4. The app starts with an English UI, no translation files are built or loaded, and no translation targets remain in CMake
   5. Someone following only the README can build the app on the Mac and run the test suite
 
-**Plans:** 9/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 **Wave 1**
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
-| 3. Qt 6 and macOS Only | 9/9 | In Progress | - |
+| 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
