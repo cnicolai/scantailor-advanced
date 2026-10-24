@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 03
 current_phase_name: Qt 6 and macOS Only
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-10-24T19:38:44.082Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-10-24T19:52:12.027Z"
 last_activity: 2026-10-24
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
-state_head: 0525fd80ff4fc520686b8b2d67f313f51dcf2d8d
+last_activity_desc: Phase 03 execution started
+state_head: 0605da61bca020ab6a1bfff49bc55d336e66f313
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 30
-  completed_plans: 21
+  completed_plans: 22
 milestone_name: macOS
 ---
 
@@ -24,14 +24,14 @@ milestone_name: macOS
 See: .planning/PROJECT.md (updated 2026-10-24)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 3 — Qt 6 and macOS Only
+**Current focus:** Phase 03 — Qt 6 and macOS Only
 
 ## Current Position
 
-Phase: 03 (Qt 6 and macOS Only) — READY TO EXECUTE
-Plan: Not started
+Phase: 03 (Qt 6 and macOS Only) — EXECUTING
+Plan: 2 of 9
 Status: Ready to execute
-Last activity: 2026-10-24 — Phase 02 complete, transitioned to Phase 3
+Last activity: 2026-10-24 — Phase 03 execution started
 
 Progress: [███░░░░░░░] 33%
 
@@ -79,6 +79,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02 P12 | 12 min | 2 tasks | 4 files |
 | Phase 02 P13 | 4 min | 3 tasks | 5 files |
 | Phase 02 P14 | 9 min | 3 tasks | 4 files |
+| Phase 03 P01 | 50 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-13: textRoundTrips checks each text golden entry on its own; GoldenStore::checkText refuses non-round-tripping values in both modes before any read or write
 - [Phase 02]: 02-13: SuiteManifest marks a suite handled only after its manifest is on disk, so a failed manifest write fails every later golden of the suite
 - [Phase 02]: 02-14: page-split value asserted against the file-format string single-uncut in both written files; spread page cache is a std::map so handed-out references stay valid
+- [Phase 03]: 03-01: ui_snapshot is a separate executable under BUILD_TESTS, not in ctest (suite count stays 7)
+- [Phase 03]: 03-01: D-15 define is ST_QT_COMPILE_VERSION; README profiles path is the measured ~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles
 
 ### Pending Todos
 
@@ -156,6 +159,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T18:14:25.469Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-qt-6-and-macos-only/03-CONTEXT.md
+Last session: 2026-10-24T19:52:11.978Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None
