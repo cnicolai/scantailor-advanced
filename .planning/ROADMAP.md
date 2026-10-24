@@ -97,9 +97,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 02-12-PLAN.md — CR-01: generator refuses dpi values whose geometry does not fit, guarded raster writes, dpi sweep red then green under ASan, 75/600 dpi pixels pinned
+
+**Wave 3** *(blocked on Wave 2 completion: same executable, build tree and branch as 02-12)*
 - [ ] 02-13-PLAN.md — WR-02 manifest marked handled only after it is written, WR-05 text goldens must parse back, WR-01 UPDATE_GOLDENS restored by an RAII guard
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 02-14-PLAN.md — WR-03 page-split layout type asserted in the round trip, WR-04 map-based spread cache, closing ctest 7/7 in Release and Debug, disposition updated
 
 **UI hint**: no
