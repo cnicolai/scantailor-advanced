@@ -414,6 +414,17 @@ BOOST_AUTO_TEST_CASE(test_book_fixture_fingerprints) {
   CHECK_TEXT_GOLDEN("book", "fixtures", values, (test_support::Sanity{true, QString()}));
 }
 
+// WR-04: a reference handed out by the cache must stay valid when another page is added.  Run alone, this is the
+// first use of the cache, so the second page is the second insertion.  Only addresses are compared before the check:
+// a reallocating container would leave the first pointer dangling.
+BOOST_AUTO_TEST_CASE(test_spread_page_cache_keeps_references) {
+  const test_support::GeneratedPage* const remembered = &spreadPage(300);
+  spreadPage(600);
+  BOOST_REQUIRE_MESSAGE(&spreadPage(300) == remembered,
+                        "the 300 dpi spread page moved when the 600 dpi page was added to the cache");
+  BOOST_CHECK(!remembered->image.isNull());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 
