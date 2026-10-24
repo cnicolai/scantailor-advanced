@@ -471,6 +471,32 @@ BOOST_AUTO_TEST_CASE(test_failed_manifest_write_fails_every_golden_of_the_suite)
   BOOST_CHECK_MESSAGE(manifest == expected, "manifest differs from the current toolchain plus source_commit");
 }
 
+// WR-05: text values that would not parse back are refused in both modes, before anything is written.
+BOOST_AUTO_TEST_CASE(test_text_that_cannot_round_trip_is_refused) {
+  const Roots roots;
+  const TextValues badKey{{"angle_deg", "1.0000"}, {"bad = key", "2"}};
+  const TextValues badValue{{"note", "first\nsecond"}};
+
+  GoldenStore update(roots.goldenPath(), roots.artifactPath(), true);
+  const GoldenStore::Outcome key = update.checkText("suite_a", "decisions", badKey, sanityOk());
+  BOOST_CHECK_MESSAGE(!key.pass && !key.written, "update, bad key: " << key.message.toStdString());
+  BOOST_CHECK_MESSAGE(key.message.contains("bad = key"), key.message.toStdString());
+  const GoldenStore::Outcome value = update.checkText("suite_a", "notes", badValue, sanityOk());
+  BOOST_CHECK_MESSAGE(!value.pass && !value.written, "update, bad value: " << value.message.toStdString());
+  BOOST_CHECK_MESSAGE(value.message.contains("note"), value.message.toStdString());
+  BOOST_CHECK_MESSAGE(snapshotOf(roots.goldenPath()).empty(), "update mode wrote something for refused values");
+  BOOST_CHECK_MESSAGE(!QFileInfo::exists(roots.artifactPath() + "/suite_a/decisions"), "artifact folder left behind");
+
+  GoldenStore normal(roots.goldenPath(), roots.artifactPath(), false);
+  const GoldenStore::Outcome normalKey = normal.checkText("suite_a", "decisions", badKey, sanityOk());
+  BOOST_CHECK_MESSAGE(!normalKey.pass && !normalKey.written, "normal, bad key: " << normalKey.message.toStdString());
+  BOOST_CHECK_MESSAGE(normalKey.message == key.message, normalKey.message.toStdString());
+  const GoldenStore::Outcome normalValue = normal.checkText("suite_a", "notes", badValue, sanityOk());
+  BOOST_CHECK_MESSAGE(normalValue.message == value.message, normalValue.message.toStdString());
+  BOOST_CHECK(snapshotOf(roots.goldenPath()).empty());
+  BOOST_CHECK_MESSAGE(snapshotOf(roots.artifactPath()).empty(), "normal mode left an artifact for refused values");
+}
+
 BOOST_AUTO_TEST_CASE(test_sanity_failure_blocks_write) {
   const Roots roots;
   const Sanity blank{false, "page is blank"};
