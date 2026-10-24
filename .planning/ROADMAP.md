@@ -67,7 +67,7 @@ Plans:
   4. The baseline commit comes before every strip or cleanup commit in git history, and its source tree matches the Phase 1 code
   5. A project with non-default parameters in every stage and special characters in names is written, read back and written again with identical results. A single `ctest` command runs the whole suite offscreen with isolated settings and passes. Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it
 
-**Plans:** 10/14 plans executed
+**Plans:** 11/14 plans executed
 
 Plans:
 **Wave 1**
@@ -93,7 +93,7 @@ Plans:
 **Gap closure G-02-3 (code review CR-01, WR-01 to WR-05)**
 
 **Wave 1**
-- [ ] 02-11-PLAN.md — Access question for the review-fix builds, answer recorded next to the Phase 2 approval
+- [x] 02-11-PLAN.md — Access question for the review-fix builds, answer recorded next to the Phase 2 approval
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 02-12-PLAN.md — CR-01: generator refuses dpi values whose geometry does not fit, guarded raster writes, dpi sweep red then green under ASan, 75/600 dpi pixels pinned
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
-| 2. Golden Baselines | 10/14 | In Progress | - |
+| 2. Golden Baselines | 11/14 | In Progress | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |

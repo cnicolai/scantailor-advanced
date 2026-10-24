@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
-status: verifying
-stopped_at: Completed 02-10-PLAN.md
-last_updated: "2026-10-23T21:15:27.094Z"
-last_activity: 2026-10-23
+status: executing
+stopped_at: Completed 02-11-PLAN.md
+last_updated: "2026-10-24T14:55:36.613Z"
+last_activity: 2026-10-24
 last_activity_desc: Phase 02 execution started
-state_head: 403b1fb80e2fadc1c198a75fa1c13af313ea1e16
+state_head: 787a05ae1ad999762920d5ecc18af5d3b10cd71e
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 21
+  completed_plans: 18
 milestone_name: macOS
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 10 of 10
-Status: Phase complete — ready for verification
-Last activity: 2026-10-23 — Phase 02 execution started
+Plan: 12 of 14
+Status: Ready to execute
+Last activity: 2026-10-24 — Phase 02 execution started
 
 Progress: [██░░░░░░░░] 17%
 
@@ -74,6 +74,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P08 | 11 min | 2 tasks | 3 files |
 | Phase 02 P09 | 22 min | 3 tasks | 6 files |
 | Phase 02 P10 | 27 min | 3 tasks | 17 files |
+| Phase 02 P11 | 5 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-10: Baseline commit is a796c2ae (newest commit touching src/pipeline_tests/golden); every Phase 3 strip commit follows it; non-test paths equal cde6825 apart from three add_subdirectory lines
 - [Phase 02]: 02-10: all seven findings (F-04-1 to F-08-1) have backlog items 999.1 to 999.7; D7 and the comparator self-test observation are listed as not-defects without backlog items
 - [Phase 02]: 02-10: ASan/UBSan run of the full suite passes 7 of 7 with 12 UBSan and 0 ASan reports at 9 project locations (7 new), recorded and not fixed
+- [Phase 02]: 02-11: build-tool reads under /opt/homebrew and Xcode/CLT approved for plans 02-11 to 02-14 and Phases 3 to 6 of v1.0 (decided by orchestrator on the user's instruction to decide); exclusions still need their own yes
 
 ### Pending Todos
 
@@ -146,6 +148,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-23T21:15:27.062Z
-Stopped at: Completed 02-10-PLAN.md
+Last session: 2026-10-24T14:55:36.521Z
+Stopped at: Completed 02-11-PLAN.md
 Resume file: None
