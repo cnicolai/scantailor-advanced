@@ -118,7 +118,7 @@ Plans:
   4. The app starts with an English UI, no translation files are built or loaded, and no translation targets remain in CMake
   5. Someone following only the README can build the app on the Mac and run the test suite
 
-**Plans:** 2/9 plans executed
+**Plans:** 3/9 plans executed
 
 Plans:
 **Wave 1**
@@ -128,7 +128,7 @@ Plans:
 - [x] 03-02-PLAN.md — Qt 5 removal in the Pitfall 7 order: C++ conditionals by unifdef plus D-15 manifest define (c01), Qt 6 only CMake with a 6.5 floor (c02), main.cpp and ImageViewBase blocks (c03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 03-03-PLAN.md — GitHub automation removed (c04), packaging and every install rule removed (c05)
+- [x] 03-03-PLAN.md — GitHub automation removed (c04), packaging and every install rule removed (c05)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 03-04-PLAN.md — Windows code paths by unifdef (c06) with backlog item 999.8 for RelinkablePath, Windows build options, helpers and files (c07)
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
-| 3. Qt 6 and macOS Only | 2/9 | In Progress | - |
+| 3. Qt 6 and macOS Only | 3/9 | In Progress | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
