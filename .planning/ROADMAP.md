@@ -118,7 +118,7 @@ Plans:
   4. The app starts with an English UI, no translation files are built or loaded, and no translation targets remain in CMake
   5. Someone following only the README can build the app on the Mac and run the test suite
 
-**Plans:** 5/9 plans executed
+**Plans:** 6/9 plans executed
 
 Plans:
 **Wave 1**
@@ -137,7 +137,7 @@ Plans:
 - [x] 03-05-PLAN.md — Linux code paths, GCC flag block and Linux resources in one commit (c08), portable mode (c09)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 03-06-PLAN.md — Translations removed atomically (c10), D-12 after checks: assertion run, static counts, screenshots and verdict
+- [x] 03-06-PLAN.md — Translations removed atomically (c10), D-12 after checks: assertion run, static counts, screenshots and verdict
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 03-07-PLAN.md — README top and English TESTING.md (c11), fresh-clone proof with README commands only (D-13)
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
-| 3. Qt 6 and macOS Only | 5/9 | In Progress | - |
+| 3. Qt 6 and macOS Only | 6/9 | In Progress | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
