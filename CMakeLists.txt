@@ -81,7 +81,6 @@ endif()
 
 if (UNIX)
   option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
-  option(CMAKE_INSTALL_RPATH_USE_LINK_PATH "" ON)
 endif()
 
 include(cmake/SetDefaultBuildType.cmake)
@@ -94,18 +93,11 @@ endif()
 
 st_set_default_build_type(Release)
 
-# Must be set before Boost (Flatpak and other chroot builds use -DBUILD_TESTS=OFF; issue #61).
-option(BUILD_TESTS "Build unit tests (math_tests, imageproc_tests, core_tests, foundation_tests, qt_tests)" ON)
+# Must be set before Boost: the tests need its unit_test_framework component.
+option(BUILD_TESTS "Build the unit and pipeline tests" ON)
 
 if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-endif()
-if (NOT CMAKE_INSTALL_BINDIR)
-  if (WIN32)
-    set(CMAKE_INSTALL_BINDIR ".")
-  else()
-    set(CMAKE_INSTALL_BINDIR "bin")
-  endif()
 endif()
 
 #=================================== Dependencies ===================================#
@@ -240,7 +232,6 @@ endif()
 #=================================== Qt ===================================#
 
 find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)
-set(QT_BINDIR "${QT6_INSTALL_PREFIX}/bin")
 
 #=================================== Threads ===================================#
 
@@ -336,134 +327,3 @@ update_translations_target(update_translations scantailor)
 list(FILTER translation_files EXCLUDE REGEX ".*untranslated.ts")
 Qt_add_translation(qm_files ${translation_files})
 add_custom_target(compile_translations ALL DEPENDS ${qm_files})
-if (WIN32)
-  install(FILES ${qm_files} DESTINATION "${CMAKE_INSTALL_BINDIR}/translations")
-else()
-  install(FILES ${qm_files} DESTINATION "share/${APPLICATION_NAME}/translations")
-endif()
-
-# Install extra files.
-if (WIN32)
-  macro (add_runtime_libs_to_install Configuration Libs)
-    set(configurations "${Configuration}")
-    if (${configurations} MATCHES "ALL")
-      set(configurations "DEBUG;RELEASE")
-    endif()
-    foreach (_config ${configurations})
-      foreach (_lib ${Libs})
-        if (EXISTS "${_lib}")
-          list(APPEND "ADDITIONAL_RUNTIME_LIBS_${_config}" "${_lib}")
-        endif()
-      endforeach()
-    endforeach()
-  endmacro()
-
-  macro (set_if_undefined Var Value)
-    if (NOT ${Var})
-      set(${Var} "${Value}")
-    endif()
-  endmacro()
-
-  # Install the DLLs of the dependencies.
-  set(dep_libs
-      JPEG::JPEG PNG::PNG ZLIB::ZLIB TIFF::TIFF
-      Qt::Core Qt::Gui Qt::Widgets Qt::Xml
-      Qt::Network Qt::OpenGL Qt::Svg Qt6::OpenGLWidgets)
-
-  foreach (_target ${dep_libs})
-    get_target_property(target_type ${_target} TYPE)
-    if (target_type STREQUAL "SHARED_LIBRARY")
-      set(dynlib_location_property LOCATION)
-    elseif (target_type STREQUAL "UNKNOWN_LIBRARY")
-      set(dynlib_location_property IMPORTED_DYNLIB)
-    else()
-      continue()
-    endif()
-
-    get_target_property(release_loc ${_target} ${dynlib_location_property}_RELEASE)
-    get_target_property(debug_loc ${_target} ${dynlib_location_property}_DEBUG)
-    set_if_undefined(debug_loc "${release_loc}")
-    add_runtime_libs_to_install(RELEASE "${release_loc}")
-    add_runtime_libs_to_install(DEBUG "${debug_loc}")
-  endforeach()
-
-  # Install MinGW runtime components.
-  if (MINGW)
-    get_filename_component(_mingw_path ${CMAKE_CXX_COMPILER} PATH)
-    file(GLOB libgcc_s "${_mingw_path}/libgcc_s_*.dll")
-    file(GLOB libstdcpp "${_mingw_path}/libstdc++*.dll")
-    file(GLOB libwinpthread "${_mingw_path}/libwinpthread*.dll")
-    add_runtime_libs_to_install(ALL "${libgcc_s};${libstdcpp};${libwinpthread}")
-  endif()
-
-  copy_to_build_dir(${ADDITIONAL_RUNTIME_LIBS_RELEASE} CONFIGURATIONS Release MinSizeRel RelWithDebInfo)
-  copy_to_build_dir(${ADDITIONAL_RUNTIME_LIBS_DEBUG} CONFIGURATIONS Debug)
-
-  # Generate the target that will actually do the copying.
-  generate_copy_to_build_dir_target(copy_to_build_dir)
-
-  install(PROGRAMS ${ADDITIONAL_RUNTIME_LIBS_RELEASE} TYPE BIN CONFIGURATIONS Release MinSizeRel RelWithDebInfo)
-  install(PROGRAMS ${ADDITIONAL_RUNTIME_LIBS_DEBUG} TYPE BIN CONFIGURATIONS Debug)
-endif()
-
-if (UNIX)
-  install(FILES "${CMAKE_BINARY_DIR}/${target_name}.desktop"
-      DESTINATION "share/applications")
-  install(FILES "${SCANTAILOR_RESOURCES_DIR}/appicon.svg"
-      DESTINATION "share/icons/hicolor/scalable/apps"
-      RENAME "${target_name}.svg")
-  install(FILES "${SCANTAILOR_RESOURCES_DIR}/unix/mime/scantailor-project.xml"
-      DESTINATION "share/mime/packages")
-endif()
-
-if (WIN32 AND MSVC)
-  set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-endif()
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "${CMAKE_INSTALL_BINDIR}")
-include(InstallRequiredSystemLibraries)
-
-# Packaging
-set(CPACK_PACKAGE_NAME "${APPLICATION_NAME}")
-set(CPACK_PACKAGE_VERSION_MAJOR "${APPLICATION_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${APPLICATION_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${APPLICATION_VERSION_PATCH}")
-set(CPACK_PACKAGE_VENDOR "4lex4 <4lex49@zoho.com>")
-set(CPACK_PACKAGE_CONTACT "${CPACK_PACKAGE_VENDOR}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Interactive post-processing tool for scanned pages.")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_EXECUTABLES "${target_name};${CMAKE_PROJECT_NAME}")
-set(CPACK_CREATE_DESKTOP_LINKS "${target_name}")
-if (WIN32)
-  set(CPACK_NSIS_INSTALLED_ICON_NAME "${target_name}.exe")
-  set(CPACK_NSIS_PACKAGE_NAME "${CMAKE_PROJECT_NAME}")
-  set(CPACK_NSIS_DISPLAY_NAME "${CMAKE_PROJECT_NAME} ${VERSION}")
-  set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-  set(CPACK_NSIS_EXECUTABLES_DIRECTORY "${CMAKE_BINARY_DIR}")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_PROJECT_NAME}")
-  set(CPACK_NSIS_CREATE_ICONS_EXTRA
-      "CreateShortCut \\\"$DESKTOP\\\\${CMAKE_PROJECT_NAME}.lnk\\\" \\\"$INSTDIR\\\\${target_name}.exe\\\"")
-  set(CPACK_NSIS_DELETE_ICONS_EXTRA
-      "Delete \\\"$DESKTOP\\\\${CMAKE_PROJECT_NAME}.lnk\\\"")
-endif()
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${APPLICATION_NAME}-${VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES
-    "/\\\\.svn/"
-    "/\\\\.git/"
-    "~$"
-    "\\\\.pcs$"
-    "TODO.txt"
-    "CMakeLists.txt.user"
-    "/doxygen/"
-    "${CMAKE_BINARY_DIR}")
-include(CPack)
-
-# uninstall target
-if (NOT TARGET uninstall)
-  configure_file(
-      "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-      "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
-      @ONLY)
-  add_custom_target(
-      uninstall
-      COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake")
-endif()

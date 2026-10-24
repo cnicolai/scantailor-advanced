@@ -79,18 +79,6 @@ target_include_directories(
     ${target_name}
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
     "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
-install(TARGETS ${target_name} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-
-if (WIN32)
-  #manage plugins with windeployqt.
-  add_custom_command(
-    TARGET ${target_name}
-    POST_BUILD
-    COMMAND ${QT_BINDIR}/windeployqt  $<TARGET_FILE:${target_name}>
-    COMMENT "deploy qt files alongside binary (e.g. plugins)"
-  )
-  install(CODE "execute_process(COMMAND \"${QT_BINDIR}/windeployqt\" \"\$\{CMAKE_INSTALL_PREFIX\}\")")
-endif()
 
 translation_sources(${target_name} ${gui_only_sources} ${gui_only_ui_files})
 
