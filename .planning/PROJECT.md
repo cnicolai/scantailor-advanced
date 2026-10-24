@@ -24,6 +24,7 @@ The app builds from source and works reliably for daily scanning work on a curre
 - ✓ Image I/O for TIFF (incl. multi-page), PNG, JPEG — existing
 - ✓ Light and dark colour schemes, translations — existing
 - ✓ Boost.Test unit test executables (math, imageproc, core, foundation, qt) run via CTest — existing
+- ✓ Test suite runs green locally and covers the pipeline paths used for books, flat documents and mixed pages, using synthetic generated test images — Phase 2 (`pipeline_tests` and `dewarping_tests` with goldens from the unmodified code at `a796c2ae`; `ctest` 7/7 in Release and Debug; known shortfalls are `XFAIL_CHECK` with backlog 999.1–999.7)
 
 ### Active
 
@@ -33,7 +34,6 @@ The app builds from source and works reliably for daily scanning work on a curre
 - [ ] Mac-conventional shortcuts and menus (Cmd-based shortcuts, standard app menu, native menu bar)
 - [ ] Linux and Windows packaging and platform-specific code paths removed
 - [ ] All GitHub Actions CI disabled
-- [ ] Test suite runs green locally and covers the pipeline paths used for books, flat documents and mixed pages, using synthetic generated test images
 - [ ] Known-debt cleanup that makes later feature work safe (e.g. disabled tests, dead `#if 0` blocks, oversized files where touched)
 
 ### Out of Scope
@@ -74,9 +74,9 @@ The app builds from source and works reliably for daily scanning work on a curre
 | macOS-only: remove Linux/Windows packaging and platform branches | Personal fork, Mac is the only machine | — Pending |
 | Disable all CI | User wants local-only builds and tests | — Pending |
 | Run from build dir, no `.app` bundling | User's choice; bundling can come later | — Pending |
-| Synthetic test images | Keeps personal material out of the repo; deterministic fixtures | — Pending |
+| Synthetic test images | Keeps personal material out of the repo; deterministic fixtures | ✓ Good — Phase 2: a seeded in-memory page generator (flat, spread, mixed, curved) feeds every golden; no scan is committed |
 | No upstream compatibility | Changes are for personal use only | — Pending |
-| Baselines before strip: first macOS build with compile fixes only, golden images from that unmodified code, then remove Qt 5/Windows/Linux | Proves the strip and later refactors changed no output | — Pending |
+| Baselines before strip: first macOS build with compile fixes only, golden images from that unmodified code, then remove Qt 5/Windows/Linux | Proves the strip and later refactors changed no output | ◆ In progress — Phase 1 build and Phase 2 goldens done (baseline `a796c2ae`); the strip follows in Phase 3 |
 | Remove OpenGL viewer | Off by default, deprecated by Apple, no Metal path | — Pending |
 | English-only UI, translations removed | User doesn't need them; less to maintain | — Pending |
 | Horizontal-layer phases | Port/hardening where each step protects the next | — Pending |
@@ -99,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-18 after initialization*
+*Last updated: 2026-10-24 after Phase 2*

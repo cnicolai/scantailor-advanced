@@ -22,10 +22,10 @@ milestone_name: macOS
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-18)
+See: .planning/PROJECT.md (updated 2026-10-24)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 02 — Golden Baselines
+**Current focus:** Phase 3 — Qt 6 and macOS Only
 
 ## Current Position
 
@@ -148,15 +148,15 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 decisions to make before any golden is captured: the `-ffp-contract` value (research suggests `off`), how `PORTABLE_VERSION` handles the settings location, and the CMake minimum (research says 3.25 for Qt 6.12; confirm at first configure).
-- Phase 1 may need a launch fix as well as compile fixes, for example if a `Q_OS_UNIX` branch picks a Linux platform default on macOS. Log each such edit on its own; do not delete anything.
-- Phase 2 research flag: a short spike to set the comparator tolerances by measuring the spread between two builds (with and without `-ffp-contract=off`). It also has to check `ApplicationSettings` isolation and `ThumbnailPixmapCache` under a test app.
+- [Phase 2] `02-UAT.md` still lists gap G-02-3 as `diagnosed`; the re-verification (02-VERIFICATION.md, passed 9/9) confirms it closed. `/gsd-verify-work 02` reconciles the UAT entry.
+- [Phase 2] Four info findings of the re-review are deferred (IN-01 to IN-04 in `02-REVIEW-DISPOSITION.md`). IN-01 matters if a later phase adds a scan resolution: the generator refuses 400 and 450 dpi for SPREAD, MIXED and CURVED, not only 150 and 225 (`dpiSupported`).
+- Phase 3: every strip commit follows golden baseline `a796c2ae` and must pass `ctest --preset macos-release` and `macos-debug` 7/7 with goldens unchanged. Build-tool reads for Phases 3 to 6 are approved in `records/access-approval.md` of Phase 2.
 - Phase 4 research flag: a Retina experiment on the Mac, covering the unbundled DPR, `widthMM()` and the smoothing heuristic under Qt 6. Verifying Retina is mostly manual (100%/200% zoom, thumbnails, zone mask, colour picker, toolbar icons, moving between displays).
 - Phase 5: check on the Mac whether Backspace works for deleting zones under Qt 6 (low confidence in research).
 - Phase 3: remove Qt 5 code with `unifdef`, not by hand. The polarity of the RANSAC/dewarp branches in `DistortionModelBuilder.cpp` and `DetectVertContentBounds.cpp` changes output if it is wrong.
 
 ## Session Continuity
 
-Last session: 2026-10-24T15:29:19.955Z
+Last session: 2026-10-24T15:50:00.000Z
 Stopped at: Phase 02 complete, ready to plan Phase 3
 Resume file: None
