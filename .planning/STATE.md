@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 02
 current_phase_name: Golden Baselines
 status: executing
-stopped_at: Completed 02-12-PLAN.md
-last_updated: "2026-10-24T15:10:23.991Z"
+stopped_at: Completed 02-13-PLAN.md
+last_updated: "2026-10-24T15:17:05.747Z"
 last_activity: 2026-10-24
 last_activity_desc: Phase 02 execution started
-state_head: a8c498a9497a97c679fc47809eb46693e7ec0248
+state_head: 6f6252545c5ff101f2f3b0ec6d51c5d87d58b809
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 02 (Golden Baselines) — EXECUTING
-Plan: 13 of 14
+Plan: 14 of 14
 Status: Ready to execute
 Last activity: 2026-10-24 — Phase 02 execution started
 
@@ -76,6 +76,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P10 | 27 min | 3 tasks | 17 files |
 | Phase 02 P11 | 5 min | 2 tasks | 1 files |
 | Phase 02 P12 | 12 min | 2 tasks | 4 files |
+| Phase 02 P13 | 4 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-10: ASan/UBSan run of the full suite passes 7 of 7 with 12 UBSan and 0 ASan reports at 9 project locations (7 new), recorded and not fixed
 - [Phase 02]: 02-11: build-tool reads under /opt/homebrew and Xcode/CLT approved for plans 02-11 to 02-14 and Phases 3 to 6 of v1.0 (decided by orchestrator on the user's instruction to decide); exclusions still need their own yes
 - [Phase 02]: 02-12: dpi fit rule computed from the scaled geometry (ink box inside page and documented frame), not a divisibility rule; raster guards compare coordinates because a side-0 speck at 75 dpi is a null QRect
+- [Phase 02]: 02-13: textRoundTrips checks each text golden entry on its own; GoldenStore::checkText refuses non-round-tripping values in both modes before any read or write
+- [Phase 02]: 02-13: SuiteManifest marks a suite handled only after its manifest is on disk, so a failed manifest write fails every later golden of the suite
 
 ### Pending Todos
 
@@ -150,6 +153,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T15:10:23.889Z
-Stopped at: Completed 02-12-PLAN.md
+Last session: 2026-10-24T15:17:05.649Z
+Stopped at: Completed 02-13-PLAN.md
 Resume file: None

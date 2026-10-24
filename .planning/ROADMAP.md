@@ -67,7 +67,7 @@ Plans:
   4. The baseline commit comes before every strip or cleanup commit in git history, and its source tree matches the Phase 1 code
   5. A project with non-default parameters in every stage and special characters in names is written, read back and written again with identical results. A single `ctest` command runs the whole suite offscreen with isolated settings and passes. Any known defect that the unmodified code cannot pass is marked as an expected failure that names the requirement that will fix it
 
-**Plans:** 12/14 plans executed
+**Plans:** 13/14 plans executed
 
 Plans:
 **Wave 1**
@@ -99,7 +99,7 @@ Plans:
 - [x] 02-12-PLAN.md — CR-01: generator refuses dpi values whose geometry does not fit, guarded raster writes, dpi sweep red then green under ASan, 75/600 dpi pixels pinned
 
 **Wave 3** *(blocked on Wave 2 completion: same executable, build tree and branch as 02-12)*
-- [ ] 02-13-PLAN.md — WR-02 manifest marked handled only after it is written, WR-05 text goldens must parse back, WR-01 UPDATE_GOLDENS restored by an RAII guard
+- [x] 02-13-PLAN.md — WR-02 manifest marked handled only after it is written, WR-05 text goldens must parse back, WR-01 UPDATE_GOLDENS restored by an RAII guard
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 02-14-PLAN.md — WR-03 page-split layout type asserted in the round trip, WR-04 map-based spread cache, closing ctest 7/7 in Release and Debug, disposition updated
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
-| 2. Golden Baselines | 12/14 | In Progress | - |
+| 2. Golden Baselines | 13/14 | In Progress | - |
 | 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
