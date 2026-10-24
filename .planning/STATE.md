@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 03
 current_phase_name: Qt 6 and macOS Only
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-10-24T19:52:12.027Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-10-24T20:13:27.644Z"
 last_activity: 2026-10-24
 last_activity_desc: Phase 03 execution started
-state_head: 0605da61bca020ab6a1bfff49bc55d336e66f313
+state_head: 73ae39879dc1305a00875d933c884d66605dddc0
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 30
-  completed_plans: 22
+  completed_plans: 23
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-24)
 ## Current Position
 
 Phase: 03 (Qt 6 and macOS Only) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-10-24 — Phase 03 execution started
 
@@ -80,6 +80,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02 P13 | 4 min | 3 tasks | 5 files |
 | Phase 02 P14 | 9 min | 3 tasks | 4 files |
 | Phase 03 P01 | 50 min | 2 tasks | 9 files |
+| Phase 03 P02 | 20 min | 3 tasks | 30 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-14: page-split value asserted against the file-format string single-uncut in both written files; spread page cache is a std::map so handed-out references stay valid
 - [Phase 03]: 03-01: ui_snapshot is a separate executable under BUILD_TESTS, not in ctest (suite count stays 7)
 - [Phase 03]: 03-01: D-15 define is ST_QT_COMPILE_VERSION; README profiles path is the measured ~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles
+- [Phase 03]: 03-02: Qt 5 removed from C++ by unifdef -DQT_VERSION_MAJOR=6 (dewarping keeps QRandomGenerator prng(0)); CMake finds only Qt6 6.5 with Qt6:: targets; qt_compile fed by ST_QT_COMPILE_VERSION from Qt6_VERSION; criterion-1 search empty
 
 ### Pending Todos
 
@@ -159,6 +161,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T19:52:11.978Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-10-24T20:13:27.551Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
