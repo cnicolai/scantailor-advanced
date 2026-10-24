@@ -52,6 +52,7 @@
 #include <boost/test/unit_test.hpp>
 #include <memory>
 #include <set>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -335,6 +336,30 @@ BOOST_AUTO_TEST_CASE(test_every_stage_carries_non_default_values) {
     const QString name = QString::fromLatin1(stage);
     BOOST_CHECK_MESSAGE(serialize(filterElement(nonDefaultDoc, name)) != serialize(filterElement(plainDoc, name)),
                         "stage <" << stage << "> is the same with non-default and with default parameters");
+  }
+
+  // For page-split the default project carries no <image> at all (F-08-1), so the serialised elements above differ by
+  // presence alone.  The value itself is asserted here, against the file-format string users' project files contain.
+  BOOST_REQUIRE(makeNonDefaultParams()->getPageSplitParams().getLayoutType() == page_split::SINGLE_PAGE_UNCUT);
+  BOOST_CHECK_MESSAGE(filterElement(plainDoc, "page-split").elementsByTagName("image").isEmpty(),
+                      "the default project has a <page-split> <image>");
+  const std::pair<const char*, const QByteArray*> written[]
+      = {{"first", &nonDefault.firstFile}, {"second", &nonDefault.secondFile}};
+  for (const auto& file : written) {
+    const QDomDocument doc = parse(*file.second);
+    const QDomNodeList images = filterElement(doc, "page-split").elementsByTagName("image");
+    BOOST_REQUIRE_EQUAL(static_cast<size_t>(images.size()), inputPaths().size());
+    for (int i = 0; i < images.size(); ++i) {
+      const QDomElement image = images.at(i).toElement();
+      const QString layoutType = image.attribute("layoutType");
+      BOOST_CHECK_MESSAGE(layoutType == "single-uncut", "page-split image " << i << " of the " << file.first
+                                                                            << " file has layoutType=\""
+                                                                            << layoutType.toStdString() << "\"");
+      const QString pagesType = image.firstChildElement("params").firstChildElement("pages").attribute("type");
+      BOOST_CHECK_MESSAGE(pagesType == "single-uncut", "page-split image " << i << " of the " << file.first
+                                                                           << " file has pages type=\""
+                                                                           << pagesType.toStdString() << "\"");
+    }
   }
 }
 
