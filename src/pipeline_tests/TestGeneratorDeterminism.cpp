@@ -14,6 +14,7 @@
 #include <cmath>
 #include <exception>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -468,6 +469,15 @@ BOOST_AUTO_TEST_CASE(test_dpi_sweep_gives_valid_or_null_page) {
       const QImage maskOfSpec = sweepMask(spec, dpi);
       const QImage maskAtTarget = sweepMask(makeSpec(kind, 300), dpi);
 
+      // Both maps follow the same rule as the page.
+      if (sweepExpectsPage(kind, dpi)) {
+        BOOST_CHECK_NO_THROW(test_support::mapFlatToImage(spec, QPointF(0.0, 0.0)));
+        BOOST_CHECK_NO_THROW(test_support::mapImageToFlat(spec, QPointF(0.0, 0.0)));
+      } else {
+        BOOST_CHECK_THROW(test_support::mapFlatToImage(spec, QPointF(0.0, 0.0)), std::invalid_argument);
+        BOOST_CHECK_THROW(test_support::mapImageToFlat(spec, QPointF(0.0, 0.0)), std::invalid_argument);
+      }
+
       if (!sweepExpectsPage(kind, dpi)) {
         BOOST_CHECK_MESSAGE(page->image.isNull(), label(spec) << ": a page was rendered for a dpi that does not fit");
         BOOST_CHECK_MESSAGE(page->truth.dpi == 0, label(spec) << ": truth.dpi is " << page->truth.dpi);
@@ -513,6 +523,53 @@ BOOST_AUTO_TEST_CASE(test_dpi_sweep_gives_valid_or_null_page) {
       BOOST_CHECK_MESSAGE(maskOfSpec.format() == QImage::Format_Grayscale8, label(spec) << ": mask is not Grayscale8");
       BOOST_CHECK_MESSAGE(maskOfSpec.size() == t.pageSize, label(spec) << ": mask size differs from the page");
     }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_dpi_support_rule) {
+  // The expected numbers come from a reproduction of the geometry computation (script, every dpi 75..1200).  1200
+  // dpi is checked here and not rendered: one page is four times a 600 dpi page and would add minutes to a Debug
+  // or ASan run.
+  struct Range {
+    int first;
+    int last;
+  };
+  const std::map<PageKind, std::vector<Range>> overflow = {
+      {PageKind::FLAT, {{90, 90}}},
+      {PageKind::SPREAD, {{90, 104}, {150, 157}}},
+      {PageKind::MIXED, {{90, 96}}},
+      {PageKind::CURVED, {{90, 97}}},
+  };
+  const std::map<PageKind, int> acceptedCount
+      = {{PageKind::FLAT, 1125}, {PageKind::SPREAD, 845}, {PageKind::MIXED, 702}, {PageKind::CURVED, 697}};
+
+  for (const PageKind kind : kKinds) {
+    for (const int dpi : {-300, 0, 74, 1201, 1300}) {
+      BOOST_CHECK_MESSAGE(!test_support::dpiSupported(kind, dpi), kindName(kind) << ": " << dpi << " dpi is supported");
+    }
+    BOOST_CHECK_MESSAGE(test_support::dpiSupported(kind, 75), kindName(kind) << ": 75 dpi is not supported");
+    for (int dpi = 120; dpi <= 1200; dpi += 60) {
+      BOOST_CHECK_MESSAGE(test_support::dpiSupported(kind, dpi), kindName(kind) << ": " << dpi << " dpi is refused");
+    }
+    for (const Range& range : overflow.at(kind)) {
+      for (int dpi = range.first; dpi <= range.last; ++dpi) {
+        BOOST_CHECK_MESSAGE(!test_support::dpiSupported(kind, dpi),
+                            kindName(kind) << ": " << dpi << " dpi overflowed the page and is supported");
+      }
+    }
+    if (kind != PageKind::FLAT) {
+      for (const int dpi : {150, 225}) {
+        BOOST_CHECK_MESSAGE(!test_support::dpiSupported(kind, dpi), kindName(kind)
+                                                                        << ": " << dpi << " dpi is supported");
+      }
+    }
+    int accepted = 0;
+    for (int dpi = 75; dpi <= 1200; ++dpi) {
+      accepted += test_support::dpiSupported(kind, dpi) ? 1 : 0;
+    }
+    BOOST_CHECK_MESSAGE(accepted == acceptedCount.at(kind), kindName(kind)
+                                                                << ": " << accepted << " dpi values accepted, expected "
+                                                                << acceptedCount.at(kind));
   }
 }
 

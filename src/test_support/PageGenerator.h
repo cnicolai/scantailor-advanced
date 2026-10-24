@@ -16,8 +16,10 @@
 namespace test_support {
 
 // Fixture designs.  Geometry is given in base units of 1/300 in and scaled by dpi / 300 (rounded to whole
-// pixels, exact at 300 and 600 dpi).  All text is drawn from a 5x7 dot font: one glyph dot is 5 base px, a
-// glyph cell is 6 dots wide (one dot of letter spacing), a text line pitch is 11 dots.
+// pixels one length at a time, exact at 300 and 600 dpi).  All text is drawn from a 5x7 dot font: one glyph dot
+// is 5 base px, a glyph cell is 6 dots wide (one dot of letter spacing), a text line pitch is 11 dots.  Where
+// the 5 base px dot rounds up, a block outgrows its frame or the page, so such dpi values are refused; see
+// dpiSupported.
 //
 //   FLAT    1000 x 1150.  13 lines of 20 glyph cells with word gaps, block centred on the page.
 //   SPREAD  1654 x 1181.  Two text blocks of 21 cells x 15 lines (frames 640 x 860) with their top-left
@@ -40,7 +42,8 @@ enum class PageKind { FLAT, SPREAD, MIXED, CURVED };
 
 struct PageSpec {
   PageKind kind = PageKind::FLAT;
-  /// 75 to 1200.  Anything else gives a null image.  300 and 600 are the dpi values the suites use.
+  /// 75 to 1200 where dpiSupported(kind, dpi) holds.  Anything else gives a null image.  300 and 600 are the dpi
+  /// values the suites use.
   int dpi = 300;
   uint64_t seed = 1;
   /// Rotation applied about the page centre, in degrees, |skewDeg| <= 5.7 (the hand-written series
@@ -88,7 +91,7 @@ struct GeneratedPage {
 /**
  * Renders a page of seeded pseudo text.  Uses no font, no painter and no library random or
  * trigonometric function, so the pixels are identical on every toolchain.
- * Returns a null image and a GroundTruth with dpi 0 for a dpi outside 75..1200.
+ * Returns a null image and a GroundTruth with dpi 0 for a dpi that dpiSupported(spec.kind, spec.dpi) refuses.
  * Throws std::invalid_argument for an angle outside the supported range.
  */
 GeneratedPage generatePage(const PageSpec& spec);
@@ -98,8 +101,8 @@ GeneratedPage generatePage(const PageSpec& spec);
  * targetDpi into Format_Grayscale8 with 0 = ink and 255 = paper.  The mask is in the flat frame of the
  * page (spec.skewDeg is ignored, a curved page is not warped) and then rotated by extraRotationDeg about
  * the centre of the text block.  A target pixel is ink when at least 5 of its 3x3 samples are.
- * Returns a null image for a dpi outside 75..1200 and throws std::invalid_argument for an angle outside
- * the supported range.
+ * Returns a null image unless dpiSupported(spec.kind, ...) holds for both spec.dpi and targetDpi, and throws
+ * std::invalid_argument for an angle outside the supported range.
  */
 QImage renderInkMask(const PageSpec& spec, int targetDpi, double extraRotationDeg);
 
@@ -109,7 +112,8 @@ QByteArray fingerprint(const QImage& image);
 
 /// Forward geometric map of the page kind, flat frame to input pixels: the warp of a CURVED page (solved
 /// by fixed-point iteration, 20 steps at most), then the rotation by spec.skewDeg.  Both maps throw
-/// std::invalid_argument for a dpi outside 75..1200 or an angle outside the supported range.
+/// std::invalid_argument when dpiSupported(spec.kind, spec.dpi) is false or the angle is outside the supported
+/// range.
 QPointF mapFlatToImage(const PageSpec& spec, const QPointF& flatPoint);
 
 /// Inverse of mapFlatToImage, the map the renderer samples with.  mapFlatToImage inverts it to 1e-6 px
