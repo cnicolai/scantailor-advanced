@@ -1,16 +1,14 @@
-# ScanTailor Advanced
+# ScanTailor Advanced: personal macOS fork
 
-The ScanTailor version that merges the features of the `ScanTailor Featured` and `ScanTailor Enhanced` versions,
-brings new ones and fixes.  
+A personal fork of [ScanTailor Advanced](https://github.com/ScanTailor-Advanced/scantailor-advanced) 1.2.1 that builds and runs on Apple Silicon Macs only. It keeps the six-stage pipeline and its output, and it carries changes for one user's scanning that are not meant for upstream.
 
-### Video demonstration of an older version
-[![image](https://github.com/ScanTailor-Advanced/scantailor-advanced/assets/6695517/d0e1dbbe-0e97-4d72-a011-28b171cad939)](https://vimeo.com/12524529) 
-If the video doesn't play, you may to have to login into your vimeo account.
-
-## Contents:
+## Contents
+* [Requirements](#requirements)
+* [Build](#build)
+* [Run](#run)
+* [Tests](#tests)
+* [Settings and profiles](#settings-and-profiles)
 * [Description](#description)
-* [Building](#building)
-* [About this fork](#about-this-fork)
 * [Features](#features)
   * [**ScanTailor Enhanced**](#scantailor-enhanced)
     * [Auto margins \[improved\]](#auto-margins-improved)
@@ -50,6 +48,74 @@ If the video doesn't play, you may to have to login into your vimeo account.
     * [Guides](#guides)
 * [License](#license)
 
+## Requirements
+
+* An Apple Silicon Mac with a current macOS.
+* Xcode or the Command Line Tools (Apple Clang and `xcrun`).
+* Homebrew, with these packages:
+
+```sh
+brew install cmake ninja boost qtbase qtsvg jpeg-turbo libpng libtiff
+```
+
+Do not install the `qt` meta-formula or `jpeg`: a second libjpeg would be linked next to `jpeg-turbo`. zlib comes from the macOS SDK.
+
+## Build
+
+Every command runs from the repository root, and the build goes to `build/<preset>/`.
+
+```sh
+git clone https://github.com/cnicolai/scantailor-advanced.git
+cd scantailor-advanced
+cmake --preset macos-release
+cmake --build --preset macos-release
+```
+
+Three presets exist:
+
+| Preset | Build type | Use |
+|--------|------------|-----|
+| `macos-release` | Release | Daily work and golden recording |
+| `macos-debug` | Debug | Debugging, with developer features |
+| `macos-asan` | Debug | AddressSanitizer and UndefinedBehaviorSanitizer |
+
+The other two presets are configured and built the same way:
+
+```sh
+cmake --preset macos-debug
+cmake --build --preset macos-debug
+cmake --preset macos-asan
+cmake --build --preset macos-asan
+```
+
+## Run
+
+The application runs from the build directory; there is no `.app` bundle. It takes an optional project file as its argument.
+
+```sh
+build/macos-release/scantailor-advanced
+build/macos-release/scantailor-advanced path/to/project.ScanTailor
+```
+
+## Tests
+
+Seven test suites run through ctest, headless (offscreen), with their settings and temporary files kept in `build/<preset>/test-tmp`.
+
+```sh
+ctest --preset macos-release
+ctest --preset macos-debug
+ctest --preset macos-asan
+```
+
+Release and Debug must both pass before a code change is committed. The sanitizer preset shows reports only for failing tests under ctest, so its reports need the direct runs described in [TESTING.md](TESTING.md), which also covers the golden baselines, the expected failures and local formatting.
+
+## Settings and profiles
+
+* Settings: `~/.config/scantailor-advanced/scantailor-advanced.ini` (QSettings, INI format).
+* Profiles: `~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles`.
+
+All presets share both locations, and deleting `build/` keeps them. This fork has no portable mode.
+
 ## Description
 
 ScanTailor is an interactive post-processing tool for scanned pages. 
@@ -63,48 +129,6 @@ It performs operations such as:
 You give it raw scans, and you get pages ready to be printed or assembled into a PDF 
 or [DjVu](http://elpa.gnu.org/packages/djvu.html) file. Scanning, optical character recognition, 
 and assembling multi-page documents are out of scope of this project.
-
-## Building
-
-Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-build) and follow the instructions given there.
-
-**Windows – large JPEG/PNG (issue #20):** If large-format JPEG or PNG files fail to load on Windows, ensure the build uses **libjpeg-turbo** (or libjpeg 9+) and a recent libpng. The [scantailor-libs-build](https://github.com/ScanTailor-Advanced/scantailor-libs-build) repository provides compatible libraries.
-
-**Windows – Visual C++ runtime (issue #101):** Pre-built binaries are linked with **Microsoft Visual C++** (MSVC) runtimes. If the application does not start and Windows reports missing **`VCRUNTIME*.dll`**, **`MSVCP*.dll`**, or similar, install the **latest supported x64 “Visual C++ Redistributable”** from Microsoft’s page: [Latest supported VC++ Redistributable downloads](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170). Match **x64** vs **x86** to the build you run.
-
-**Windows – supported OS versions (issue #101):** Release builds follow upstream **Qt** and **toolchain** support policies; **legacy Windows** (for example Windows 7) is **not** exercised in this project’s CI and is **best-effort only**. You may need an **older tagged release** or a **self-built** binary against an older Qt/MSVC stack. Community reports (including compatibility tips) are welcome in the issue tracker.
-
-**Linux – Wayland (issue #97):** On Qt5 builds, if `XDG_SESSION_TYPE` is `wayland` and `QT_QPA_PLATFORM` is not set, the application defaults to the X11 (`xcb`) platform plugin to avoid broken dialogs and painting. Set **`SCANTAILOR_NO_XCB_FALLBACK=1`** in the environment to keep native Wayland and, if needed, set `QT_QPA_PLATFORM=wayland` or `QT_QPA_PLATFORM=xcb` yourself.
-
-**Linux – Flatpak / Flathub ([issue #105](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/105)):**
-
-| | |
-|--|--|
-| **Day-to-day binaries** | Prefer [GitHub Releases](https://github.com/ScanTailor-Advanced/scantailor-advanced/releases) when the project publishes `.deb` / AppImage (or other) builds for a tagged version. |
-| **Install from Flathub** | There is **no** official Flathub listing yet for this fork under the new ID. Shipping there requires a maintainer to follow [Flathub submission](https://docs.flathub.org/docs/for-app-authors/submission/) (separate repo/PR to [flathub/flathub](https://github.com/flathub/flathub)), AppStream metainfo, screenshots, and reviewer feedback. The in-repo manifest is meant to make that step mostly mechanical; issue [#105](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/105) tracks coordination. |
-| **Local Flatpak (maintainers / QA)** | Manifest: [`flatpak/org.scantailor.Advanced.json`](flatpak/org.scantailor.Advanced.json). Example: `flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo` then `flatpak-builder --user --install-deps-from=flathub --force-clean build-dir flatpak/org.scantailor.Advanced.json` (installs the KDE runtime/SDK from Flathub on first run). |
-| **CI smoke build** | On each **`v*` tag** push (and via **workflow dispatch**), [`.github/workflows/flatpak.yml`](.github/workflows/flatpak.yml) runs `flatpak-builder` and uploads a **`.flatpak` bundle** as a workflow artifact for smoke testing. This is **not** the Flathub build pipeline. |
-
-**Application ID:** the manifest uses `org.scantailor.Advanced` so it does **not** replace the legacy `com.github._4lex4.*` Flatpak. Author docs: [for app authors](https://docs.flathub.org/docs/for-app-authors/).
-
-**Linux – GitHub Releases (.deb / AppImage, [issue #64](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/64)):** Version tags matching `v*` run [`.github/workflows/release.yml`](.github/workflows/release.yml), which produces a `.deb` ([`build-deb.sh`](build-deb.sh)) and an AppImage attached to the GitHub Release when the workflow is enabled. The AppImage is built on **Ubuntu 24.04** (`ubuntu-latest`) and requires a compatible **glibc** (typically **Ubuntu 24.04+** or equivalent). On **Ubuntu 22.04** and similar older bases, use the **`.deb`** package or build from source. Report problems with those binaries in [issue #64](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/64).
-
-**Community examples / test data:** See also [scantailor-testing](https://github.com/ImageProcessing-ElectronicPublications/scantailor-testing) (community repository; issue [#43](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/43)).
-
-## About this fork
-
-Unfortunately, the [repository](https://github.com/4lex4/scantailor-advanced/releases) of @4lex4 seems to be no longer active.
-
-For this reason I have created this fork. It contains:
-- German translation
-- Polish translation (PR in the original repository, credit goes to @ukolaj-s)
-- French translation (PR in the original repository, credit goes to @maltaisn)
-- Korean translation (PR in the original repository, credit goes to @brendan-t and @mirusu400)
-- Beside 'background' and white you can now choose black as filling color
-- 1200 DPI output option
-- Some other fixes and improvements ...
-
-PRs are highly welcome ;-)
 
 ## Features
 
@@ -210,11 +234,9 @@ has't been moved due to dirty realization. Their functionality is fully covered 
 ### ScanTailor Advanced
 
 * #### ScanTailor Advanced fixes & improvements
-  * Portability.  
-    The settings and program files are stored in the folder with the application.  
-    *Note: If installed into a system directory, where config and data files can't be written into the
-    folder with the application executable, ScanTailor Advanced works as a standalone app and stores
-    its settings and application data in the appropriate system specific paths.*
+  * Settings location.  
+    Settings are stored in `~/.config/scantailor-advanced/scantailor-advanced.ini` and user profiles in
+    `~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles`; this fork has no portable mode.
   
   * Page splitting settings now influence on the output by filling offcut.
     Fill offcut option has been added.
@@ -396,7 +418,7 @@ has't been moved due to dirty realization. Their functionality is fully covered 
   
   Peculiarities:
     1. There are two default profiles: "Default" and "Source". The "Default" profile represents default ST filter settings, the "Source" one represents the settings giving the source as output without any changes.
-    2. A user can create its own profiles. User profiles are stored in `config/profiles` folder or in an system specific one for application data.
+    2. A user can create its own profiles. User profiles are stored in `~/Library/Application Support/scantailor-advanced/scantailor-advanced/profiles`.
     3. The system consider the units settings from the [measurement units system](#measurement-units-system). Units are stored in the profile and ST automatically converts the values if needed.
 
 * #### Collapsible filter options.
@@ -441,58 +463,3 @@ has't been moved due to dirty realization. Their functionality is fully covered 
 ## License
 
 This software is licensed under GNU GPLv3, you can read more about it on our [LICENSE](/LICENSE) file.
-
-## Building (detailed)
-
-#### Building on Linux (Ubuntu / Debian)
-
-Install the required dependencies:
-
-```bash
-sudo apt install build-essential cmake \
-  qt5-qmake qtbase5-dev libqt5svg5-dev qttools5-dev \
-  libboost-test-dev libboost-dev \
-  libjpeg-dev libpng-dev libtiff-dev zlib1g-dev
-```
-
-Configure and build (out-of-tree build is required):
-
-```bash
-mkdir build && cd build
-cmake ..
-make -j$(nproc)
-```
-
-For **offline or minimal chroot** builds where unit tests cannot be built (issue #61), use `cmake -DBUILD_TESTS=OFF ..` to skip the test targets.
-
-The executable will be in the `build` directory. To install system-wide: `sudo make install`.
-
-To build a `.deb` package (with application icon and menu entry):
-
-```bash
-./build-deb.sh
-```
-
-This compiles the project and produces `scantailor-advanced_<version>_<arch>.deb` in the project root. Install with `sudo dpkg -i scantailor-advanced_*.deb`.
-
-#### Building a Windows .exe from Linux (cross-compile)
-
-You can cross-compile the Windows executable from Linux using [MXE](https://mxe.cc/) (M Cross Environment). One-time MXE setup (builds Qt5 and dependencies; can take 1–2 hours):
-
-```bash
-git clone https://github.com/mxe/mxe.git ~/mxe
-cd ~/mxe
-make MXE_TARGETS=x86_64-w64-mingw32.static qt5 jpeg libpng tiff zlib boost
-```
-
-Then from the ScanTailor Advanced source directory:
-
-```bash
-./build-windows.sh
-```
-
-This produces `build-win-static/scantailor.exe`. Use `./build-windows.sh shared` for a smaller build that requires shipping DLLs from MXE’s `usr/x86_64-w64-mingw32.shared/bin/` alongside the .exe.
-
-#### Building on Windows (native)
-
-Go to [this repository](https://github.com/4lex4/scantailor-libs-build) and follow the instructions given there.

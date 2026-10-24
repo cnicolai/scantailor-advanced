@@ -1,96 +1,116 @@
-# Guía de pruebas (ScanTailor Advanced)
+# Testing
 
-## Ejecutar tests unitarios
+The project has seven ctest suites. All of them run through the CMake presets, from the repository root, after the build described in the "Build" section of [README.md](README.md).
 
-Con el proyecto configurado con `BUILD_TESTS=ON` (por defecto):
+## Running the tests
 
-```bash
-mkdir build && cd build
-cmake .. -DBUILD_TESTS=ON
-cmake --build .
-ctest --output-on-failure
+```sh
+ctest --preset macos-release
+ctest --preset macos-debug
+ctest --preset macos-asan
 ```
 
-O ejecutar cada suite por separado:
+Each preset needs its own build first (`cmake --preset <preset>` and `cmake --build --preset <preset>`). A run is good when ctest prints `100% tests passed out of 7`. Release and Debug must both pass before a code change is committed; Debug is the slow one, mostly because of `pipeline_tests`.
 
-```bash
-./core_tests --log_level=message
-./foundation_tests --log_level=message
-./math_tests --log_level=message
-./imageproc_tests --log_level=message
-./qt_tests
+Two suites create a Qt application, `pipeline_tests` and `qt_tests`. They set `QT_QPA_PLATFORM=offscreen`, `LC_ALL=en_US.UTF-8` and `TMPDIR` themselves, and they keep their settings and temporary files in `build/<preset>/test-tmp`. No test touches the settings or profiles of the installed application.
+
+A single suite runs with ctest's regular filter, for example `ctest --preset macos-release -R core_tests`, or directly from the build directory, for example `build/macos-release/core_tests --log_level=message`.
+
+## Test suites
+
+| Suite | Covers |
+|-------|--------|
+| `foundation_tests` | Constants, line intersection, distances between points and segments, locale-independent number-to-string conversion |
+| `math_tests` | Automatic differentiation (Hessians), linear and quadratic functions, matrix calculations, sides of a line, lines clipped by a rectangle, squared-distance approximation |
+| `imageproc_tests` | Binary images, binarization, morphology, raster operations, scaling, shear, transforms, rotation, connected components and their eraser, seed fill, distance maps, skew finder, line finder, histograms, polygon rasterizer, DPI |
+| `core_tests` | Image and page identifiers, page ranges and sequence, margins, units, natural file-name ordering, deskew parameters, content span finder, oblique finder, select-content application |
+| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`) |
+| `pipeline_tests` | The headless pipeline on generated pages: flat documents, book spreads, mixed pages, dewarping, project round trips, a smoke run, and the test support itself (generator determinism, image comparison, truth metrics, the golden store, the comparator self-test) |
+| `dewarping_tests` | Text line tracer, distortion model, cylindrical dewarper |
+
+Test data is generated in code with fixed seeds. No scan is stored in the repository.
+
+## Golden baselines
+
+`pipeline_tests` compares its outputs with golden files in `src/pipeline_tests/golden/{flat,book,mixed}/`. Each directory holds PNG and text goldens, a `fixtures.txt` and a `MANIFEST.txt`.
+
+* A normal run never writes into the source tree.
+* Only `UPDATE_GOLDENS=1` re-records goldens. The value must be exactly `1`.
+* An update run rewrites only the goldens that fail, and it refreshes the manifest of every suite it touches.
+* A golden update is its own commit, with the reason in the commit message.
+
+```sh
+UPDATE_GOLDENS=1 build/macos-release/pipeline_tests
 ```
 
-## Cobertura por módulo
+Record goldens with the Release build only, and look at every changed golden before committing it.
 
-### core_tests
-- **ContentSpanFinder**: detección de intervalos de contenido.
-- **DeskewParams**: parámetros del filtro de enderezado.
-- **ImageId** / **PageId**: identificación de imágenes y páginas, orden, subpáginas.
-- **Margins**: márgenes y serialización XML.
-- **PageRange**: rangos de páginas y selección alternada.
-- **SelectContentApply**: aplicación del filtro de contenido.
-- **SmartFilenameOrdering**: ordenación natural de nombres de archivo.
-- **Units**: conversión y representación de unidades (px, mm, cm, in).
+## Failure artefacts
 
-### foundation_tests
-- **Constants**: constantes matemáticas (PI, conversiones DPI/DPM, grados/radianes).
-- **LineIntersectionScalar**: intersección de líneas (escalares).
-- **Proximity**: distancia entre puntos y punto-segmento.
-- **Utils**: conversión numérica a cadena (locale independiente).
+When a golden does not match, the test leaves its evidence in `build/<preset>/test-artifacts/<suite>/<name>/`: `actual.png`, `expected.png` and `diff.png` for images, `actual.txt`, `expected.txt` and `diff.txt` for text goldens. ctest prints the failing metric, its value, its limit and the folder. Each run clears the folder of a golden before it compares that golden again.
 
-### math_tests
-- **Hessians** (adiff): diferenciación automática.
-- **LineBoundedByRect**: recorte de recta por rectángulo.
-- **LinearFunction** / **QuadraticFunction**: funciones lineales y cuadráticas.
-- **MatrixCalc**: operaciones matriciales.
-- **SidesOfLine**: lado de una recta (puntos).
-- **SqDistApproximant**: aproximación de distancia al cuadrado.
+Every comparison also writes `GOLDEN-METRIC` lines (metric, value and limit, passing or not) to the Boost log; run `build/<preset>/pipeline_tests --log_level=message` to see them.
 
-### imageproc_tests
-- **BinaryImage**, **Binarize**, **Morphology**, **RasterOp**, **Scale**, **Shear**, **Transform**, etc.
-- **Dpi**: resolución (DPI) y serialización XML.
+## Toolchain manifest
 
-### qt_tests (Qt Test)
-- **Tests de lógica (TestCoreQt)**: Units, foundation::Utils, SmartFilenameOrdering, QSignalSpy (señales y argumentos).
-- **Tests de UX (TestUxQt)**:
-  - **testButtonClickEmitsSignal**: clic en `QPushButton` emite `clicked()` (simulación con `QTest::mouseClick`).
-  - **testCheckBoxToggleChangesState**: cambio de estado con `setChecked` y señal `toggled`.
-  - **testLineEditAcceptsInput**: entrada de texto con `QTest::keyClicks` y comprobación del texto.
-  - **testCollapsibleGroupBoxStateAndSignal**: widget del proyecto: estado colapsado/expandido y señal `collapsedStateChanged`.
-  - **testErrorWidgetCreation**: creación de `ErrorWidget` y comprobación de hijos (sin mostrar ventana).
+Each golden directory has a `MANIFEST.txt` with the toolchain the goldens were recorded with. The keys are `qt_runtime`, `qt_compile`, `boost`, `libtiff`, `libpng`, `libjpeg_turbo`, `apple_clang`, `xcode`, `cmake`, `macos`, `ffp_contract`, `build_type` and `source_commit`.
 
-Los tests de UX usan `QApplication` y pueden simular interacción (clic, teclado) sin abrir ventanas; sirven de base para ampliar con más widgets o diálogos.
+On the first comparison of a suite, the current toolchain is compared with the manifest. A difference never fails a test; it is logged as a `TOOLCHAIN DIFFERS` message (visible with `--log_level=message`) so that a failing golden can be read against a changed toolchain. `build_type` and `source_commit` are not compared, because they change legitimately between a recording and a check.
 
-## Tests de UI/UX y caminos de uso
+`qt_compile` is the Qt version found when CMake configured the build (`Qt6_VERSION`). `src/test_support/CMakeLists.txt` hands it to the code as `ST_QT_COMPILE_VERSION`, and the manifest code reads it from there.
 
-Actualmente no hay tests automatizados de interfaz ni de flujos completos de uso. Para mejorar la cobertura de UX y caminos de uso se puede:
+## Expected failures
 
-1. **Qt Test**: Añadir un ejecutable de tests que use `QTest` para:
-   - Crear widgets/diálogos sin mostrar ventana.
-   - Simular eventos (clic, teclado) y comprobar estado.
+Defects found by the golden-baseline tests are recorded, not fixed. A check that cannot pass yet is wrapped in `XFAIL_CHECK(condition, "tag")` (`src/test_support/ExpectedFailure.h`): while the condition is false, the failure is only logged. Once the defect is fixed, the condition becomes true, the mark raises an error, and the test fails until the mark is removed. That trip-wire is deliberate. Each defect has a backlog item in `.planning/ROADMAP.md`; the findings are in `.planning/phases/02-golden-baselines/02-FINDINGS.md`.
 
-2. **Tests de integración**: Scripts o tests que:
-   - Abran proyectos de ejemplo.
-   - Ejecuten filtros y comprueben resultados en disco o en memoria.
+| Test file | Defect | Backlog item |
+|-----------|--------|--------------|
+| `src/imageproc/tests/TestBinarize.cpp` | Global binarizers reject `Format_Grayscale8` | 999.1 |
+| `src/dewarping/tests/TestTextLineTracer.cpp` | The distortion model can leave out the first or last text line | 999.2 |
+| `src/pipeline_tests/TestFlatDocument.cpp` | Output of the 600 dpi flat page keeps about 0.1 degrees of residual skew | 999.3 |
+| `src/pipeline_tests/TestBookSpread.cpp` (four marks) | `page_split` puts the cutter 28 to 30 px from the gutter centre | 999.4 |
+| none (limitation of `src/test_support`) | `straightnessResidual` cannot measure the curved book page | 999.5 |
+| `src/pipeline_tests/TestMixedPage.cpp` | `page_split` AUTO cuts the mixed page and keeps only a fragment of its picture | 999.6 |
+| none (the test runs the stage first) | A layout type from the default profile is not written to the project file until `page_split` has run | 999.7 |
 
-3. **Tests E2E**: Herramientas como Squish o scripts que controlen la aplicación gráfica (más costosos de mantener).
+`src/pipeline_tests/TestGoldenStore.cpp` raises two marks on purpose to test the trip-wire itself; they do not refer to a defect.
 
-Para medir cobertura de código con gcov/lcov (solo compiladores que lo soporten):
+## Sanitizer build
 
-```bash
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage"
-cmake --build .
-ctest
-lcov --capture --directory . --output-file coverage.info
-lcov --remove coverage.info '/usr/*' --output-file coverage.info
-genhtml coverage.info --output-directory coverage_html
+The `macos-asan` preset is a Debug build with `SANITIZE=address,undefined`. Its test preset sets `ASAN_OPTIONS=detect_leaks=0:halt_on_error=0` and `UBSAN_OPTIONS=print_stacktrace=1`.
+
+```sh
+cmake --preset macos-asan
+cmake --build --preset macos-asan
+ctest --preset macos-asan
 ```
 
-## Desactivar tests
+ctest hides the sanitizer reports of tests that pass. To see them, run `ctest --preset macos-asan -V`, or run a test executable directly with the same environment:
 
-En entornos sin Boost o sin dependencias de test:
-
-```bash
-cmake .. -DBUILD_TESTS=OFF
+```sh
+ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/pipeline_tests --log_level=test_suite
 ```
+
+The reports known so far are in `.planning/phases/02-golden-baselines/records/sanitizer-findings.md`. They are recorded, not fixed.
+
+## UI snapshot tool
+
+`ui_snapshot` renders the main window and the Settings dialog offscreen and writes PNG and text files. It is built with the tests but is not a ctest suite. The output directory must lie below `build/`; the tool keeps its own settings and temporary files there, so it never reads or writes the settings of the installed application.
+
+```sh
+build/macos-release/ui_snapshot build/scratch/ui
+build/macos-release/ui_snapshot build/scratch/ui --assert-no-language
+```
+
+With `--assert-no-language` it exits non-zero when the Settings dialog still has a language control.
+
+## Formatting
+
+`.clang-format` is based on the Chromium style. No CI enforces it, so format every C++ file you touch before committing:
+
+```sh
+xcrun clang-format -i <file>
+xcrun clang-format --dry-run -Werror <file>
+```
+
+The first command formats the file, the second checks it without changing it. `src/dewarping/TextLineTracer.cpp` keeps two older violations, at lines 317 and 328.
