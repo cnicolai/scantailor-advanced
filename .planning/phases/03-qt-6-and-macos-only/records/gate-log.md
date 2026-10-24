@@ -12,3 +12,4 @@ Each strip commit was gated by `gate.sh check <label>` on the committed tree: co
 | c05-packaging | 017e977c | build(03-03): remove packaging and install rules | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
 | c06-windows-cpp | ad15b3ef | refactor(03-04): remove Windows code paths | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
 | c07-windows-cmake | 85e095d4 | build(03-04): remove Windows build options and files | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
+| c08-linux | 450ff19f | refactor(03-05): remove Linux code paths and files | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
