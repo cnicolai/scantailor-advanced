@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -94,16 +95,15 @@ test_support::PageSpec curvedSpec() {
   return spec;
 }
 
-// Generated pages are shared between the scenario cases: rendering a 600 dpi page in Debug takes seconds.
+// Generated pages are shared between the scenario cases: rendering a 600 dpi page in Debug takes seconds.  Map nodes
+// never move, so a reference handed out for one dpi stays valid when another page is added.
 const test_support::GeneratedPage& spreadPage(const int dpi) {
-  static std::vector<std::pair<int, test_support::GeneratedPage>> cache;
-  for (const auto& entry : cache) {
-    if (entry.first == dpi) {
-      return entry.second;
-    }
+  static std::map<int, test_support::GeneratedPage> cache;
+  auto it = cache.find(dpi);
+  if (it == cache.end()) {
+    it = cache.emplace(dpi, test_support::generatePage(spreadSpec(dpi))).first;
   }
-  cache.emplace_back(dpi, test_support::generatePage(spreadSpec(dpi)));
-  return cache.back().second;
+  return it->second;
 }
 
 // x of a line that is not horizontal at height y (extended beyond its end points).
