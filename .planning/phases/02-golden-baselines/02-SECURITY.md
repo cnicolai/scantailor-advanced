@@ -22,7 +22,7 @@ Register source: the `<threat_model>` blocks of plans 02-01 to 02-10 (authored a
 |----------|-------------|---------------|
 | Test process → user's home folder | A Qt application object reads and writes QSettings and standard paths of the real user unless redirected | settings (private) |
 | Test process → file system outside the project | Temporary files default to the system temp folder | temporary files |
-| Build tools and test programs → /opt/homebrew, Xcode / CLT, macOS | Reads outside the project that the global rule gates (approved for Phase 2 only) | headers, libraries, plug-ins |
+| Build tools and test programs → /opt/homebrew, Xcode / CLT, macOS | Reads outside the project that the global rule gates (approved for plans 02-01 to 02-10, then for the review fixes 02-11 to 02-14 and Phases 3 to 6) | headers, libraries, plug-ins |
 | Test wiring → production build | CMake edits could change production targets | build configuration |
 | Normal test runs → tracked goldens | A comparison run could silently rewrite the baselines it checks against | golden images and text (integrity) |
 | Test records → git history | Committed logs could carry home-directory paths | file paths (private) |
@@ -61,7 +61,17 @@ Register source: the `<threat_model>` blocks of plans 02-01 to 02-10 (authored a
 | T-02-26 | Information disclosure | `records/test-cases-asan.txt`, `closing-check.md` | low | mitigate | `$HOME` occurs 0 times in both files (paths normalised to `{repo}`, `~`) | closed |
 | T-02-27 | Repudiation | TEST-04 claim | medium | mitigate | `records/closing-check.md` records the git proof and names baseline commit `a796c2ae` | closed |
 | T-02-28 | Tampering | `.planning/ROADMAP.md` | low | mitigate | Additions only, under `## Backlog` (999.1–999.7) | closed |
-| T-02-SC | Tampering | package installs | low | accept | No package installed in this phase; clang-format used from the existing Xcode toolchain (`xcrun`) | closed |
+| T-02-29 | Elevation of privilege | reads outside the project by the build and test commands of plans 02-12 to 02-14 | medium | mitigate | Blocking-human checkpoint answered before any command; section `## Plans 02-11 to 02-14 (review fixes)` in `records/access-approval.md` (`Decision: approve`, commit `8dc6d5d8`; the user delegated the choice, recorded word for word); the `<precondition>` of 02-12, 02-13 and 02-14 checks it | closed |
+| T-02-30 | Tampering | `placeGlyph` / `placeSpecks` raster writes | high | mitigate | `dpiSupported(PageKind, int)` with `layoutFits(` in `PageGenerator.cpp`; two `std::logic_error` guards before any out-of-raster write; `GeneratorDeterminismTestSuite` under `macos-asan` with 0 AddressSanitizer lines (`build/scratch/cr01-asan-green.txt`, RED log shows the pre-fix overflow) | closed |
+| T-02-31 | Tampering | fixture pixels behind the goldens | medium | mitigate | `test_pinned_pages_unchanged` committed in `8c47d66e`, an ancestor of the generator fix `2a4ad510`; `git diff --quiet a796c2ae -- src/pipeline_tests/golden` exits 0 | closed |
+| T-02-32 | Repudiation | the dpi fit rule | low | mitigate | `test_dpi_support_rule` in `TestGeneratorDeterminism.cpp`; `## CR-01` in `records/review-fixes.md` | closed |
+| T-02-33 | Tampering | `UPDATE_GOLDENS` left set after a throwing assertion | medium | mitigate | `ScopedEnvironmentVariable` in `TestComparatorSelfTest.cpp`; `test_update_flag_restored_when_an_assertion_throws` | closed |
+| T-02-34 | Repudiation | goldens recorded without a manifest (`SuiteManifest::refresh`) | medium | mitigate | Suite marked handled only after the write (`73a18e3c`); `test_failed_manifest_write_fails_every_golden_of_the_suite` (RED `7cba3f91` first) | closed |
+| T-02-35 | Tampering | text goldens that do not parse back (`checkText`) | low | mitigate | `textRoundTrips` declared in `TextGolden.h`, called in `GoldenStore::checkText` before any read or write; `test_text_that_cannot_round_trip_is_refused` | closed |
+| T-02-36 | Repudiation | page-split coverage claimed by presence only | medium | mitigate | `layoutType="single-uncut"` and `pages type="single-uncut"` asserted in `TestProjectRoundTrip.cpp`; non-vacuity mutation run quoted in `02-14-SUMMARY.md` | closed |
+| T-02-37 | Tampering | `spreadPage` references into a reallocating vector | low | mitigate | `static std::map<int, test_support::GeneratedPage>` cache in `TestBookSpread.cpp`; `test_spread_page_cache_keeps_references` (RED `b422c5dc` before fix `46186f71`) | closed |
+| T-02-38 | Repudiation | claim that the review fixes changed no baseline | medium | mitigate | `## Closing run` in `records/review-fixes.md`: ctest 7/7 in Release and Debug, random order, golden diff against `a796c2ae`, scope diff since `cb88abec`, non-test diff against `cde6825` | closed |
+| T-02-SC | Tampering | package installs | low | accept | No package installed in this phase (plans 02-01 to 02-14); clang-format used from the existing Xcode toolchain (`xcrun`) | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above workflow.security_block_on count toward threats_open*
@@ -73,7 +83,7 @@ Register source: the `<threat_model>` blocks of plans 02-01 to 02-10 (authored a
 
 | Risk ID | Threat Ref | Rationale | Accepted By | Date |
 |---------|------------|-----------|-------------|------|
-| AR-02-01 | T-02-SC | No package was installed in Phase 2, so there is no supply-chain surface to mitigate; the Xcode-bundled clang-format was used instead of installing one | plan-time register (plans 02-01 to 02-10) | 2026-10-23 |
+| AR-02-01 | T-02-SC | No package was installed in Phase 2, so there is no supply-chain surface to mitigate; the Xcode-bundled clang-format was used instead of installing one | plan-time register (plans 02-01 to 02-10, and again 02-12 to 02-14) | 2026-10-23 |
 
 ---
 
@@ -82,6 +92,7 @@ Register source: the `<threat_model>` blocks of plans 02-01 to 02-10 (authored a
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-23 | 29 | 29 | 0 | secure-phase orchestrator (L1 evidence checks, no auditor needed) |
+| 2026-10-24 | 39 | 39 | 0 | secure-phase orchestrator after gap closure 02-11 to 02-14 (T-02-29 to T-02-38 added; L1 evidence checks, no auditor needed) |
 
 ---
 
@@ -93,3 +104,11 @@ Register source: the `<threat_model>` blocks of plans 02-01 to 02-10 (authored a
 - [x] `status: verified` set in frontmatter
 
 **Approval:** verified 2026-10-23
+
+## Security Audit 2026-10-24
+
+| Metric | Count |
+|---|---|
+| Threats found | 39 |
+| Closed | 39 |
+| Open | 0 |
