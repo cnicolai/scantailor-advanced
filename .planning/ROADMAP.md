@@ -276,3 +276,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.8: RelinkablePath::normalize turns a backslash in a macOS file name into a path separator (BACKLOG)
+
+**Goal:** `RelinkablePath::normalize` (`src/core/RelinkablePath.cpp`) replaces every backslash by a slash before splitting the path and, when resolving `..`, refuses a previous component that ends in `:` (a Windows drive letter). On macOS a backslash is a legal file-name character, so by reading the code `normalize("/Users/me/scan\\01.tif")` returns `/Users/me/scan/01.tif` (not executed). Phase 3 keeps this logic because it runs on the Mac and removing it would change behaviour (D-03). Fix it with a test in a later phase; decide first whether project files written by Windows builds must still be read. No requirement exists. Source: Phase 3 CONTEXT D-03.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
