@@ -1,0 +1,82 @@
+label: Deskew:
+label: Select content:
+label: Margins:
+label: Color Scheme: 
+label: Language: 
+label: Your hardware / driver don't provide the necessary features
+label: Quality:
+label: Size:
+label: B&W Compression: 
+label: Color Compression: 
+button: Auto detect light content on dark background
+button: Use auto detection at the output stage
+button: Highlight the thumbnails of pages with high deviation
+button: Accelerate user interface with OpenGL
+button: Auto-save the existing project
+button: Single column thumbnail display
+button: Show question on canceling multi page selection
+button: 
+button: 
+button: OK
+button: Cancel
+group: White on black detection
+group: Deviation
+group: Params
+group: User Interface
+group: Thumbnails
+group: Saving
+combo colorSchemeBox: Dark
+combo colorSchemeBox: Light
+combo colorSchemeBox: Native
+combo languageBox: English
+combo tiffCompressionBWBox: None
+combo tiffCompressionBWBox: LZW
+combo tiffCompressionBWBox: Deflate
+combo tiffCompressionBWBox: CCITT G4
+combo tiffCompressionColorBox: None
+combo tiffCompressionColorBox: LZW
+combo tiffCompressionColorBox: Deflate
+combo tiffCompressionColorBox: JPEG
+action: Debug Mode
+action: Save Project
+action: Save Project As ...
+action: Next Page
+action: Previous Page
+action: New Project ...
+action: Open Project ...
+action: Previous Page
+action: Next Page
+action: Close Project
+action: Quit
+action: Settings ...
+action: First Page
+action: Last Page
+action: About
+action: Fix DPI ...
+action: Relinking ...
+action: Reverse two-page spread order
+action: Switch filter to orientation
+action: Switch filter to orientation
+action: Switch filter to orientation
+action: Switch filter to orientation
+action: Switch filter to orientation
+action: Switch filter to orientation
+action: Pixels
+action: Millimetres
+action: Inches
+action: Centimetres
+action: Default parameters ...
+action: Previous Selected Page
+action: Next Selected Page
+action: Next Selected Page
+action: Previous Selected Page
+action: Go To Page
+action: Magnify thumbnails
+action: Diminish thumbnails
+action: Reload current page
+action: Tools
+action: Units
+action: File
+action: Help
+action: Thumbnails
+action: Filters
