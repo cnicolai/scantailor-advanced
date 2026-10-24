@@ -1324,11 +1324,7 @@ void MainWindow::filterResult(const BackgroundTaskPtr& task, const FilterResultP
 
       QApplication::alert(this);  // Flash the taskbar entry.
       if (m_checkBeepWhenFinished()) {
-#if defined(Q_OS_UNIX)
         QString extPlayCmd("play /usr/share/sounds/freedesktop/stereo/bell.oga");
-#else
-        QString extPlayCmd;
-#endif
         QSettings settings;
         QString cmd = settings.value("main_window/external_alarm_cmd", extPlayCmd).toString();
         if (cmd.isEmpty()) {

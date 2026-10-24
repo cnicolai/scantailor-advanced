@@ -24,12 +24,6 @@ project("ScanTailor Advanced")
 set(CMAKE_CXX_STANDARD 17)
 
 if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
-  if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused")
-    add_compile_options("$<$<CONFIG:RELEASE>:-march=native;-mtune=native>")
-  endif()
-
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}"
       CACHE STRING "Common C flags for all build configurations." FORCE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
@@ -58,9 +52,7 @@ if (SANITIZE)
   endif()
 endif()
 
-if (UNIX)
-  option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
-endif()
+option(CMAKE_POSITION_INDEPENDENT_CODE "" ON)
 
 include(cmake/SetDefaultBuildType.cmake)
 include(cmake/UpdateTranslations.cmake)
@@ -115,11 +107,9 @@ find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenG
 
 #=================================== Threads ===================================#
 
-if (UNIX)
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
-  link_libraries(Threads::Threads)
-endif()
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+link_libraries(Threads::Threads)
 
 #=================================== Main ===================================#
 
@@ -171,11 +161,6 @@ configure_file(version.h.in "${CMAKE_BINARY_DIR}/version.h" COPYONLY)
 
 set(SCANTAILOR_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 set(SCANTAILOR_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/src/translations")
-
-configure_file(
-    "${SCANTAILOR_RESOURCES_DIR}/unix/${target_name}.desktop.in"
-    "${CMAKE_BINARY_DIR}/${target_name}.desktop"
-    @ONLY)
 
 add_subdirectory(src)
 
