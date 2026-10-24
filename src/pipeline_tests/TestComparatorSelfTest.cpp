@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -45,6 +46,32 @@ constexpr double kLocalLevelShare = 0.002;
 QString goldenDir() {
   return QString::fromUtf8(GOLDEN_DIR);
 }
+
+/// Sets an environment variable for the lifetime of the object.  The destructor restores the previous value (or unsets
+/// the variable) on every exit, including the exception a failed BOOST_REQUIRE throws.
+class ScopedEnvironmentVariable {
+ public:
+  ScopedEnvironmentVariable(const char* name, const QByteArray& value)
+      : m_name(name), m_wasSet(qEnvironmentVariableIsSet(name)), m_previous(qgetenv(name)) {
+    qputenv(name, value);
+  }
+
+  ScopedEnvironmentVariable(const ScopedEnvironmentVariable&) = delete;
+  ScopedEnvironmentVariable& operator=(const ScopedEnvironmentVariable&) = delete;
+
+  ~ScopedEnvironmentVariable() {
+    if (m_wasSet) {
+      qputenv(m_name.constData(), m_previous);
+    } else {
+      qunsetenv(m_name.constData());
+    }
+  }
+
+ private:
+  QByteArray m_name;
+  bool m_wasSet;
+  QByteArray m_previous;
+};
 
 struct Fingerprint {
   qint64 size;
@@ -470,11 +497,34 @@ BOOST_AUTO_TEST_CASE(test_artifacts_written_for_each_failure) {
   }
 }
 
+// WR-01: a failing BOOST_REQUIRE throws; the update flag must not stay set for the suites that run after it.
+BOOST_AUTO_TEST_CASE(test_update_flag_restored_when_an_assertion_throws) {
+  const ScopedEnvironmentVariable outer("UPDATE_GOLDENS", "0");  // keeps the process state of the case
+
+  const auto setInsideAThrowingScope = []() {
+    try {
+      const ScopedEnvironmentVariable inner("UPDATE_GOLDENS", "1");
+      BOOST_CHECK(qgetenv("UPDATE_GOLDENS") == "1");
+      BOOST_CHECK(GoldenStore::updateRequestedFromEnvironment());
+      throw std::runtime_error("stand-in for the exception of a failed BOOST_REQUIRE");
+    } catch (const std::runtime_error&) {
+    }
+  };
+
+  setInsideAThrowingScope();
+  BOOST_CHECK(qEnvironmentVariableIsSet("UPDATE_GOLDENS"));
+  BOOST_CHECK(qgetenv("UPDATE_GOLDENS") == "0");
+  BOOST_CHECK(!GoldenStore::updateRequestedFromEnvironment());
+
+  qunsetenv("UPDATE_GOLDENS");
+  setInsideAThrowingScope();
+  BOOST_CHECK_MESSAGE(!qEnvironmentVariableIsSet("UPDATE_GOLDENS"), "the variable was left set after the throw");
+  BOOST_CHECK(!GoldenStore::updateRequestedFromEnvironment());
+}
+
 BOOST_AUTO_TEST_CASE(test_golden_directory_untouched) {
   // Whatever UPDATE_GOLDENS says for the process, this suite's store is built with update mode off.
-  const QByteArray previous = qgetenv("UPDATE_GOLDENS");
-  const bool hadPrevious = qEnvironmentVariableIsSet("UPDATE_GOLDENS");
-  qputenv("UPDATE_GOLDENS", "1");
+  const ScopedEnvironmentVariable updateRequested("UPDATE_GOLDENS", "1");
 
   const Snapshot before = snapshotGoldenDirectory();
   for (const Alteration& alteration : allAlterations()) {
@@ -489,12 +539,6 @@ BOOST_AUTO_TEST_CASE(test_golden_directory_untouched) {
   BOOST_CHECK(unaltered.pass);
   BOOST_CHECK(!unaltered.written);
   const Snapshot after = snapshotGoldenDirectory();
-
-  if (hadPrevious) {
-    qputenv("UPDATE_GOLDENS", previous);
-  } else {
-    qunsetenv("UPDATE_GOLDENS");
-  }
 
   BOOST_CHECK_MESSAGE(after == before, "golden directory modified:" << describeDifference(before, after));
 }
