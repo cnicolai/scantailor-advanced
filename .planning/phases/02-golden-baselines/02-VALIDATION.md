@@ -7,7 +7,7 @@ status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: "2026-10-23"
-validated: "2026-10-23"
+validated: "2026-10-24"
 ---
 
 # Phase 2 — Validation Strategy
@@ -39,7 +39,7 @@ validated: "2026-10-23"
 
 ## Per-Task Verification Map
 
-Requirement-level map; each row names the plans whose tasks carry the automated verify. Status from the validation audit on 2026-10-23 (Release suite runs plus the full `ctest` in Release, Debug and ASan).
+Requirement-level map; each row names the plans whose tasks carry the automated verify. Status from the validation audit on 2026-10-23 (Release suite runs plus the full `ctest` in Release, Debug and ASan); the gap-closure rows 02-11 to 02-14 (G-02-3, review fixes CR-01 and WR-01 to WR-05) from the audit on 2026-10-24 (the five touched suites in Release, plus the closing `ctest` 7/7 in Release and Debug).
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
@@ -54,6 +54,10 @@ Requirement-level map; each row names the plans whose tasks carry the automated 
 | 02-04 T2 | 02-04 | 3 | TEST-09 | — | N/A | unit | `ctest --preset macos-release -R dewarping_tests` | ✅ | ✅ green |
 | 02-08 T1–T2 | 02-08 | 3 | TEST-10 | — | N/A | integration | `pipeline_tests --run_test=ProjectRoundTripTestSuite` | ✅ | ✅ green |
 | 02-01 T2, 02-09 T3, 02-10 T1 | 02-01, 02-04, 02-09, 02-10 | 1, 3, 4, 5 | TEST-11 | — | N/A | system | `ctest --preset macos-release` and `ctest --preset macos-debug` (7/7 each); `pipeline_tests --run_test=EnvironmentTestSuite` | ✅ | ✅ green |
+| 02-11 T1–T2 | 02-11 | 1 (gap) | TEST-11 | T-02-29 | build and test reads outside the project only after a recorded approval | script | `awk '/^## Plans 02-11 to 02-14 \(review fixes\)/{f=1} f' records/access-approval.md \| grep -qx 'Decision: approve'` (precondition of 02-12 to 02-14) | ✅ | ✅ green |
+| 02-12 T1–T2 | 02-12 | 2 (gap) | TEST-01 | — | no raster write outside the buffer at any accepted dpi (CR-01) | unit | `pipeline_tests --run_test=GeneratorDeterminismTestSuite` (`test_pinned_pages_unchanged`, `test_dpi_sweep_gives_valid_or_null_page`, `test_dpi_support_rule`); same suite under `macos-asan` with no AddressSanitizer report | ✅ | ✅ green |
+| 02-13 T1–T3 | 02-13 | 3 (gap) | TEST-02, TEST-03 | — | N/A | unit | `pipeline_tests --run_test=GoldenStoreTestSuite` (`test_failed_manifest_write_fails_every_golden_of_the_suite`, `test_text_that_cannot_round_trip_is_refused`) and `--run_test=ComparatorSelfTestSuite` (`test_update_flag_restored_when_an_assertion_throws`) | ✅ | ✅ green |
+| 02-14 T1–T3 | 02-14 | 4 (gap) | TEST-06, TEST-10, TEST-11 | — | N/A | integration/system | `pipeline_tests --run_test=ProjectRoundTripTestSuite` (page-split layout type asserted), `--run_test=BookSpreadTestSuite` (`test_spread_page_cache_keeps_references`); `ctest --preset macos-release` and `ctest --preset macos-debug` 7/7 | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
