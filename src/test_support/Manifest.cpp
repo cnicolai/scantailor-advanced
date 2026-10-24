@@ -27,6 +27,9 @@
 #ifndef ST_XCODE_VERSION
 #define ST_XCODE_VERSION "unknown"
 #endif
+#ifndef ST_QT_COMPILE_VERSION
+#define ST_QT_COMPILE_VERSION "unknown"
+#endif
 #ifndef ST_FP_CONTRACT
 #define ST_FP_CONTRACT "unset"
 #endif
@@ -70,7 +73,7 @@ QString nonEmpty(const QString& value) {
 TextValues currentToolchain() {
   TextValues values;
   values["qt_runtime"] = nonEmpty(QString::fromLatin1(qVersion()));
-  values["qt_compile"] = nonEmpty(QString::fromLatin1(QT_VERSION_STR));
+  values["qt_compile"] = nonEmpty(QString::fromLatin1(ST_QT_COMPILE_VERSION));
   values["boost"] = nonEmpty(QString::fromLatin1(BOOST_LIB_VERSION));
   values["libtiff"] = nonEmpty(QString::fromLatin1(TIFFGetVersion()).section('\n', 0, 0).trimmed());
   values["libpng"] = nonEmpty(QString::fromLatin1(png_get_libpng_ver(nullptr)));

@@ -26,21 +26,9 @@ class BackgroundTask : public AbstractCommand<FilterResultPtr>, public TaskStatu
 
   Type type() const { return m_type; }
 
-  void cancel() override {
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR < 14
-    m_cancelFlag.store(1);
-#else
-    m_cancelFlag.storeRelaxed(1);
-#endif
-  }
+  void cancel() override { m_cancelFlag.storeRelaxed(1); }
 
-  bool isCancelled() const override {
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR < 14
-    return m_cancelFlag.load() != 0;
-#else
-    return m_cancelFlag.loadRelaxed() != 0;
-#endif
-  }
+  bool isCancelled() const override { return m_cancelFlag.loadRelaxed() != 0; }
 
   /**
    * \brief If cancelled, throws CancelledException.

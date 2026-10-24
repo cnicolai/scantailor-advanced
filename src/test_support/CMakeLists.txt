@@ -40,4 +40,5 @@ target_compile_definitions(
             ST_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
             ST_XCODE_VERSION="${st_xcode_version}"
             ST_FP_CONTRACT="${st_fp_contract}"
+            ST_QT_COMPILE_VERSION="${Qt6_VERSION}"
             ST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
