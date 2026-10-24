@@ -5,19 +5,19 @@ titles: json
 findings:
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: deferred
     title: "The header names 150 and 225 dpi as refused values, but 400 and 450 dpi are refused too"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: deferred
     title: "The new cache-stability test cannot fail in a normal run"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: deferred
     title: "The determinism sweep reuses a truncating `scaled()` helper on non-exact dpi values, and its expected numbers have no regeneration source"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: deferred
     title: "Carried over from the previous review, unchanged: wrong arithmetic in the noise-floor comment"
   - id: CR-01
     severity: critical
@@ -55,7 +55,7 @@ findings:
     severity: info
     disposition: deferred
     title: "The test sources need Qt 6.5 and Boost headers, but the build still advertises a Qt 5 fallback"
-open: 4
+open: 0
 total: 13
 recorded: 2026-10-24T15:40:32.710Z
 ---
@@ -64,10 +64,10 @@ recorded: 2026-10-24T15:40:32.710Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| IN-01 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
+| IN-02 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
+| IN-03 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
+| IN-04 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
 | CR-01 | critical | fixed | plan 02-12 (G-02-3) (not in the current review) |
 | WR-01 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
 | WR-02 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
