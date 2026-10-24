@@ -403,4 +403,20 @@ BOOST_AUTO_TEST_CASE(test_flat_page_unchanged) {
                     "fedb69f8688b445a3ced11c0decdb7da6e62dc5b7a5fd7a5087a37fd5b3615cf");
 }
 
+BOOST_AUTO_TEST_CASE(test_pinned_pages_unchanged) {
+  // Recorded from the generator before the dpi fit check existed (plan 02-12): the 75 dpi pages of all four kinds
+  // and the curved page at 600 dpi must stay byte-identical.  The other kinds at 300 and 600 dpi are pinned by
+  // test_flat_page_unchanged and by the fixtures.txt goldens.
+  BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::FLAT, 75)).image).toStdString(),
+                    "6a55a26ae3e6c61d7e2843ed8776252777520a4f7a0a0ef9fa7a2403d3128676");
+  BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::SPREAD, 75)).image).toStdString(),
+                    "be9fd06ab9bcd1f484e618390a334491c4de029cf450f04e22308a9be9ba084a");
+  BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::MIXED, 75)).image).toStdString(),
+                    "69e7489f2618efdaceafc1c753fefda28439a71337813d518bb6021fffaa0458");
+  BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::CURVED, 75)).image).toStdString(),
+                    "cddf2d048f0f61cb10d9283730f0c4e9d8138fc6bd41fdea0a7133d9f5485942");
+  BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::CURVED, 600)).image).toStdString(),
+                    "d7e6fb18871c11675c4909a2e93275102bac3a8b37768dd82fd86ca771c70096");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
