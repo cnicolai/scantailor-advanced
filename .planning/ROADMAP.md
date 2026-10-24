@@ -118,7 +118,36 @@ Plans:
   4. The app starts with an English UI, no translation files are built or loaded, and no translation targets remain in CMake
   5. Someone following only the README can build the app on the Mac and run the test suite
 
-**Plans**: TBD
+**Plans:** 9 plans
+
+Plans:
+**Wave 1**
+- [ ] 03-01-PLAN.md — Tracer: gate tooling (D-11 gate, build-command diff), offscreen ui_snapshot harness, before screenshots and counts, harness commit c00 gated
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 03-02-PLAN.md — Qt 5 removal in the Pitfall 7 order: C++ conditionals by unifdef plus D-15 manifest define (c01), Qt 6 only CMake with a 6.5 floor (c02), main.cpp and ImageViewBase blocks (c03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 03-03-PLAN.md — GitHub automation removed (c04), packaging and every install rule removed (c05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 03-04-PLAN.md — Windows code paths by unifdef (c06) with backlog item 999.8 for RelinkablePath, Windows build options, helpers and files (c07)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 03-05-PLAN.md — Linux code paths, GCC flag block and Linux resources in one commit (c08), portable mode (c09)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 03-06-PLAN.md — Translations removed atomically (c10), D-12 after checks: assertion run, static counts, screenshots and verdict
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 03-07-PLAN.md — README top and English TESTING.md (c11), fresh-clone proof with README commands only (D-13)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 03-08-PLAN.md — One macos-asan run compared with Phase 2 (D-14), final leftover sweeps and gate-log completeness
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 03-09-PLAN.md — Codebase maps and CLAUDE.md brought up to date (D-10), closing check with the summary for the user
+
 **UI hint**: no
 
 ### Phase 4: Retina Rendering
@@ -175,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
-| 3. Qt 6 and macOS Only | 0/TBD | Not started | - |
+| 3. Qt 6 and macOS Only | 0/9 | Not started | - |
 | 4. Retina Rendering | 0/TBD | Not started | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
