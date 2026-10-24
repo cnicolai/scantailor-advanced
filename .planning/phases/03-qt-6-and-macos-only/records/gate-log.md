@@ -9,3 +9,4 @@ Each strip commit was gated by `gate.sh check <label>` on the committed tree: co
 | c02-qt6-cmake | c63a74c2 | build(03-02): require Qt 6 only in CMake | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
 | c03-qt5-main-imageview | 81a27cb1 | refactor(03-02): resolve the Qt 5 blocks in main.cpp and ImageViewBase | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
 | c04-ci | 462f22cd | chore(03-03): remove GitHub automation | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
+| c05-packaging | 017e977c | build(03-03): remove packaging and install rules | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty |
