@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 03
 current_phase_name: Qt 6 and macOS Only
 status: executing
-stopped_at: Completed 03-07-PLAN.md
-last_updated: "2026-10-24T21:19:10.750Z"
+stopped_at: Completed 03-08-PLAN.md
+last_updated: "2026-10-24T21:35:04.484Z"
 last_activity: 2026-10-24
 last_activity_desc: Phase 03 execution started
-state_head: e057718896cd5d941d69bf8fc1c67a9762e6f4e2
+state_head: 2cecffabf7c5038884605b8445c200ac347663d4
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 30
-  completed_plans: 28
+  completed_plans: 29
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-24)
 ## Current Position
 
 Phase: 03 (Qt 6 and macOS Only) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 Status: Ready to execute
 Last activity: 2026-10-24 — Phase 03 execution started
 
@@ -86,6 +86,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03 P05 | 13min | 2 tasks | 15 files |
 | Phase 03 P06 | 7 min | 2 tasks | 34 files |
 | Phase 03 P07 | 11 min | 2 tasks | 4 files |
+| Phase 03 P08 | 14 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-05: CMAKE_POSITION_INDEPENDENT_CODE and Threads lines unwrapped, not deleted, because the Mac compile and link commands use them
 - [Phase 03]: 03-06: translations removed in one commit (c10); a language key in user settings is left alone (D-07); D-12 after check Verdict PASS
 - [Phase 03]: 03-07: README Features unchanged except two portable-mode passages; TESTING.md documents artefacts as test-artifacts/<suite>/<name>
+- [Phase 03]: 03-08: ASan+UBSan after the strip equal Phase 2 (0 ASan, 12 UBSan, same 9 locations, 0 new); executables run with their ctest environment so settings stay in build/
 
 ### Pending Todos
 
@@ -173,6 +175,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T21:19:10.654Z
-Stopped at: Completed 03-07-PLAN.md
+Last session: 2026-10-24T21:35:04.389Z
+Stopped at: Completed 03-08-PLAN.md
 Resume file: None
