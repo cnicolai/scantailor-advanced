@@ -432,6 +432,45 @@ BOOST_AUTO_TEST_CASE(test_update_twice_is_idempotent) {
   BOOST_CHECK_MESSAGE(snapshotOf(roots.goldenPath()) == first, "the second update run changed a file");
 }
 
+// WR-02: a suite counts as handled only once its manifest is on disk.  A directory where MANIFEST.txt belongs makes
+// the manifest write fail; every later golden of the suite must fail too, and none may be written without a manifest.
+BOOST_AUTO_TEST_CASE(test_failed_manifest_write_fails_every_golden_of_the_suite) {
+  const Roots roots;
+  const QString suiteDir = roots.goldenPath() + "/suite_a";
+  const QString manifestPath = suiteDir + "/MANIFEST.txt";
+  BOOST_REQUIRE(QDir().mkpath(manifestPath));  // a directory standing where the file belongs
+
+  GoldenStore update(roots.goldenPath(), roots.artifactPath(), true);
+  const GoldenStore::Outcome first = checkPage(update, "suite_a", "page_one", 0);
+  BOOST_CHECK_MESSAGE(!first.pass && !first.written, "first check: " << first.message.toStdString());
+  BOOST_CHECK_MESSAGE(first.message.contains("MANIFEST.txt"), first.message.toStdString());
+
+  const GoldenStore::Outcome second = checkPage(update, "suite_a", "page_two", 0);
+  BOOST_CHECK_MESSAGE(!second.pass && !second.written, "second check: " << second.message.toStdString());
+  BOOST_CHECK_MESSAGE(second.message.contains("MANIFEST.txt"), second.message.toStdString());
+
+  const GoldenStore::Outcome text
+      = update.checkText("suite_a", "decisions", TextValues{{"output_dpi", "600"}}, sanityOk());
+  BOOST_CHECK_MESSAGE(!text.pass && !text.written, "text check: " << text.message.toStdString());
+  BOOST_CHECK_MESSAGE(text.message.contains("MANIFEST.txt"), text.message.toStdString());
+
+  for (const char* file : {"page_one.png", "page_two.png", "decisions.txt"}) {
+    BOOST_CHECK_MESSAGE(!QFileInfo::exists(suiteDir + "/" + file), file << " was written without a manifest");
+  }
+
+  // Once the obstacle is gone, the same store writes the manifest with the next check.
+  BOOST_REQUIRE(QDir().rmdir(manifestPath));
+  const GoldenStore::Outcome retry = checkPage(update, "suite_a", "page_one", 0);
+  BOOST_CHECK_MESSAGE(retry.pass && retry.written, retry.message.toStdString());
+  BOOST_CHECK(QFileInfo(manifestPath).isFile());
+  bool ok = false;
+  const TextValues manifest = parseText(readFile(manifestPath).toUtf8(), &ok);
+  BOOST_REQUIRE(ok);
+  TextValues expected = currentToolchain();
+  expected["source_commit"] = currentSourceCommit();
+  BOOST_CHECK_MESSAGE(manifest == expected, "manifest differs from the current toolchain plus source_commit");
+}
+
 BOOST_AUTO_TEST_CASE(test_sanity_failure_blocks_write) {
   const Roots roots;
   const Sanity blank{false, "page is blank"};
