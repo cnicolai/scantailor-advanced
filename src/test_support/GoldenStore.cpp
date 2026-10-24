@@ -186,19 +186,23 @@ class SuiteManifest {
   }
 
   /// Update run, first write-worthy check of the suite: records the current toolchain and source commit.
-  /// An identical manifest is left alone, so a repeated update changes nothing.
+  /// An identical manifest is left alone, so a repeated update changes nothing.  A suite counts as handled only once
+  /// its manifest is on disk, so a failed write fails every later golden of the suite instead of only the first.
   bool refresh(QString* error) {
-    if (!m_handled.insert(m_suite).second) {
+    if (m_handled.count(m_suite)) {
       return true;
     }
     TextValues values = currentToolchain();
     values["source_commit"] = currentSourceCommit();
     const QByteArray data = serializeText(values);
     bool readable = false;
-    if (readBytes(m_path, &readable) == data && readable) {
-      return true;
+    if (readBytes(m_path, &readable) != data || !readable) {
+      if (!saveAtomically(m_path, data, error)) {
+        return false;
+      }
     }
-    return saveAtomically(m_path, data, error);
+    m_handled.insert(m_suite);
+    return true;
   }
 
  private:
