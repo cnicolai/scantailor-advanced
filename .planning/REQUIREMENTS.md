@@ -33,14 +33,14 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 
 ### macOS-only Cleanup
 
-- [ ] **STRIP-01**: Only Qt 6 is supported; Qt 5 CMake branches and `QT_VERSION` `#if` blocks are removed with baseline images unchanged
-- [ ] **STRIP-02**: Windows-specific code paths and build options are removed
-- [ ] **STRIP-03**: Linux-specific code (Wayland/xcb fallback, desktop and MIME files) is removed
-- [ ] **STRIP-04**: Packaging is removed: Flatpak, DEB, NSIS/CPack, `build-*.sh` scripts and MXE notes
-- [ ] **STRIP-05**: All GitHub Actions workflows and the Dependabot configuration are removed
-- [ ] **STRIP-06**: Translations are removed; the UI is English only
+- [x] **STRIP-01**: Only Qt 6 is supported; Qt 5 CMake branches and `QT_VERSION` `#if` blocks are removed with baseline images unchanged
+- [x] **STRIP-02**: Windows-specific code paths and build options are removed
+- [x] **STRIP-03**: Linux-specific code (Wayland/xcb fallback, desktop and MIME files) is removed
+- [x] **STRIP-04**: Packaging is removed: Flatpak, DEB, NSIS/CPack, `build-*.sh` scripts and MXE notes
+- [x] **STRIP-05**: All GitHub Actions workflows and the Dependabot configuration are removed
+- [x] **STRIP-06**: Translations are removed; the UI is English only
 - [ ] **STRIP-07**: The OpenGL viewer option and its code are removed, after a test covers the colour-picker path
-- [ ] **STRIP-08**: The README documents the macOS build and test commands
+- [x] **STRIP-08**: The README documents the macOS build and test commands
 
 ### Retina
 
@@ -142,14 +142,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-09 | Phase 2 | Complete |
 | TEST-10 | Phase 2 | Complete |
 | TEST-11 | Phase 2 | Complete |
-| STRIP-01 | Phase 3 | Pending |
-| STRIP-02 | Phase 3 | Pending |
-| STRIP-03 | Phase 3 | Pending |
-| STRIP-04 | Phase 3 | Pending |
-| STRIP-05 | Phase 3 | Pending |
-| STRIP-06 | Phase 3 | Pending |
+| STRIP-01 | Phase 3 | Complete |
+| STRIP-02 | Phase 3 | Complete |
+| STRIP-03 | Phase 3 | Complete |
+| STRIP-04 | Phase 3 | Complete |
+| STRIP-05 | Phase 3 | Complete |
+| STRIP-06 | Phase 3 | Complete |
 | STRIP-07 | Phase 6 | Pending |
-| STRIP-08 | Phase 3 | Pending |
+| STRIP-08 | Phase 3 | Complete |
 | HIDPI-01 | Phase 4 | Pending |
 | HIDPI-02 | Phase 4 | Pending |
 | HIDPI-03 | Phase 4 | Pending |
