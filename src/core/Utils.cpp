@@ -10,19 +10,11 @@
 
 #include "ApplicationSettings.h"
 
-#ifdef Q_OS_WIN
-#include <windows.h>
-#else
 #include <stdio.h>
-#endif
 
 namespace core {
 bool Utils::overwritingRename(const QString& from, const QString& to) {
-#ifdef Q_OS_WIN
-  return MoveFileExW((WCHAR*) from.utf16(), (WCHAR*) to.utf16(), MOVEFILE_REPLACE_EXISTING) != 0;
-#else
   return rename(QFile::encodeName(from).data(), QFile::encodeName(to).data()) == 0;
-#endif
 }
 
 QString Utils::richTextForLink(const QString& label, const QString& target) {

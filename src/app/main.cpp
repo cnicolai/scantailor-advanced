@@ -19,11 +19,6 @@
 int main(int argc, char* argv[]) {
   Application app(argc, argv);
 
-#ifdef _WIN32
-  // Get rid of all references to Qt's installation directory.
-  Application::setLibraryPaths(QStringList(Application::applicationDirPath()));
-#endif
-
   QStringList args = Application::arguments();
 
   // This information is used by QSettings.

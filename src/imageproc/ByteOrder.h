@@ -4,12 +4,6 @@
 #ifndef SCANTAILOR_IMAGEPROC_BYTEORDER_H_
 #define SCANTAILOR_IMAGEPROC_BYTEORDER_H_
 
-#ifdef _WIN32
-
-#include <winsock2.h>
-
-#else
 #include <netinet/in.h>
-#endif
 
 #endif
