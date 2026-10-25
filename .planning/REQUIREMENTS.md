@@ -95,7 +95,7 @@ Deferred. Tracked but not in the current roadmap.
 
 - **TESTX-01**: Metamorphic tests (transformed input gives a correspondingly transformed result)
 - **TESTX-02**: Default-parameter profiles round-trip unchanged
-- **TESTX-03**: Automated HiDPI render test checks view buffers are built at 2×
+- **TESTX-03**: Automated HiDPI render test checks view buffers are built at 2× (brought into Phase 4 by D-04)
 
 ### Cleanup
 
@@ -156,6 +156,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HIDPI-04 | Phase 4 | Pending |
 | HIDPI-05 | Phase 4 | Pending |
 | HIDPI-06 | Phase 4 | Pending |
+| TESTX-03 | Phase 4 | Pending |
 | MAC-01 | Phase 5 | Pending |
 | MAC-02 | Phase 5 | Pending |
 | MAC-03 | Phase 5 | Pending |
@@ -180,7 +181,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 51 total
 - Mapped to phases: 51
 - Unmapped: 0
+- v2 brought forward: 1 (TESTX-03, Phase 4)
 
 ---
 *Requirements defined: 2026-10-18*
-*Last updated: 2026-10-18 after roadmap creation*
+*Last updated: 2026-10-25 after Phase 4 planning moved TESTX-03 (D-04)*
