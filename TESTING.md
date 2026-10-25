@@ -12,7 +12,7 @@ ctest --preset macos-asan
 
 Each preset needs its own build first (`cmake --preset <preset>` and `cmake --build --preset <preset>`). A run is good when ctest prints `100% tests passed out of 7`. Release and Debug must both pass before a code change is committed; Debug is the slow one, mostly because of `pipeline_tests`.
 
-Two suites create a Qt application, `pipeline_tests` and `qt_tests`. They set `QT_QPA_PLATFORM=offscreen`, `LC_ALL=en_US.UTF-8` and `TMPDIR` themselves, and they keep their settings and temporary files in `build/<preset>/test-tmp`. No test touches the settings or profiles of the installed application.
+Two suites create a Qt application, `pipeline_tests` and `qt_tests`. `pipeline_tests` runs on the single-screen offscreen platform. `qt_tests` runs offscreen with two screens, `OneX` at device pixel ratio 1 and `TwoX` at ratio 2: it writes the screen layout to `build/<preset>/test-tmp/offscreen-screens.json` and scales the screens with `QT_SCREEN_SCALE_FACTORS="OneX=1;TwoX=2"`. That variable is a test aid only; the app never sets a scale factor. Both suites set `LC_ALL=en_US.UTF-8` and `TMPDIR` themselves, and they keep their settings and temporary files in `build/<preset>/test-tmp`. No test touches the settings or profiles of the installed application.
 
 A single suite runs with ctest's regular filter, for example `ctest --preset macos-release -R core_tests`, or directly from the build directory, for example `build/macos-release/core_tests --log_level=message`.
 
@@ -24,7 +24,7 @@ A single suite runs with ctest's regular filter, for example `ctest --preset mac
 | `math_tests` | Automatic differentiation (Hessians), linear and quadratic functions, matrix calculations, sides of a line, lines clipped by a rectangle, squared-distance approximation |
 | `imageproc_tests` | Binary images, binarization, morphology, raster operations, scaling, shear, transforms, rotation, connected components and their eraser, seed fill, distance maps, skew finder, line finder, histograms, polygon rasterizer, DPI |
 | `core_tests` | Image and page identifiers, page ranges and sequence, margins, units, natural file-name ordering, deskew parameters, content span finder, oblique finder, select-content application |
-| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`) |
+| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`), and the Retina tests (`TestHiDpiQt`): page view, thumbnails, zone mask and stage-list animation built at the device pixel ratio, moves between the 1x and the 2x screen, icon geometry and colour-picker sampling |
 | `pipeline_tests` | The headless pipeline on generated pages: flat documents, book spreads, mixed pages, dewarping, project round trips, a smoke run, and the test support itself (generator determinism, image comparison, truth metrics, the golden store, the comparator self-test) |
 | `dewarping_tests` | Text line tracer, distortion model, cylindrical dewarper |
 
@@ -103,6 +103,22 @@ build/macos-release/ui_snapshot build/scratch/ui --assert-no-language
 ```
 
 With `--assert-no-language` it exits non-zero when the Settings dialog still has a language control.
+
+## Live Retina check
+
+`retina_check` measures the Retina rendering on the real display. It is built with the tests but is not a ctest suite, because ctest runs offscreen. It runs on the Cocoa platform, so the display must be awake and the session unlocked.
+
+```sh
+build/macos-release/retina_check build/scratch/retina/all --section all -ApplePersistenceIgnoreState YES
+```
+
+* `--section` is `page`, `thumbnails`, `overlays`, `picker` or `all`.
+* The output directory must lie below `build/`. The tool keeps its settings, temporary files, generated pages and thumbnails there, so it never reads or writes the settings of the installed application.
+* It clears the scale-factor variables (`QT_SCALE_FACTOR`, `QT_SCREEN_SCALE_FACTORS` and the others) before the application exists, so it sees what the app sees on this display.
+* Results go to `summary.txt` in the output directory as `key: value` lines, with a verdict per element and a final `verdict: PASS` or `verdict: FAIL`.
+* Exit codes: 0 pass, 1 fail, 2 usage error or output path outside `build/`, 3 platform is not Cocoa.
+
+The `qt_tests` cannot show how Cocoa behaves on a real display, and the live check cannot move a window between a 1x and a 2x display, so the two complement each other. The records of the Phase 4 runs are in `.planning/phases/04-retina-rendering/records/`.
 
 ## Formatting
 
