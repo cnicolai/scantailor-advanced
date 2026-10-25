@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
-status: executing
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-10-25T15:25:31.701Z"
+status: verifying
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-10-25T15:37:52.099Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 execution started
-state_head: 696f76b8b2ef00115685ea4cc27892503213cd19
+state_head: e5754810be8a8c7414e16534828d4bb863320787
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 37
+  completed_plans: 38
 milestone_name: macOS
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 
 Phase: 04 (Retina Rendering) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-25 — Phase 04 execution started
 
 Progress: [█████░░░░░] 50%
@@ -96,6 +96,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P05 | 23 min | 2 tasks | 8 files |
 | Phase 04 P06 | 19 min | 2 tasks | 10 files |
 | Phase 04 P07 | 50min | 2 tasks | 10 files |
+| Phase 04 P08 | 10 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -181,6 +182,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-06: ThumbnailSequence.cpp unchanged; page badges proven at device resolution by testPageBadgeAtDeviceResolution on the real styled icon engine
 - [Phase 04]: 04-06: colour picker median moved into ColorPickupInteraction::medianColor, circle counted in logical pixels; identical at ratio 1, OpenGL branch untouched
 - [Phase 04]: retina_check links dewarping; stage-list centring is measured on ink united over 12 grabs and list-decoration size on the first ink column run (plan recipes measured a comet fragment and the item text); no threshold changed
+- [Phase 04]: Phase 4 closing: sanitizer report at BinaryImage.cpp:1044 (known Phase 1 location) reached through the Phase 4 test helper makeZoneMask is recorded as old code, not fixed
+- [Phase 04]: HIDPI-01 recorded as measured with retina_check, which shares the app's Mach-O properties; the app binary itself was not launched (home-folder rule)
 
 ### Pending Todos
 
@@ -198,6 +201,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-25T15:25:31.505Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-10-25T15:37:46.791Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None

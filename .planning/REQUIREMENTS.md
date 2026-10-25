@@ -44,12 +44,12 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 
 ### Retina
 
-- [ ] **HIDPI-01**: The device pixel ratio of the bare build-dir binary is measured on a Retina display; if it reports 1.0, an embedded `Info.plist` makes it 2.0
-- [ ] **HIDPI-02**: The main page view renders the page sharply at 2× at every zoom level
-- [ ] **HIDPI-03**: Thumbnails render sharply, with the thumbnail cache keyed by device pixel ratio
-- [ ] **HIDPI-04**: Overlay pixmaps (zone masks, page badges, handles, stage-list animation) render sharply
-- [ ] **HIDPI-05**: Moving a window between a Retina and a non-Retina display re-renders at the right resolution
-- [ ] **HIDPI-06**: The colour picker samples the correct pixel on Retina
+- [x] **HIDPI-01**: The device pixel ratio of the bare build-dir binary is measured on a Retina display; if it reports 1.0, an embedded `Info.plist` makes it 2.0
+- [x] **HIDPI-02**: The main page view renders the page sharply at 2× at every zoom level
+- [x] **HIDPI-03**: Thumbnails render sharply, with the thumbnail cache keyed by device pixel ratio
+- [x] **HIDPI-04**: Overlay pixmaps (zone masks, page badges, handles, stage-list animation) render sharply
+- [x] **HIDPI-05**: Moving a window between a Retina and a non-Retina display re-renders at the right resolution
+- [x] **HIDPI-06**: The colour picker samples the correct pixel on Retina
 
 ### Mac Shortcuts & Menus
 
@@ -150,13 +150,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRIP-06 | Phase 3 | Complete |
 | STRIP-07 | Phase 6 | Pending |
 | STRIP-08 | Phase 3 | Complete |
-| HIDPI-01 | Phase 4 | Pending |
-| HIDPI-02 | Phase 4 | Pending |
-| HIDPI-03 | Phase 4 | Pending |
-| HIDPI-04 | Phase 4 | Pending |
-| HIDPI-05 | Phase 4 | Pending |
-| HIDPI-06 | Phase 4 | Pending |
-| TESTX-03 | Phase 4 | Pending |
+| HIDPI-01 | Phase 4 | Complete |
+| HIDPI-02 | Phase 4 | Complete |
+| HIDPI-03 | Phase 4 | Complete |
+| HIDPI-04 | Phase 4 | Complete |
+| HIDPI-05 | Phase 4 | Complete |
+| HIDPI-06 | Phase 4 | Complete |
+| TESTX-03 | Phase 4 | Complete |
 | MAC-01 | Phase 5 | Pending |
 | MAC-02 | Phase 5 | Pending |
 | MAC-03 | Phase 5 | Pending |
