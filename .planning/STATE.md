@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
 status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-10-25T15:09:00.692Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-10-25T15:25:31.701Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 execution started
-state_head: c78ebd6bc9eb60ae472061c694c93120e1c83496
+state_head: 696f76b8b2ef00115685ea4cc27892503213cd19
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 36
+  completed_plans: 37
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 04 (Retina Rendering) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 04 execution started
 
@@ -95,6 +95,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P04-04 | 17 min | 2 tasks | 9 files |
 | Phase 04 P05 | 23 min | 2 tasks | 8 files |
 | Phase 04 P06 | 19 min | 2 tasks | 10 files |
+| Phase 04 P07 | 50min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-05: BubbleAnimation::nextFrame gets an explicit logical rect; on Qt 6.12 the default rect of a ratio-2 pixmap is its device size (Pitfall 2 confirmed by a counterfactual)
 - [Phase 04]: 04-06: ThumbnailSequence.cpp unchanged; page badges proven at device resolution by testPageBadgeAtDeviceResolution on the real styled icon engine
 - [Phase 04]: 04-06: colour picker median moved into ColorPickupInteraction::medianColor, circle counted in logical pixels; identical at ratio 1, OpenGL branch untouched
+- [Phase 04]: retina_check links dewarping; stage-list centring is measured on ink united over 12 grabs and list-decoration size on the first ink column run (plan recipes measured a comet fragment and the item text); no threshold changed
 
 ### Pending Todos
 
@@ -196,6 +198,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-25T15:09:00.512Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-10-25T15:25:31.505Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
