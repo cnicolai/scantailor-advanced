@@ -25,6 +25,7 @@ class TestHiDpiQt : public QObject {
   void testThumbnailFilesKeyedByRatio();
   void testOldThumbnailLeftInPlace();
   void testStaleLoadDiscarded();
+  void testThumbnailQualityDefault();
 };
 
 #endif

@@ -107,7 +107,7 @@
               <item>
                <widget class="QSpinBox" name="thumbnailQualitySB">
                 <property name="toolTip">
-                 <string>The pixel size of the thumbnail image. The default value is 200.</string>
+                 <string>The pixel size of the thumbnail image. On a Retina display the image is built at this size multiplied by the display's pixel ratio, twice on the Studio Display. The default value is 250.</string>
                 </property>
                 <property name="minimum">
                  <number>100</number>

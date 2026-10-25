@@ -3,6 +3,7 @@
 
 #include "tst_hidpi_qt.h"
 
+#include <ApplicationSettings.h>
 #include <BasicImageView.h>
 #include <HiDpi.h>
 #include <ImageId.h>
@@ -21,6 +22,7 @@
 #include <QPixmap>
 #include <QRandomGenerator>
 #include <QScreen>
+#include <QSettings>
 #include <QString>
 #include <QStringList>
 #include <QTemporaryDir>
@@ -572,4 +574,12 @@ void TestHiDpiQt::testStaleLoadDiscarded() {
   QCOMPARE(cache.loadRequest(id, pm, handler), ThumbnailPixmapCache::QUEUED);
   QTRY_COMPARE_WITH_TIMEOUT(cache.loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
   QCOMPARE(pm.width(), 500);
+}
+
+void TestHiDpiQt::testThumbnailQualityDefault() {
+  // The qt_tests settings file lives below the build tree (main.cpp checks it), so this cannot touch real settings.
+  QSettings settings;
+  settings.remove("settings/thumbnail_quality");
+  settings.sync();
+  QCOMPARE(ApplicationSettings::getInstance().getThumbnailQuality(), QSize(250, 250));
 }
