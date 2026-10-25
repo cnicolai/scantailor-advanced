@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-10-25T13:46:11.725Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-10-25T14:06:01.945Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 execution started
-state_head: f0b157c2e36f9c33b03ecbbb05b424e62634a252
+state_head: 2a9b817c803ec0d044d67419155983ecb894c15a
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 32
+  completed_plans: 33
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 04 (Retina Rendering) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 04 execution started
 
@@ -91,6 +91,7 @@ Progress: [█████░░░░░] 50%
 | Phase 03 P09 | 7 min | 2 tasks | 9 files |
 | Phase 04 P01 | 19 min | 2 tasks | 10 files |
 | Phase 04 P02 | 11 min | 2 tasks | 11 files |
+| Phase 04 P03 | 17 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Offscreen test windows are placed by setScreen() plus move() into the screen rectangle; setScreen() alone reverts on resize
 - [Phase 04]: Retina tests wait for viewport()->devicePixelRatioF() before the HQ pixmap; the viewport child learns the ratio after its parent
 - [Phase 04]: Plan 04-02: no Info.plist (ratio 2 measured on Studio Display) and no smoothing recalibration (ratio 0.9978)
+- [Phase 04]: 04-03: Quality spin box range stays 100-1500; thumbnail cache clamps the effective side to 3000 so stored values are never rewritten
+- [Phase 04]: 04-03: makeThumbnail left unchanged; ratio 1 thumbnails keep their size (a 1200x900 page gives a 249 px wide q250 file)
 
 ### Pending Todos
 
@@ -184,6 +187,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-25T13:46:11.554Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-10-25T14:06:01.765Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
