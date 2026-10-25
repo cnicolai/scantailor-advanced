@@ -8,6 +8,13 @@
 #include <HiDpi.h>
 #include <ImageId.h>
 #include <PageId.h>
+#include <PageRange.h>
+#include <PageSelectionAccessor.h>
+#include <PageSelectionProvider.h>
+#include <PageSequence.h>
+#include <ProjectPages.h>
+#include <StageListView.h>
+#include <StageSequence.h>
 #include <ThumbnailBase.h>
 #include <ThumbnailDprTracker.h>
 #include <ThumbnailPixmapCache.h>
@@ -47,6 +54,8 @@
 #include <cstdlib>
 #include <limits>
 #include <memory>
+#include <set>
+#include <vector>
 
 namespace {
 
@@ -263,6 +272,51 @@ void waitForZoneMask(output::PictureZoneEditor& editor, const double dpr) {
     return;
   }
   QTRY_VERIFY_WITH_TIMEOUT(editor.screenPictureMaskIsCurrent(), 10000);
+}
+
+
+// A page selection without pages, enough to build a StageSequence.
+class EmptySelectionProvider : public PageSelectionProvider {
+ public:
+  PageSequence allPages() const override { return PageSequence(); }
+
+  std::set<PageId> selectedPages() const override { return std::set<PageId>(); }
+
+  std::vector<PageRange> selectedRanges() const override { return std::vector<PageRange>(); }
+};
+
+// Bounding box of the pixels with an alpha above 0, in device pixels (null if there are none).
+QRect drawnBounds(const QPixmap& pixmap) {
+  const QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+  QRect bounds;
+  for (int y = 0; y < image.height(); ++y) {
+    const auto* line = reinterpret_cast<const QRgb*>(image.constScanLine(y));
+    for (int x = 0; x < image.width(); ++x) {
+      if (qAlpha(line[x]) > 0) {
+        bounds = bounds.isNull() ? QRect(x, y, 1, 1) : bounds.united(QRect(x, y, 1, 1));
+      }
+    }
+  }
+  return bounds;
+}
+
+// Smallest over largest number of drawn pixels (alpha above 0) among the four quadrants of the pixmap, split at its
+// centre. A ring of bubbles centred in the frame is the same in all four (about 1); a ring centred at the corner of
+// the frame, as when the rect is twice too large, leaves a quadrant almost empty.
+double quadrantBalance(const QPixmap& pixmap) {
+  const QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+  int counts[4] = {0, 0, 0, 0};
+  for (int y = 0; y < image.height(); ++y) {
+    const auto* line = reinterpret_cast<const QRgb*>(image.constScanLine(y));
+    for (int x = 0; x < image.width(); ++x) {
+      if (qAlpha(line[x]) > 0) {
+        ++counts[(2 * y >= image.height() ? 2 : 0) + (2 * x >= image.width() ? 1 : 0)];
+      }
+    }
+  }
+  const int largest = *std::max_element(std::begin(counts), std::end(counts));
+  const int smallest = *std::min_element(std::begin(counts), std::end(counts));
+  return largest > 0 ? static_cast<double>(smallest) / largest : 0.0;
 }
 
 }  // namespace
@@ -908,4 +962,87 @@ void TestHiDpiQt::testZoneMaskRebuildsOnScreenChange() {
     return;
   }
   QCOMPARE(editor->screenPictureMask().devicePixelRatio(), 1.0);
+}
+
+void TestHiDpiQt::testStageAnimationFrames() {
+  const auto frames2 = StageListView::createBatchAnimationFrames(20, 2.0, Qt::black, Qt::gray);
+  QCOMPARE(frames2.size(), static_cast<size_t>(8));
+  for (const QPixmap& frame : frames2) {
+    QCOMPARE(frame.size(), QSize(40, 40));
+    QCOMPARE(frame.devicePixelRatio(), 2.0);
+    QCOMPARE(hidpi::logicalSize(frame), QSizeF(20, 20));
+    const QRect bounds = drawnBounds(frame);
+    QVERIFY(!bounds.isNull());
+    QVERIFY2(quadrantBalance(frame) >= 0.75, qPrintable(QString::number(quadrantBalance(frame))));
+    // Centre of the drawn pixels in device pixels; the frame centre is at (20, 20).
+    const QPointF center(bounds.left() + 0.5 * bounds.width(), bounds.top() + 0.5 * bounds.height());
+    QVERIFY2(qAbs(center.x() - 20.0) <= 1.0 && qAbs(center.y() - 20.0) <= 1.0,
+             qPrintable(QString("centre %1,%2").arg(center.x()).arg(center.y())));
+  }
+
+  const auto frames1 = StageListView::createBatchAnimationFrames(20, 1.0, Qt::black, Qt::gray);
+  QCOMPARE(frames1.size(), static_cast<size_t>(8));
+  for (const QPixmap& frame : frames1) {
+    QCOMPARE(frame.size(), QSize(20, 20));
+    QCOMPARE(frame.devicePixelRatio(), 1.0);
+    const QRect bounds = drawnBounds(frame);
+    QVERIFY(!bounds.isNull());
+    QVERIFY2(quadrantBalance(frame) >= 0.75, qPrintable(QString::number(quadrantBalance(frame))));
+    const QPointF center(bounds.left() + 0.5 * bounds.width(), bounds.top() + 0.5 * bounds.height());
+    QVERIFY2(qAbs(center.x() - 10.0) <= 1.0 && qAbs(center.y() - 10.0) <= 1.0,
+             qPrintable(QString("centre %1,%2").arg(center.x()).arg(center.y())));
+  }
+
+  // Edge probe: the smallest square the view can ask for.
+  const auto tiny = StageListView::createBatchAnimationFrames(1, 2.0, Qt::black, Qt::gray);
+  QCOMPARE(tiny.size(), static_cast<size_t>(8));
+  for (const QPixmap& frame : tiny) {
+    QCOMPARE(frame.size(), QSize(2, 2));
+  }
+  QCOMPARE(hidpi::logicalRect(QPixmap()), QRectF(0, 0, 0, 0));
+}
+
+void TestHiDpiQt::testStageAnimationFollowsScreenChange() {
+  const auto provider = std::make_shared<EmptySelectionProvider>();
+  const auto stages
+      = std::make_shared<StageSequence>(std::make_shared<ProjectPages>(), PageSelectionAccessor(provider));
+  StageListView view(nullptr);
+  view.setStages(stages);
+
+  placeOn(view, screenNamed("OneX"), QSize(300, 400));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_COMPARE(view.batchAnimationFrames().front().devicePixelRatio(), 1.0);
+  QVERIFY(!view.batchAnimationFrames().empty());
+  const int w1 = view.batchAnimationFrames().front().width();
+  QVERIFY(w1 >= 1);
+
+  placeOn(view, screenNamed("TwoX"), QSize(300, 400));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_COMPARE(view.batchAnimationFrames().front().devicePixelRatio(), 2.0);
+  QCOMPARE(view.batchAnimationFrames().front().width(), 2 * w1);
+
+  // Two events without a ratio change leave the frames alone.
+  std::vector<qint64> keys;
+  for (const QPixmap& frame : view.batchAnimationFrames()) {
+    keys.push_back(frame.cacheKey());
+  }
+  QEvent event(QEvent::DevicePixelRatioChange);
+  QCoreApplication::sendEvent(&view, &event);
+  QCoreApplication::sendEvent(&view, &event);
+  QCoreApplication::processEvents();
+  QCOMPARE(view.batchAnimationFrames().size(), keys.size());
+  for (size_t i = 0; i < keys.size(); ++i) {
+    QCOMPARE(view.batchAnimationFrames()[i].cacheKey(), keys[i]);
+  }
+
+  placeOn(view, screenNamed("OneX"), QSize(300, 400));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_COMPARE(view.batchAnimationFrames().front().devicePixelRatio(), 1.0);
+  QCOMPARE(view.batchAnimationFrames().front().width(), w1);
 }

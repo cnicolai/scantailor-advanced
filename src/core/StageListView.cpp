@@ -14,6 +14,7 @@
 #include "BubbleAnimation.h"
 #include "ChangedStateItemDelegate.h"
 #include "ColorSchemeManager.h"
+#include "HiDpi.h"
 #include "IconProvider.h"
 #include "SkinnedButton.h"
 #include "StageSequence.h"
@@ -197,6 +198,15 @@ void StageListView::timerEvent(QTimerEvent* event) {
   initiateBatchAnimationFrameRendering();
 }
 
+bool StageListView::event(QEvent* event) {
+  if (event->type() == QEvent::DevicePixelRatioChange && m_batchAnimationSquareSide > 0
+      && !qFuzzyCompare(m_batchAnimationDpr, hidpi::sanitizedRatio(devicePixelRatioF()))) {
+    // The running animation picks the new frames at its next timer tick.
+    createBatchAnimationSequence(m_batchAnimationSquareSide);
+  }
+  return QTableView::event(event);
+}
+
 void StageListView::initiateBatchAnimationFrameRendering() {
   if (!m_model || !m_batchProcessingInProgress) {
     return;
@@ -256,24 +266,35 @@ void StageListView::placeLaunchButton(int row) {
   m_launchBtn->show();
 }
 
-void StageListView::createBatchAnimationSequence(const int squareSide) {
+std::vector<QPixmap> StageListView::createBatchAnimationFrames(const int squareSide,
+                                                               const double dpr,
+                                                               const QColor& headColor,
+                                                               const QColor& tailColor) {
   const int numFrames = 8;
-  m_batchAnimationPixmaps.resize(numFrames);
+  std::vector<QPixmap> frames;
+  frames.reserve(numFrames);
 
+  BubbleAnimation animation(numFrames);
+  for (int i = 0; i < numFrames; ++i) {
+    QPixmap pixmap = hidpi::makePixmap(QSize(squareSide, squareSide), dpr);
+    pixmap.fill(Qt::transparent);
+    // The default rect of nextFrame() is the device size of the pixmap, twice too large at ratio 2.
+    animation.nextFrame(headColor, tailColor, &pixmap, hidpi::logicalRect(pixmap));
+    frames.push_back(std::move(pixmap));
+  }
+  return frames;
+}
+
+void StageListView::createBatchAnimationSequence(const int squareSide) {
   const QColor headColor
       = ColorSchemeManager::instance().getColorParam("StageListHead", palette().color(QPalette::Window).darker(200));
   const QColor tailColor
       = ColorSchemeManager::instance().getColorParam("StageListTail", palette().color(QPalette::Window).darker(130));
 
-  BubbleAnimation animation(numFrames);
-  for (int i = 0; i < numFrames; ++i) {
-    QPixmap& pixmap = m_batchAnimationPixmaps[i];
-    if ((pixmap.width() != squareSide) || (pixmap.height() != squareSide)) {
-      pixmap = QPixmap(squareSide, squareSide);
-    }
-    pixmap.fill(Qt::transparent);
-    animation.nextFrame(headColor, tailColor, &pixmap);
-  }
+  const double dpr = hidpi::sanitizedRatio(devicePixelRatioF());
+  m_batchAnimationPixmaps = createBatchAnimationFrames(squareSide, dpr, headColor, tailColor);
+  m_batchAnimationSquareSide = squareSide;
+  m_batchAnimationDpr = dpr;
 }
 
 void StageListView::updateRowSpans() {
@@ -368,7 +389,7 @@ void StageListView::RightColDelegate::paint(QPainter* painter,
   if (!var.isNull()) {
     const QPixmap pixmap(var.value<QPixmap>());
     if (!pixmap.isNull()) {
-      QRect r(pixmap.rect());
+      QRect r(QPoint(0, 0), hidpi::logicalSize(pixmap).toSize());
       r.moveCenter(option.rect.center());
       painter->drawPixmap(r, pixmap);
     }
