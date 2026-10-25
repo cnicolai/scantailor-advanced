@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Deletion-Free macOS Build** - Unmodified 1.2.1 builds as arm64 against Homebrew and runs a project end to end; existing test results and FP settings recorded (completed 2026-10-23)
 - [x] **Phase 2: Golden Baselines** - Synthetic-image test suite and golden baselines recorded from the unmodified code before anything is removed (completed 2026-10-24)
 - [x] **Phase 3: Qt 6 and macOS Only** - Qt 5, Windows, Linux, packaging, CI and translations removed, with baselines unchanged; README documents the Mac build (completed 2026-10-24)
-- [ ] **Phase 4: Retina Rendering** - Page view, thumbnails, overlays and colour picker are sharp and correct on Retina displays
+- [x] **Phase 4: Retina Rendering** - Page view, thumbnails, overlays and colour picker are sharp and correct on Retina displays (completed 2026-10-25)
 - [ ] **Phase 5: Mac Menus and Shortcuts** - Standard application menu, Cmd shortcuts, Mac key names, native dialogs and Mac-friendly input
 - [ ] **Phase 6: Hardening and Cleanup** - Safety defects fixed, OpenGL viewer removed, oversized files split and dead code removed, with baselines unchanged
 
@@ -162,7 +162,7 @@ Plans:
   4. Dragging the window from the Retina display to a non-Retina display and back re-renders the page view and thumbnails at the right resolution without a restart
   5. On Retina the colour picker returns the colour of the pixel under the cursor, an automated test covers the sampling path, and the full `ctest` suite passes with baselines unchanged
 
-**Plans:** 8/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -231,7 +231,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
-| 4. Retina Rendering | 8/8 | In Progress | - |
+| 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
