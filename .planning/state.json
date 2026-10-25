@@ -1,0 +1,43 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v1.0",
+  "phases": [
+    {
+      "number": "1",
+      "name": "Deletion-Free macOS Build",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "Golden Baselines",
+      "status": "complete"
+    },
+    {
+      "number": "3",
+      "name": "Qt 6 and macOS Only",
+      "status": "complete"
+    },
+    {
+      "number": "4",
+      "name": "Retina Rendering",
+      "status": "complete"
+    },
+    {
+      "number": "5",
+      "name": "Mac Menus and Shortcuts",
+      "status": "pending"
+    },
+    {
+      "number": "6",
+      "name": "Hardening and Cleanup",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step (plan phase 5)",
+    "reason": "Phase 5 of 6 — needs a plan"
+  },
+  "updated_at": "2026-10-25T16:04:42.088Z"
+}
