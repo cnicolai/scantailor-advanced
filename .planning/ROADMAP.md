@@ -162,7 +162,7 @@ Plans:
   4. Dragging the window from the Retina display to a non-Retina display and back re-renders the page view and thumbnails at the right resolution without a restart
   5. On Retina the colour picker returns the colour of the pixel under the cursor, an automated test covers the sampling path, and the full `ctest` suite passes with baselines unchanged
 
-**Plans:** 5/8 plans executed
+**Plans:** 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -181,7 +181,7 @@ Plans:
 - [x] 04-05-PLAN.md — Picture-zone mask and stage-list animation at device resolution, rebuilt on ratio change
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 04-06-PLAN.md — Icon pixmaps placed by logical size, swatch at view ratio, colour picker median over logical pixels with tests
+- [x] 04-06-PLAN.md — Icon pixmaps placed by logical size, swatch at view ratio, colour picker median over logical pixels with tests
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 04-07-PLAN.md — Live checks of thumbnails, mask, badges, handles, stage animation, list decorations and colour picker on the Studio Display
@@ -231,7 +231,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
-| 4. Retina Rendering | 5/8 | In Progress | - |
+| 4. Retina Rendering | 6/8 | In Progress | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
