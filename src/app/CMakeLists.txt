@@ -77,7 +77,7 @@ if (BUILD_TESTS)
   # are not compiled a second time (open review finding WR-01 is about ui_snapshot). Not registered with ctest (the
   # seven suites stay).
   add_executable(retina_check retina_check/main.cpp ${resource_files})
-  target_link_libraries(retina_check PRIVATE core test_support)
+  target_link_libraries(retina_check PRIVATE core dewarping test_support)
   target_include_directories(
       retina_check
       PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
