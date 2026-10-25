@@ -8,6 +8,8 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+#include "HiDpi.h"
+
 namespace page_split {
 UnremoveButton::UnremoveButton(const PositionGetter& positionGetter)
     : m_positionGetter(positionGetter),
@@ -22,7 +24,7 @@ UnremoveButton::UnremoveButton(const PositionGetter& positionGetter)
 void UnremoveButton::onPaint(QPainter& painter, const InteractionState& interaction) {
   const QPixmap& pixmap = interaction.proximityLeader(m_proximityInteraction) ? m_hoveredPixmap : m_defaultPixmap;
 
-  QRectF rect(pixmap.rect());
+  QRectF rect(hidpi::logicalRect(pixmap));
   rect.moveCenter(m_positionGetter());
 
   painter.setWorldTransform(QTransform());
@@ -30,7 +32,7 @@ void UnremoveButton::onPaint(QPainter& painter, const InteractionState& interact
 }
 
 void UnremoveButton::onProximityUpdate(const QPointF& screenMousePos, InteractionState& interaction) {
-  QRectF rect(m_defaultPixmap.rect());
+  QRectF rect(hidpi::logicalRect(m_defaultPixmap));
   rect.moveCenter(m_positionGetter());
 
   const bool hovered = rect.contains(screenMousePos);

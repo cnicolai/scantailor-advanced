@@ -10,6 +10,7 @@
 #include <QPainterPath>
 #include <boost/bind/bind.hpp>
 
+#include "HiDpi.h"
 #include "ImageViewBase.h"
 #include "ZoneInteractionContext.h"
 
@@ -91,7 +92,7 @@ ZoneContextMenuInteraction::ZoneContextMenuInteraction(ZoneInteractionContext& c
     it->color = color.toRgb();
 
     if (m_selectableZones.size() > 1) {
-      pixmap = QPixmap(16, 16);
+      pixmap = hidpi::makePixmap(QSize(16, 16), context.imageView().devicePixelRatioF());
       color.setAlpha(255);
       pixmap.fill(color);
     }

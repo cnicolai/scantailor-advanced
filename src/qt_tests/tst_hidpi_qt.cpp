@@ -6,7 +6,9 @@
 #include <ApplicationSettings.h>
 #include <BasicImageView.h>
 #include <HiDpi.h>
+#include <IconProvider.h>
 #include <ImageId.h>
+#include <InteractionState.h>
 #include <PageId.h>
 #include <PageRange.h>
 #include <PageSelectionAccessor.h>
@@ -15,12 +17,14 @@
 #include <ProjectPages.h>
 #include <StageListView.h>
 #include <StageSequence.h>
+#include <StyledIconPack.h>
 #include <ThumbnailBase.h>
 #include <ThumbnailDprTracker.h>
 #include <ThumbnailPixmapCache.h>
 #include <Transform.h>
 #include <filters/output/PictureZoneEditor.h>
 #include <filters/output/Settings.h>
+#include <filters/page_split/UnremoveButton.h>
 
 #include <QByteArray>
 #include <QCoreApplication>
@@ -29,6 +33,7 @@
 #include <QElapsedTimer>
 #include <QEvent>
 #include <QFile>
+#include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGuiApplication>
@@ -317,6 +322,50 @@ double quadrantBalance(const QPixmap& pixmap) {
   const int largest = *std::max_element(std::begin(counts), std::end(counts));
   const int smallest = *std::min_element(std::begin(counts), std::end(counts));
   return largest > 0 ? static_cast<double>(smallest) / largest : 0.0;
+}
+
+// Puts the global icon pack back to "none" when a test returns, also on failure, so later tests keep the null icons.
+class IconPackReset {
+ public:
+  ~IconPackReset() { IconProvider::getInstance().setIconPack(nullptr); }
+};
+
+bool writeTextFile(const QString& path, const QByteArray& content) {
+  QFile file(path);
+  if (!file.open(QIODevice::WriteOnly)) {
+    return false;
+  }
+  return file.write(content) == content.size();
+}
+
+// Writes square.svg (a 16x16 opaque square), badge.svg (a 23x17 triangle without a fill attribute, so the styled icon
+// engine fills it with the palette text colour; its diagonal edge tells ratio 1 from ratio 2) and an icon sheet in the
+// format of src/resources/icons.xml with the unstyled icons trashed and untrash and the styled left_page_thumb.
+// Returns the sheet path, or an empty string on failure.
+QString writeIconSheet(const QString& dir) {
+  const QString square = dir + "/square.svg";
+  const QString badge = dir + "/badge.svg";
+  const QString sheet = dir + "/icons.xml";
+  const QByteArray svgHead = "<svg xmlns=\"http://www.w3.org/2000/svg\" ";
+  if (!writeTextFile(square, svgHead
+                                 + "viewBox=\"0 0 16 16\" width=\"16\" height=\"16\">"
+                                   "<rect x=\"0\" y=\"0\" width=\"16\" height=\"16\" fill=\"#000000\"/></svg>")) {
+    return QString();
+  }
+  if (!writeTextFile(badge, svgHead
+                                + "viewBox=\"0 0 23 17\" width=\"23\" height=\"17\">"
+                                  "<polygon points=\"0,0 23,0 0,17\"/></svg>")) {
+    return QString();
+  }
+  const QString squareXml = square.toHtmlEscaped();
+  const QString xml = QString(
+                          "<icons>"
+                          "<icon name=\"trashed\"><file>%1</file></icon>"
+                          "<icon name=\"untrash\"><file>%1</file></icon>"
+                          "<icon name=\"left_page_thumb\" styled=\"on\"><file>%2</file></icon>"
+                          "</icons>")
+                          .arg(squareXml, badge.toHtmlEscaped());
+  return writeTextFile(sheet, xml.toUtf8()) ? sheet : QString();
 }
 
 }  // namespace
@@ -1045,4 +1094,147 @@ void TestHiDpiQt::testStageAnimationFollowsScreenChange() {
   }
   QTRY_COMPARE(view.batchAnimationFrames().front().devicePixelRatio(), 1.0);
   QCOMPARE(view.batchAnimationFrames().front().width(), w1);
+}
+
+void TestHiDpiQt::testIconPixmapLogicalGeometry() {
+  QTemporaryDir dir(QDir::tempPath() + "/icons-geometry-XXXXXX");
+  QVERIFY(dir.isValid());
+  const IconPackReset reset;
+  const QString sheet = writeIconSheet(dir.path());
+  QVERIFY(!sheet.isEmpty());
+  IconProvider::getInstance().setIconPack(std::make_unique<StyledIconPack>(sheet));
+
+  const QPixmap probe = IconProvider::getInstance().getIcon("trashed").pixmap(128, 128);
+  QVERIFY2(probe.devicePixelRatio() == 2.0 && hidpi::logicalSize(probe) == QSizeF(128, 128),
+           qPrintable(QString("premise: the 128x128 icon pixmap should have ratio 2 and logical size 128x128, got "
+                              "ratio %1 and %2x%3 pixels")
+                          .arg(probe.devicePixelRatio())
+                          .arg(probe.width())
+                          .arg(probe.height())));
+
+  QImage image(600, 600, QImage::Format_ARGB32_Premultiplied);
+  image.setDevicePixelRatio(2.0);
+  image.fill(Qt::transparent);
+  page_split::UnremoveButton button([] { return QPointF(150, 150); });
+  {
+    QPainter painter(&image);
+    InteractionState state;
+    button.paint(painter, state);
+  }
+  const QRect bounds = drawnBounds(QPixmap::fromImage(image));
+  QVERIFY(!bounds.isNull());
+  QVERIFY2(std::abs(bounds.width() - 256) <= 2 && std::abs(bounds.height() - 256) <= 2,
+           qPrintable(QString("the icon is drawn as %1x%2 device pixels, expected 256x256")
+                          .arg(bounds.width())
+                          .arg(bounds.height())));
+  const QPointF center(0.5 * (bounds.left() + bounds.right() + 1), 0.5 * (bounds.top() + bounds.bottom() + 1));
+  QVERIFY2(std::abs(center.x() - 300.0) <= 1.0 && std::abs(center.y() - 300.0) <= 1.0,
+           qPrintable(QString("the icon is centred at (%1, %2) device pixels, expected (300, 300)")
+                          .arg(center.x())
+                          .arg(center.y())));
+
+  // The button is 128 logical pixels wide: its edge is 64 pixels from the anchor.
+  InteractionState far;
+  button.proximityUpdate(QPointF(250, 150), far);
+  QVERIFY(!far.redrawRequested());
+
+  page_split::UnremoveButton second([] { return QPointF(150, 150); });
+  InteractionState near;
+  second.proximityUpdate(QPointF(190, 150), near);
+  QVERIFY(near.redrawRequested());
+}
+
+void TestHiDpiQt::testPageBadgeAtDeviceResolution() {
+  QTemporaryDir dir(QDir::tempPath() + "/icons-badge-XXXXXX");
+  QVERIFY(dir.isValid());
+  const IconPackReset reset;
+  const QString sheet = writeIconSheet(dir.path());
+  QVERIFY(!sheet.isEmpty());
+  IconProvider::getInstance().setIconPack(std::make_unique<StyledIconPack>(sheet));
+
+  // The four lines of ThumbnailSequence::Impl::getLabelGroup that build the page badge.
+  const QIcon pageThumb = IconProvider::getInstance().getIcon("left_page_thumb");
+  const QSize size = {23, 17};
+  const QPixmap pixmap = pageThumb.pixmap(size);
+  const QPixmap pixmapSelected = pageThumb.pixmap(size, QIcon::Selected);
+  QGraphicsPixmapItem selectedItem;
+  selectedItem.setPixmap(pixmapSelected);
+
+  const QColor bg = qGray(QPalette().color(QPalette::WindowText).rgb()) < 128 ? QColor(Qt::white) : QColor(Qt::black);
+  QGraphicsScene scene;
+  scene.setBackgroundBrush(bg);
+  scene.setSceneRect(0, 0, 120, 80);
+  auto* item = new QGraphicsPixmapItem(pixmap);  // owned by the scene
+  item->setPos(10, 10);
+  scene.addItem(item);
+
+  QGraphicsView view(&scene);
+  view.setFrameShape(QFrame::NoFrame);
+  view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  view.setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  placeOn(view, screenNamed("TwoX"), QSize(120, 80));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_COMPARE(view.viewport()->devicePixelRatioF(), 2.0);
+  QTRY_COMPARE(view.viewport()->size(), QSize(120, 80));
+
+  const double dpr = view.viewport()->devicePixelRatioF();
+  QCOMPARE(pixmap.devicePixelRatio(), dpr);
+  QCOMPARE(pixmapSelected.devicePixelRatio(), dpr);
+  QCOMPARE(pixmap.size(), QSize(46, 34));
+  QCOMPARE(pixmapSelected.size(), QSize(46, 34));
+  QCOMPARE(item->boundingRect(), QRectF(0, 0, 23, 17));
+  QCOMPARE(selectedItem.boundingRect(), QRectF(0, 0, 23, 17));
+
+  const QRectF logicalBox = view.viewportTransform().mapRect(item->sceneBoundingRect());
+  const QRectF deviceBox(logicalBox.x() * dpr, logicalBox.y() * dpr, logicalBox.width() * dpr,
+                         logicalBox.height() * dpr);
+  QCOMPARE(deviceBox, QRectF(20, 20, 46, 34));  // premise: integral placement
+  const QRect region = deviceBox.toRect();
+
+  const QPixmap grabbed = view.viewport()->grab();
+  QCOMPARE(grabbed.devicePixelRatio(), dpr);
+  const QImage grab = toRgb32(grabbed.toImage());
+
+  auto reference = [&](const QPixmap& badge) {
+    QImage ref(46, 34, QImage::Format_ARGB32_Premultiplied);
+    ref.setDevicePixelRatio(2.0);
+    ref.fill(bg);
+    {
+      QPainter painter(&ref);
+      painter.drawPixmap(0, 0, badge);
+    }
+    return toRgb32(ref);
+  };
+
+  const Comparison cmp = compareRegion(grab, reference(pixmap), region.topLeft(), region);
+  QVERIFY2(cmp.equalFraction >= 0.99 && cmp.maxDiff <= 2,
+           qPrintable(QString("%1 of %2 badge pixels equal the device-resolution reference, maximum channel "
+                              "difference %3")
+                          .arg(cmp.equalFraction)
+                          .arg(cmp.pixels)
+                          .arg(cmp.maxDiff)));
+
+  // Counterfactual: a badge built at ratio 1 and drawn at 23x17 logical pixels (upscaled 2x) must not match.
+  const QPixmap lowRes = pageThumb.pixmap(size, 1.0);
+  QCOMPARE(lowRes.devicePixelRatio(), 1.0);
+  const QImage cf = reference(lowRes);
+  int different = 0;
+  for (int y = region.top(); y <= region.bottom(); ++y) {
+    const auto* grabLine = reinterpret_cast<const QRgb*>(grab.constScanLine(y));
+    const auto* cfLine = reinterpret_cast<const QRgb*>(cf.constScanLine(y - region.top()));
+    for (int x = region.left(); x <= region.right(); ++x) {
+      const QRgb a = grabLine[x];
+      const QRgb b = cfLine[x - region.left()];
+      if (std::max({std::abs(qRed(a) - qRed(b)), std::abs(qGreen(a) - qGreen(b)), std::abs(qBlue(a) - qBlue(b))}) > 2) {
+        ++different;
+      }
+    }
+  }
+  const double differentFraction = static_cast<double>(different) / (region.width() * region.height());
+  QVERIFY2(
+      differentFraction >= 0.02,
+      qPrintable(QString("a ratio 1 badge differs from the grab in only %1 of the pixels").arg(differentFraction)));
 }

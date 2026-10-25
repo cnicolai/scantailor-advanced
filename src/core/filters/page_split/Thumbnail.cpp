@@ -8,6 +8,8 @@
 #include <QPainter>
 #include <utility>
 
+#include "HiDpi.h"
+
 namespace page_split {
 Thumbnail::Thumbnail(std::shared_ptr<ThumbnailPixmapCache> thumbnailCache,
                      const QSizeF& maxSize,
@@ -57,7 +59,7 @@ void Thumbnail::prePaintOverImage(QPainter& painter,
         const int subpageIdx = m_leftHalfRemoved ? 0 : 1;
         const QPointF center(subPageCenter(leftPoly, rightPoly, imageToDisplay, subpageIdx));
 
-        QRectF rect(m_trashPixmap.rect());
+        QRectF rect(hidpi::logicalRect(m_trashPixmap));
         rect.moveCenter(center);
         painter.drawPixmap(rect.topLeft(), m_trashPixmap);
 

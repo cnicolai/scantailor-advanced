@@ -33,6 +33,8 @@ class TestHiDpiQt : public QObject {
   void testZoneMaskRebuildsOnScreenChange();
   void testStageAnimationFrames();
   void testStageAnimationFollowsScreenChange();
+  void testIconPixmapLogicalGeometry();
+  void testPageBadgeAtDeviceResolution();
 };
 
 #endif

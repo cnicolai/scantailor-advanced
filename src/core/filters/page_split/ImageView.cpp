@@ -11,6 +11,7 @@
 #include <boost/foreach.hpp>
 #include <utility>
 
+#include "HiDpi.h"
 #include "ImagePresentation.h"
 #include "ImageTransformation.h"
 #include "ProjectPages.h"
@@ -58,7 +59,7 @@ ImageView::~ImageView() = default;
 
 void ImageView::setupCuttersInteraction() {
   const QString tip(tr("Drag the line or the handles."));
-  const double hitRadius = std::max<double>(0.5 * m_handlePixmap.width(), 15.0);
+  const double hitRadius = std::max<double>(0.5 * hidpi::logicalSize(m_handlePixmap).width(), 15.0);
   const int numCutters = m_virtLayout.numCutters();
   for (int i = 0; i < numCutters; ++i) {  // Loop over lines.
     m_lineInteractors[i].setObject(&m_lineSegments[0]);
@@ -140,7 +141,7 @@ void ImageView::onPaint(QPainter& painter, const InteractionState& interaction) 
     const QLineF cutter(widgetCutterLine(i));
     painter.drawLine(cutter);
 
-    QRectF rect(m_handlePixmap.rect());
+    QRectF rect(hidpi::logicalRect(m_handlePixmap));
 
     rect.moveCenter(cutter.p1());
     painter.drawPixmap(rect.topLeft(), m_handlePixmap);
@@ -176,7 +177,7 @@ QLineF ImageView::virtualCutterLine(int lineIdx) const {
   const QRectF virtRect(virtualDisplayRect());
 
   QRectF widgetRect(virtualToWidget().mapRect(virtRect));
-  const double delta = 0.5 * m_handlePixmap.width();
+  const double delta = 0.5 * hidpi::logicalSize(m_handlePixmap).width();
   widgetRect.adjust(0.0, delta, 0.0, -delta);
 
   QRectF reducedVirtRect(widgetToVirtual().mapRect(widgetRect));
@@ -189,7 +190,7 @@ QLineF ImageView::virtualCutterLine(int lineIdx) const {
 }
 
 QRectF ImageView::reducedWidgetArea() const {
-  const qreal delta = 0.5 * m_handlePixmap.width();
+  const qreal delta = 0.5 * hidpi::logicalSize(m_handlePixmap).width();
   return getOccupiedWidgetRect().adjusted(0.0, delta, 0.0, -delta);
 }
 
