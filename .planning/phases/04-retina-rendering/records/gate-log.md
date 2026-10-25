@@ -15,3 +15,4 @@ Each Retina commit that changes a path outside `.planning/` and `.claude/` was g
 | r09-stage-animation | 3899d951 | feat(04-05): render the stage list animation at device resolution | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
 | r10-icon-geometry | 3064968e | fix(04-06): place icon pixmaps by their logical size | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
 | r11-color-picker | 6dac9b1c | feat(04-06): sample the colour picker by logical pixels | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
+| r12-retina-check-overlays | 9f9fdabe | test(04-07): extend the live Retina check to thumbnails and overlays | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (retina_check is not a gated target; its link line gained libdewarping.a) |
