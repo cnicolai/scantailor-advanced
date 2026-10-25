@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-10-25T14:06:01.945Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-10-25T14:23:51.077Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 execution started
-state_head: 2a9b817c803ec0d044d67419155983ecb894c15a
+state_head: b194b8c7e0db515dfde4e7f3e79a9dab3fd85e8c
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 33
+  completed_plans: 34
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 04 (Retina Rendering) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 04 execution started
 
@@ -92,6 +92,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P01 | 19 min | 2 tasks | 10 files |
 | Phase 04 P02 | 11 min | 2 tasks | 11 files |
 | Phase 04 P03 | 17 min | 2 tasks | 10 files |
+| Phase 04 P04-04 | 17 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-02: no Info.plist (ratio 2 measured on Studio Display) and no smoothing recalibration (ratio 0.9978)
 - [Phase 04]: 04-03: Quality spin box range stays 100-1500; thumbnail cache clamps the effective side to 3000 so stored values are never rewritten
 - [Phase 04]: 04-03: makeThumbnail left unchanged; ratio 1 thumbnails keep their size (a 1200x900 page gives a 249 px wide q250 file)
+- [Phase 04]: Loaded thumbnail pixmap stays at ratio 1; only the ThumbnailBase temp buffer carries the painter's ratio, keyed ThumbnailBase::tempPixmap@<ratio>
+- [Phase 04]: ThumbnailDprTracker holds the cache as weak_ptr and relies on setDevicePixelRatio being a no-op for an equal ratio
 
 ### Pending Todos
 
@@ -187,6 +190,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-25T14:06:01.765Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-10-25T14:23:50.897Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
