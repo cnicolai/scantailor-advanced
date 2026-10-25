@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "BackgroundExecutor.h"
+#include "HiDpi.h"
 #include "ImagePresentation.h"
 #include "ImageTransformation.h"
 #include "OutputMargins.h"
@@ -36,7 +37,8 @@ class PictureZoneEditor::MaskTransformTask : public AbstractCommand<std::shared_
   MaskTransformTask(PictureZoneEditor* zoneEditor,
                     const BinaryImage& mask,
                     const QTransform& xform,
-                    const QSize& targetSize);
+                    const QSize& targetSize,
+                    double dpr);
 
   void cancel() { m_result->cancel(); }
 
@@ -69,6 +71,7 @@ class PictureZoneEditor::MaskTransformTask : public AbstractCommand<std::shared_
   BinaryImage m_origMask;
   QTransform m_xform;
   QSize m_targetSize;
+  double m_dpr;
 };
 
 
@@ -134,7 +137,10 @@ void PictureZoneEditor::onPaint(QPainter& painter, const InteractionState& inter
     const double scale = 0.5 * (sn + 1.0);  // 0 .. 1
     const double opacity = 0.35 * scale + 0.15;
 
-    QPixmap mask(m_screenPictureMask.rect().size());
+    // The copy keeps the device size and the ratio of the mask, otherwise it would be drawn at twice its size on a
+    // 2x screen.
+    QPixmap mask(m_screenPictureMask.size());
+    mask.setDevicePixelRatio(m_screenPictureMask.devicePixelRatio());
     mask.fill(Qt::transparent);
 
     {
@@ -160,7 +166,8 @@ void PictureZoneEditor::advancePictureMaskAnimation() {
 }
 
 bool PictureZoneEditor::validateScreenPictureMask() const {
-  return !m_screenPictureMask.isNull() && m_screenPictureMaskXform == virtualToWidget();
+  return !m_screenPictureMask.isNull() && m_screenPictureMaskXform == virtualToWidget()
+         && qFuzzyCompare(m_screenPictureMaskDpr, hidpi::sanitizedRatio(viewport()->devicePixelRatioF()));
 }
 
 void PictureZoneEditor::schedulePictureMaskRebuild() {
@@ -187,18 +194,20 @@ void PictureZoneEditor::initiateBuildingScreenPictureMask() {
   }
 
   const QTransform xform(virtualToWidget());
-  const auto task = std::make_shared<MaskTransformTask>(this, m_origPictureMask, xform, viewport()->size());
+  const double dpr = hidpi::sanitizedRatio(viewport()->devicePixelRatioF());
+  const auto task = std::make_shared<MaskTransformTask>(this, m_origPictureMask, xform, viewport()->size(), dpr);
 
   backgroundExecutor().enqueueTask(task);
 
   m_screenPictureMask = QPixmap();
   m_maskTransformTask = task;
   m_screenPictureMaskXform = xform;
+  m_screenPictureMaskDpr = dpr;
 }
 
 void PictureZoneEditor::screenPictureMaskBuilt(const QPoint& origin, const QImage& mask) {
   m_screenPictureMask = QPixmap::fromImage(mask);
-  m_screenPictureMaskOrigin = origin;
+  m_screenPictureMaskOrigin = hidpi::toLogical(origin, mask.devicePixelRatio());
   m_pictureMaskAnimationPhase = 270;
 
   m_maskTransformTask.reset();
@@ -301,23 +310,29 @@ void PictureZoneEditor::updateRequested() {
 PictureZoneEditor::MaskTransformTask::MaskTransformTask(PictureZoneEditor* zoneEditor,
                                                         const BinaryImage& mask,
                                                         const QTransform& xform,
-                                                        const QSize& targetSize)
-    : m_result(std::make_shared<Result>(zoneEditor)), m_origMask(mask), m_xform(xform), m_targetSize(targetSize) {}
+                                                        const QSize& targetSize,
+                                                        double dpr)
+    : m_result(std::make_shared<Result>(zoneEditor)),
+      m_origMask(mask),
+      m_xform(xform),
+      m_targetSize(targetSize),
+      m_dpr(dpr) {}
 
 std::shared_ptr<AbstractCommand<void>> PictureZoneEditor::MaskTransformTask::operator()() {
   if (isCancelled()) {
     return nullptr;
   }
 
-  const QRect targetRect(
-      m_xform.map(QRectF(m_origMask.rect())).boundingRect().toRect().intersected(QRect(QPoint(0, 0), m_targetSize)));
+  // Device pixels: the target rect and the transform are scaled by the ratio of the view.
+  const QRect targetRect(hidpi::targetRect(QRectF(m_origMask.rect()), m_xform, m_targetSize, m_dpr));
 
-  QImage grayMask(transformToGray(m_origMask.toQImage(), m_xform, targetRect, OutsidePixels::assumeWeakColor(Qt::black),
-                                  QSizeF(0.0, 0.0)));
+  QImage grayMask(transformToGray(m_origMask.toQImage(), hidpi::toDevice(m_xform, m_dpr), targetRect,
+                                  OutsidePixels::assumeWeakColor(Qt::black), QSizeF(0.0, 0.0)));
 
   QImage mask(grayMask.size(), QImage::Format_ARGB32_Premultiplied);
   mask.fill(maskColor);
   mask.setAlphaChannel(grayMask);
+  mask.setDevicePixelRatio(m_dpr);
 
   m_result->setData(targetRect.topLeft(), mask);
   return m_result;

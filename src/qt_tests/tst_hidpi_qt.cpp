@@ -7,10 +7,13 @@
 #include <BasicImageView.h>
 #include <HiDpi.h>
 #include <ImageId.h>
+#include <PageId.h>
 #include <ThumbnailBase.h>
 #include <ThumbnailDprTracker.h>
 #include <ThumbnailPixmapCache.h>
 #include <Transform.h>
+#include <filters/output/PictureZoneEditor.h>
+#include <filters/output/Settings.h>
 
 #include <QByteArray>
 #include <QCoreApplication>
@@ -26,6 +29,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QPixmapCache>
+#include <QPolygonF>
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QSettings>
@@ -208,6 +212,57 @@ double minBlockNonUniformFraction(const QImage& image, const QRect& deviceRoi) {
     }
   }
   return minFraction;
+}
+
+
+// The page of the zone mask tests: white, 300 dpi.
+QImage makeWhitePage() {
+  QImage page(1200, 900, QImage::Format_RGB32);
+  page.fill(Qt::white);
+  page.setDotsPerMeterX(11811);
+  page.setDotsPerMeterY(11811);
+  return page;
+}
+
+const QPointF ZONE_SQUARE_CENTER(300, 225);  // image pixels
+const double ZONE_SQUARE_ANGLE = 30.0;       // degrees
+
+// A picture mask with a white square of 200x200 image pixels, rotated by 30 degrees, on black; with empty == true
+// the mask is black everywhere. The white parts are the visible ones of the overlay.
+imageproc::BinaryImage makeZoneMask(const bool empty) {
+  QImage image(1200, 900, QImage::Format_RGB32);
+  image.fill(Qt::black);
+  if (!empty) {
+    QPainter painter(&image);
+    painter.translate(ZONE_SQUARE_CENTER);
+    painter.rotate(ZONE_SQUARE_ANGLE);
+    painter.fillRect(QRectF(-100, -100, 200, 200), Qt::white);
+  }
+  return imageproc::BinaryImage(image);
+}
+
+// True if the image point lies inside the rotated square of makeZoneMask().
+bool insideZoneSquare(const QPointF& imagePoint) {
+  QTransform toLocal;
+  toLocal.translate(ZONE_SQUARE_CENTER.x(), ZONE_SQUARE_CENTER.y());
+  toLocal.rotate(ZONE_SQUARE_ANGLE);
+  const QPointF local = toLocal.inverted().map(imagePoint);
+  return qAbs(local.x()) <= 100.0 && qAbs(local.y()) <= 100.0;
+}
+
+std::unique_ptr<output::PictureZoneEditor> makeZoneEditor(const QImage& page, const bool emptyMask) {
+  return std::make_unique<output::PictureZoneEditor>(
+      page, ImagePixmapUnion(), makeZoneMask(emptyMask), QTransform(), QPolygonF(QRectF(page.rect())),
+      PageId(ImageId(QStringLiteral("page.png"))), std::make_shared<output::Settings>());
+}
+
+// Waits until the editor sits on a screen of the given ratio and holds an up-to-date HQ pixmap and picture mask.
+void waitForZoneMask(output::PictureZoneEditor& editor, const double dpr) {
+  waitForHq(editor, dpr);
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_VERIFY_WITH_TIMEOUT(editor.screenPictureMaskIsCurrent(), 10000);
 }
 
 }  // namespace
@@ -727,4 +782,130 @@ void TestHiDpiQt::testThumbnailsFollowScreenChange() {
   QTRY_COMPARE(cache->getDevicePixelRatio(), 1.0);
   QTRY_COMPARE_WITH_TIMEOUT(cache->loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
   QVERIFY2(pm.width() >= 249 && pm.width() <= 250, qPrintable(QString::number(pm.width())));
+}
+
+void TestHiDpiQt::testZoneMaskAtDeviceResolution() {
+  const QImage page = makeWhitePage();
+  const QRectF maskRect(0, 0, 1200, 900);
+
+  auto editorTwo = makeZoneEditor(page, false);
+  placeOn(*editorTwo, screenNamed("TwoX"), QSize(400, 300));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  waitForZoneMask(*editorTwo, 2.0);
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  const QSize expected
+      = hidpi::targetRect(maskRect, editorTwo->virtualToWidget(), editorTwo->viewport()->size(), 2.0).size();
+  QVERIFY(!expected.isEmpty());
+  QCOMPARE(editorTwo->screenPictureMask().devicePixelRatio(), 2.0);
+  QCOMPARE(editorTwo->screenPictureMask().size(), expected);
+
+  auto editorOne = makeZoneEditor(page, false);
+  placeOn(*editorOne, screenNamed("OneX"), QSize(400, 300));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  waitForZoneMask(*editorOne, 1.0);
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  // The arithmetic of the code before the Retina work.
+  const QSize legacy = editorOne->virtualToWidget()
+                           .map(maskRect)
+                           .boundingRect()
+                           .toRect()
+                           .intersected(QRect(QPoint(0, 0), editorOne->viewport()->size()))
+                           .size();
+  QVERIFY(!legacy.isEmpty());
+  QCOMPARE(editorOne->screenPictureMask().devicePixelRatio(), 1.0);
+  QCOMPARE(editorOne->screenPictureMask().size(), legacy);
+}
+
+void TestHiDpiQt::testZoneMaskOverlayConfined() {
+  const QImage page = makeWhitePage();
+  auto withMask = makeZoneEditor(page, false);
+  auto emptyMask = makeZoneEditor(page, true);
+  for (output::PictureZoneEditor* editor : {withMask.get(), emptyMask.get()}) {
+    placeOn(*editor, screenNamed("TwoX"), QSize(400, 300));
+    if (QTest::currentTestFailed()) {
+      return;
+    }
+  }
+  for (output::PictureZoneEditor* editor : {withMask.get(), emptyMask.get()}) {
+    waitForZoneMask(*editor, 2.0);
+    if (QTest::currentTestFailed()) {
+      return;
+    }
+  }
+
+  const QTransform imageToWidget = withMask->imageToWidget();
+  const QRect deviceRect
+      = hidpi::targetRect(QRectF(0, 0, 1200, 900), withMask->virtualToWidget(), withMask->viewport()->size(), 2.0);
+  const QPointF origin = hidpi::toLogical(deviceRect.topLeft(), 2.0);
+  const QPointF center = imageToWidget.map(ZONE_SQUARE_CENTER);  // logical
+  // Where the centre of the square would lie if the per-frame copy were drawn at twice its logical size.
+  const QPointF doubled = origin + 2.0 * (center - origin);
+
+  const QPoint onSquare = (center * 2.0).toPoint();
+  const QPoint wrongPlace = (doubled * 2.0).toPoint();
+  const QRect viewportDevice(QPoint(0, 0), withMask->viewport()->size() * 2);
+  QVERIFY(viewportDevice.contains(onSquare));
+  QVERIFY2(viewportDevice.contains(wrongPlace),
+           qPrintable(QString("probe at %1,%2 outside the viewport").arg(wrongPlace.x()).arg(wrongPlace.y())));
+  QVERIFY(insideZoneSquare(imageToWidget.inverted().map(QPointF(onSquare) / 2.0)));
+  QVERIFY(!insideZoneSquare(imageToWidget.inverted().map(QPointF(wrongPlace) / 2.0)));
+
+  const QPixmap grabWith = withMask->viewport()->grab();
+  const QPixmap grabEmpty = emptyMask->viewport()->grab();
+  QCOMPARE(grabWith.devicePixelRatio(), 2.0);
+  QCOMPARE(grabWith.size(), withMask->viewport()->size() * 2);
+  const QImage with = toRgb32(grabWith.toImage());
+  const QImage empty = toRgb32(grabEmpty.toImage());
+
+  auto channelDiff = [&](const QPoint& p) {
+    const QRgb a = with.pixel(p);
+    const QRgb b = empty.pixel(p);
+    return std::max({std::abs(qRed(a) - qRed(b)), std::abs(qGreen(a) - qGreen(b)), std::abs(qBlue(a) - qBlue(b))});
+  };
+  QVERIFY2(channelDiff(onSquare) > 8, qPrintable(QString("tint at the square centre: %1").arg(channelDiff(onSquare))));
+  QVERIFY2(channelDiff(wrongPlace) <= 2,
+           qPrintable(QString("the overlay reaches %1,%2: difference %2").arg(wrongPlace.x()).arg(wrongPlace.y())));
+}
+
+void TestHiDpiQt::testZoneMaskRebuildsOnScreenChange() {
+  const QImage page = makeWhitePage();
+  auto editor = makeZoneEditor(page, false);
+
+  placeOn(*editor, screenNamed("OneX"), QSize(400, 300));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  waitForZoneMask(*editor, 1.0);
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QCOMPARE(editor->screenPictureMask().devicePixelRatio(), 1.0);
+
+  placeOn(*editor, screenNamed("TwoX"), QSize(400, 300));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  waitForZoneMask(*editor, 2.0);
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QCOMPARE(editor->screenPictureMask().devicePixelRatio(), 2.0);
+
+  placeOn(*editor, screenNamed("OneX"), QSize(400, 300));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  waitForZoneMask(*editor, 1.0);
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QCOMPARE(editor->screenPictureMask().devicePixelRatio(), 1.0);
 }

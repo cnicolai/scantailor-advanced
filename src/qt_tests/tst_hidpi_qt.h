@@ -28,6 +28,9 @@ class TestHiDpiQt : public QObject {
   void testThumbnailQualityDefault();
   void testThumbnailPaintAtRatio();
   void testThumbnailsFollowScreenChange();
+  void testZoneMaskAtDeviceResolution();
+  void testZoneMaskOverlayConfined();
+  void testZoneMaskRebuildsOnScreenChange();
 };
 
 #endif

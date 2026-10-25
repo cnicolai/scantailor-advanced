@@ -9,6 +9,7 @@
 
 #include <QPixmap>
 #include <QPoint>
+#include <QPointF>
 #include <QTimer>
 #include <QTransform>
 #include <memory>
@@ -45,6 +46,11 @@ class PictureZoneEditor : public ZoneEditorBase {
 
   ~PictureZoneEditor() override;
 
+  // Diagnostics for tests and the live check.
+  const QPixmap& screenPictureMask() const { return m_screenPictureMask; }
+
+  bool screenPictureMaskIsCurrent() const { return validateScreenPictureMask(); }
+
  signals:
 
   void invalidateThumbnail(const PageId& pageId);
@@ -69,6 +75,7 @@ class PictureZoneEditor : public ZoneEditorBase {
 
   void schedulePictureMaskRebuild();
 
+  /// \p origin is in device pixels, the mask carries its device pixel ratio.
   void screenPictureMaskBuilt(const QPoint& origin, const QImage& mask);
 
   void paintOverPictureMask(QPainter& painter);
@@ -80,8 +87,9 @@ class PictureZoneEditor : public ZoneEditorBase {
 
   imageproc::BinaryImage m_origPictureMask;
   QPixmap m_screenPictureMask;
-  QPoint m_screenPictureMaskOrigin;
+  QPointF m_screenPictureMaskOrigin;  // logical widget coordinates
   QTransform m_screenPictureMaskXform;
+  double m_screenPictureMaskDpr = 1.0;
   QTransform m_potentialPictureMaskXform;
   QTimer m_pictureMaskRebuildTimer;
   QTimer m_pictureMaskAnimateTimer;

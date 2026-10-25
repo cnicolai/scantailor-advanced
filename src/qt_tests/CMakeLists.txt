@@ -7,7 +7,7 @@ set(sources
 add_executable(qt_tests ${sources})
 target_link_libraries(
     qt_tests
-    PRIVATE core foundation Qt6::Test Qt6::Core Qt6::Gui Qt6::Widgets)
+    PRIVATE core dewarping foundation Qt6::Test Qt6::Core Qt6::Gui Qt6::Widgets)
 target_include_directories(qt_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_SOURCE_DIR}/src")
 # Settings files and temporary files of the tests live in the build tree, as for pipeline_tests.
 target_compile_definitions(qt_tests PRIVATE TEST_TMP_ROOT="${CMAKE_BINARY_DIR}/test-tmp")
