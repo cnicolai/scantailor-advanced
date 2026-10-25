@@ -2,12 +2,14 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include "tst_core_qt.h"
+#include "tst_hidpi_qt.h"
 #include "tst_ux_qt.h"
 
 #include <QApplication>
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
 #include <QSettings>
 #include <QString>
 #include <QtTest/QtTest>
@@ -19,7 +21,21 @@ int main(int argc, char* argv[]) {
   // build tree (the widgets under test read and write QSettings with the default constructor).
   const QString tmpRoot = QString::fromUtf8(TEST_TMP_ROOT);
   QDir().mkpath(tmpRoot);
-  qputenv("QT_QPA_PLATFORM", "offscreen");
+
+  // Two offscreen screens with device pixel ratio 1 and 2 for the Retina tests; a test aid only (D-00c). The
+  // per-screen factors set the window ratio; the "dpr" key of the JSON file would not.
+  const QString screensFile = tmpRoot + "/offscreen-screens.json";
+  {
+    const QByteArray screens = R"({"screens":[{"name":"OneX","x":0,"y":0,"width":800,"height":600},)"
+                               R"({"name":"TwoX","x":800,"y":0,"width":1600,"height":1200}]})";
+    QFile file(screensFile);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate) || file.write(screens) != screens.size()) {
+      std::fprintf(stderr, "qt_tests: cannot write %s\n", screensFile.toLocal8Bit().constData());
+      return 2;
+    }
+  }
+  qputenv("QT_QPA_PLATFORM", ("offscreen:configfile=" + screensFile).toUtf8());
+  qputenv("QT_SCREEN_SCALE_FACTORS", "OneX=1;TwoX=2");
   qputenv("LC_ALL", "en_US.UTF-8");
   qputenv("TMPDIR", tmpRoot.toUtf8());
 
@@ -45,6 +61,9 @@ int main(int argc, char* argv[]) {
 
   TestUxQt tc2;
   status |= QTest::qExec(&tc2, argc, argv);
+
+  TestHiDpiQt tc3;
+  status |= QTest::qExec(&tc3, argc, argv);
 
   return status;
 }

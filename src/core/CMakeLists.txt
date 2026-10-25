@@ -5,6 +5,7 @@ set(common_sources
     Application.cpp Application.h
     BackgroundExecutor.cpp BackgroundExecutor.h
     PixmapRenderer.cpp PixmapRenderer.h
+    HiDpi.cpp HiDpi.h
     BubbleAnimation.cpp BubbleAnimation.h
     ProcessingIndicationWidget.cpp ProcessingIndicationWidget.h
     NonOwningWidget.cpp NonOwningWidget.h

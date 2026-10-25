@@ -23,6 +23,7 @@
 #include "BackgroundExecutor.h"
 #include "ColorSchemeManager.h"
 #include "Dpm.h"
+#include "HiDpi.h"
 #include "ImagePresentation.h"
 #include "OpenGLSupport.h"
 #include "PixmapRenderer.h"
@@ -37,7 +38,11 @@ class ImageViewBase::HqTransformTask : public AbstractCommand<std::shared_ptr<Ab
   DECLARE_NON_COPYABLE(HqTransformTask)
 
  public:
-  HqTransformTask(ImageViewBase* imageView, const QImage& image, const QTransform& xform, const QSize& targetSize);
+  HqTransformTask(ImageViewBase* imageView,
+                  const QImage& image,
+                  const QTransform& xform,
+                  const QSize& targetSize,
+                  double dpr);
 
   void cancel() { m_result->cancel(); }
 
@@ -70,6 +75,7 @@ class ImageViewBase::HqTransformTask : public AbstractCommand<std::shared_ptr<Ab
   QImage m_image;
   QTransform m_xform;
   QSize m_targetSize;
+  double m_dpr;
 };
 
 
@@ -423,7 +429,8 @@ void ImageViewBase::paintEvent(QPaintEvent* event) {
   painter.setRenderHint(QPainter::SmoothPixmapTransform, pixelWidth < 0.5);
 
   if (validateHqPixmap()) {
-    // HQ pixmap maps one to one to screen pixels, so antialiasing is not necessary.
+    // The HQ pixmap is built at the viewport's device pixel ratio and positioned in logical coordinates,
+    // so it maps one to one to device pixels and needs no smoothing.
     painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
 
     QPainterPath clipPath;
@@ -915,6 +922,10 @@ bool ImageViewBase::validateHqPixmap() const {
   if (m_hqXform != m_imageToVirtual * m_virtualToWidget) {
     return false;
   }
+
+  if (!qFuzzyCompare(m_hqDpr, hidpi::sanitizedRatio(viewport()->devicePixelRatioF()))) {
+    return false;
+  }
   return true;
 }
 
@@ -944,12 +955,14 @@ void ImageViewBase::initiateBuildingHqVersion() {
   }
 
   const QTransform xform(m_imageToVirtual * m_virtualToWidget);
-  const auto task = std::make_shared<HqTransformTask>(this, m_image, xform, viewport()->size());
+  const double dpr = hidpi::sanitizedRatio(viewport()->devicePixelRatioF());
+  const auto task = std::make_shared<HqTransformTask>(this, m_image, xform, viewport()->size(), dpr);
 
   backgroundExecutor().enqueueTask(task);
 
   m_hqTransformTask = task;
   m_hqXform = xform;
+  m_hqDpr = dpr;
   m_hqSourceId = m_image.cacheKey();
 }
 
@@ -962,7 +975,7 @@ void ImageViewBase::hqVersionBuilt(const QPoint& origin, const QImage& image) {
   }
 
   m_hqPixmap = QPixmap::fromImage(image);
-  m_hqPixmapPos = origin;
+  m_hqPixmapPos = hidpi::toLogical(origin, image.devicePixelRatio());
   m_hqTransformTask.reset();
   update();
 }
@@ -1015,18 +1028,23 @@ ImageViewInfoProvider& ImageViewBase::infoProvider() {
 ImageViewBase::HqTransformTask::HqTransformTask(ImageViewBase* imageView,
                                                 const QImage& image,
                                                 const QTransform& xform,
-                                                const QSize& targetSize)
-    : m_result(std::make_shared<Result>(imageView)), m_image(image), m_xform(xform), m_targetSize(targetSize) {}
+                                                const QSize& targetSize,
+                                                const double dpr)
+    : m_result(std::make_shared<Result>(imageView)),
+      m_image(image),
+      m_xform(xform),
+      m_targetSize(targetSize),
+      m_dpr(dpr) {}
 
 std::shared_ptr<AbstractCommand<void>> ImageViewBase::HqTransformTask::operator()() {
   if (isCancelled()) {
     return nullptr;
   }
 
-  const QRect targetRect(
-      m_xform.map(QRectF(m_image.rect())).boundingRect().toRect().intersected(QRect(QPoint(0, 0), m_targetSize)));
+  const QRect targetRect(hidpi::targetRect(QRectF(m_image.rect()), m_xform, m_targetSize, m_dpr));
 
-  QImage hqImage(transform(m_image, m_xform, targetRect, OutsidePixels::assumeWeakColor(Qt::white), QSizeF(0.0, 0.0)));
+  QImage hqImage(transform(m_image, hidpi::toDevice(m_xform, m_dpr), targetRect,
+                           OutsidePixels::assumeWeakColor(Qt::white), QSizeF(0.0, 0.0)));
 
   // In many cases m_image and therefore hqImage are grayscale with
   // a palette, but given that hqImage will be converted to a QPixmap
@@ -1035,6 +1053,9 @@ std::shared_ptr<AbstractCommand<void>> ImageViewBase::HqTransformTask::operator(
   hqImage
       = hqImage.convertToFormat(hqImage.hasAlphaChannel() ? QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB32);
 
+  hqImage.setDevicePixelRatio(m_dpr);
+
+  // The origin is in device pixels; hqVersionBuilt() turns it into a logical position.
   m_result->setData(targetRect.topLeft(), hqImage);
   return m_result;
 }

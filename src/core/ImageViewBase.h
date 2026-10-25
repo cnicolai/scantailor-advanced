@@ -81,6 +81,17 @@ class ImageViewBase : public QAbstractScrollArea {
   const QPixmap& downscaledPixmap() const { return m_pixmap; }
 
   /**
+   * Diagnostics for tests and the live Retina check; the application does not call them.
+   * hqPixmap() is the high-quality pixmap at the device pixel ratio of the viewport, hqPixmapPos() its
+   * position in logical widget coordinates, and hqPixmapIsCurrent() tells if it is valid and up to date.
+   */
+  const QPixmap& hqPixmap() const { return m_hqPixmap; }
+
+  QPointF hqPixmapPos() const { return m_hqPixmapPos; }
+
+  bool hqPixmapIsCurrent() const { return validateHqPixmap(); }
+
+  /**
    * \brief Enable or disable the high-quality transform.
    */
   void hqTransformSetEnabled(bool enabled);
@@ -336,15 +347,20 @@ class ImageViewBase : public QAbstractScrollArea {
   QPixmap m_hqPixmap;
 
   /**
-   * The position, in widget coordinates, where m_hqPixmap is to be drawn.
+   * The position, in logical widget coordinates, where m_hqPixmap is to be drawn.
    */
-  QPoint m_hqPixmapPos;
+  QPointF m_hqPixmapPos;
 
   /**
    * The transformation used to build m_hqPixmap.
    * It's used to detect if m_hqPixmap needs to be rebuild.
    */
   QTransform m_hqXform;
+
+  /**
+   * The device pixel ratio of the viewport that m_hqPixmap was built for.
+   */
+  double m_hqDpr = 1.0;
 
   /**
    * Used to check if we need to extend the delay before building m_hqPixmap.

@@ -1,6 +1,7 @@
 set(sources
     main.cpp
     tst_core_qt.cpp
+    tst_hidpi_qt.cpp
     tst_ux_qt.cpp)
 
 add_executable(qt_tests ${sources})
