@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-10-25T14:23:51.077Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-10-25T14:48:35.180Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 execution started
-state_head: b194b8c7e0db515dfde4e7f3e79a9dab3fd85e8c
+state_head: ce923cacbb787765706bb39af127a90cc8eb4c71
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 34
+  completed_plans: 35
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 04 (Retina Rendering) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 04 execution started
 
@@ -93,6 +93,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P02 | 11 min | 2 tasks | 11 files |
 | Phase 04 P03 | 17 min | 2 tasks | 10 files |
 | Phase 04 P04-04 | 17 min | 2 tasks | 9 files |
+| Phase 04 P05 | 23 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-03: makeThumbnail left unchanged; ratio 1 thumbnails keep their size (a 1200x900 page gives a 249 px wide q250 file)
 - [Phase 04]: Loaded thumbnail pixmap stays at ratio 1; only the ThumbnailBase temp buffer carries the painter's ratio, keyed ThumbnailBase::tempPixmap@<ratio>
 - [Phase 04]: ThumbnailDprTracker holds the cache as weak_ptr and relies on setDevicePixelRatio being a no-op for an equal ratio
+- [Phase 04]: 04-05: qt_tests links dewarping so the zone-mask tests can build a real output::Settings; gate r08 command diff is therefore non-empty (include flag and libdewarping only)
+- [Phase 04]: 04-05: BubbleAnimation::nextFrame gets an explicit logical rect; on Qt 6.12 the default rect of a ratio-2 pixmap is its device size (Pitfall 2 confirmed by a counterfactual)
 
 ### Pending Todos
 
@@ -190,6 +193,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-25T14:23:50.897Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-10-25T14:48:34.985Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None

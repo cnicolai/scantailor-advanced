@@ -146,7 +146,7 @@ status: complete
 
 - `qt_tests` links `dewarping`, see deviation 1.
 - The explicit logical rect for `BubbleAnimation::nextFrame` stays; on this Qt (6.12) `QPaintDevice::width()` of a ratio-2 pixmap is its device width (40 for a 20 logical square), so the default rect really is twice too large.
-- The 5 s settle is not needed for the new tests: `waitForHq` plus `QTRY_VERIFY_WITH_TIMEOUT(screenPictureMaskIsCurrent(), 10000)` is enough, as in plan 04-01.
+- The zone-mask tests wait with `waitForHq` followed by `QTRY_VERIFY_WITH_TIMEOUT(screenPictureMaskIsCurrent(), 10000)`; no fixed sleeps.
 
 ## Deviations from Plan
 
