@@ -25,7 +25,7 @@ milestone_name: macOS
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 04 — Retina Rendering
+**Current focus:** Phase 5 — Mac Menus and Shortcuts
 
 ## Current Position
 
@@ -198,7 +198,8 @@ None yet.
 - [Phase 3] Code review left WR-01 open: `ui_snapshot` recompiles all GUI sources and is built by default under `BUILD_TESTS`, so every preset build compiles the GUI twice. Fix with an OBJECT library plus `EXCLUDE_FROM_ALL`, or drop the tool, in a later phase. Seven info findings are open as well (`03-REVIEW-DISPOSITION.md`); WR-02 is deferred.
 - [Phase 3] Existing build directories still hold stale untracked `.qm`, `.desktop` and CPack files from before the strip; nothing produces them any more. `cmake --fresh --preset <name>` or deleting `build/<preset>` clears them.
 - Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
-- Phase 4 research flag: a Retina experiment on the Mac, covering the unbundled DPR, `widthMM()` and the smoothing heuristic under Qt 6. Verifying Retina is mostly manual (100%/200% zoom, thumbnails, zone mask, colour picker, toolbar icons, moving between displays).
+- [Phase 4] Code review left WR-01 open and worth fixing soon: `ThumbnailPixmapCache::removeLoadedItemsLocked()` sets `m_endOfLoadedItems` to `end()` instead of `begin()`; display moves now reach this old bug (possible dangling iterator). One-line fix plus a test, e.g. `/gsd-code-review 4 --fix`. WR-02 (stale other-ratio thumbnail after reprocessing) and WR-03 (benign) are open too (`04-REVIEW-DISPOSITION.md`).
+- [Phase 4] A real drag between a 1x and a 2x display is unverified (one display attached; criterion 4 rests on the offscreen two-screen simulation). Thumbnails depend on the `DevicePixelRatioChange` event alone. Re-check procedure: `phases/04-retina-rendering/records/closing-check.md`.
 - Phase 5: check on the Mac whether Backspace works for deleting zones under Qt 6 (low confidence in research).
 
 ## Session Continuity

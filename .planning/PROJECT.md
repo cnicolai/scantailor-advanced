@@ -29,11 +29,11 @@ The app builds from source and works reliably for daily scanning work on a curre
 - ✓ Linux and Windows packaging and platform-specific code paths removed — Phase 3 (also portable mode, install rules and translations)
 - ✓ All GitHub Actions CI disabled — Phase 3 (`.github/` deleted)
 - ✓ README documents the macOS build and test commands — Phase 3 (proven by a fresh clone that ran only README lines)
+- ✓ Page views, thumbnails and icons render sharply on Retina (HiDPI) displays — Phase 4 (DPR 2 measured on the Studio Display without an `Info.plist`; page view pixel-exact against a device-resolution reference at fit/100%/200%; thumbnails, zone mask, badges, handles, stage animation and colour picker checked live; output files and goldens unchanged)
 
 ### Active
 
 - [ ] Builds on current macOS (Apple Silicon, arm64) with Homebrew dependencies and runs from the build directory
-- [ ] Page views, thumbnails and icons render sharply on Retina (HiDPI) displays
 - [ ] Mac-conventional shortcuts and menus (Cmd-based shortcuts, standard app menu, native menu bar)
 - [ ] Known-debt cleanup that makes later feature work safe (e.g. disabled tests, dead `#if 0` blocks, oversized files where touched)
 
@@ -53,6 +53,8 @@ The app builds from source and works reliably for daily scanning work on a curre
 - Brownfield: full codebase map in `.planning/codebase/` (STACK, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, INTEGRATIONS, CONCERNS), mapped at commit `5eaac18`.
 - Stack: C++17, CMake 3.25+ with `CMakePresets.json` (`macos-release`, `macos-debug`, `macos-asan`), Qt 6.5+ only, Boost 1.60+, libjpeg (jpeg-turbo), libpng, libtiff, zlib from the macOS SDK. Boost.Test + CTest, seven suites.
 - Since Phase 3 the tree holds only the macOS code path: no platform conditionals, no Qt version checks, no packaging, CI or translations. `RelinkablePath::normalize` still rewrites backslashes in file names (backlog 999.8).
+- Since Phase 4 every on-screen raster buffer is built at the device pixel ratio through `src/core/HiDpi.{h,cpp}`; `qt_tests` runs on two offscreen screens (`OneX` at 1, `TwoX` at 2) and `build/macos-release/retina_check` is the live Cocoa check. A real drag between a 1x and a 2x display is untested (one display attached; re-check procedure in `phases/04-retina-rendering/records/closing-check.md`). Thumbnail files are now built at Quality × DPR (`q500` at the new default Quality 250).
+- Open Phase 4 review findings (`phases/04-retina-rendering/04-REVIEW-DISPOSITION.md`): WR-01 — `ThumbnailPixmapCache::removeLoadedItemsLocked()` sets `m_endOfLoadedItems` to `end()` instead of `begin()`, an old bug that display moves now reach (possible dangling iterator, one-line fix); WR-02 — after reprocessing, the thumbnail file of the other DPR stays stale.
 - The user tried a macOS build a long time ago and it did not work; current state is unknown.
 - Test gaps flagged in CONCERNS.md: output stage (`OutputGenerator.cpp`, 2814 lines) has no tests; `TestBinarize.cpp` is disabled with `#if 0`; dewarping has no tests; project-file XML round-trip with special characters is untested.
 - Fragile areas: output generation, deskew overlay geometry (recent upstream change d710384), hand-written threading/wait code, mixed raw/smart-pointer ownership.
@@ -81,7 +83,10 @@ The app builds from source and works reliably for daily scanning work on a curre
 | Remove OpenGL viewer | Off by default, deprecated by Apple, no Metal path | — Pending |
 | English-only UI, translations removed | User doesn't need them; less to maintain | ✓ Good — Phase 3: translator code and the Language row removed in one commit; `tr()` calls kept, an existing `language` setting is left untouched |
 | Horizontal-layer phases | Port/hardening where each step protects the next | — Pending |
-| Gate every strip commit (`gate.sh`): Release and Debug `ctest`, goldens, build-command diff | Deletions must not change output; the command diff catches CMake edits that tests would miss | ✓ Good — Phase 3: 12 of 12 commits passed; reusable for later phases |
+| Gate every strip commit (`gate.sh`): Release and Debug `ctest`, goldens, build-command diff | Deletions must not change output; the command diff catches CMake edits that tests would miss | ✓ Good — Phase 3: 12 of 12 commits passed; reused for all 13 Phase 4 code commits |
+| One buffer rule for Retina: build view buffers at the device pixel ratio via a small `hidpi` helper module, never touch output generation | Keeps the change view-only and testable; output files must not change | ✓ Good — Phase 4: no diff under `imageproc`, `dewarping`, `Task.cpp` or `OutputGenerator.cpp`; goldens byte-identical |
+| Prove Retina offscreen (two simulated screens) plus a committed live harness, not by launching the app | Automated tests need no display; the app itself would touch `~/.config` and `~/Library` | ✓ Good — Phase 4: 24 `TestHiDpiQt` tests in `ctest`; `retina_check` measured every element on the Studio Display |
+| Thumbnail Quality is multiplied by the DPR; default raised to 250; files keyed by effective width | Sharp thumbnails without rewriting stored settings or deleting old cache files | ✓ Good — Phase 4: `q500` files on Retina, old `q200` files left in place |
 
 ## Evolution
 
@@ -101,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-25 after Phase 3*
+*Last updated: 2026-10-25 after Phase 4*
