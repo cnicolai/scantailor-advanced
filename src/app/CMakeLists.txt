@@ -72,4 +72,15 @@ if (BUILD_TESTS)
       PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
       "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
   target_compile_definitions(ui_snapshot PRIVATE UI_SNAPSHOT_ROOT="${CMAKE_SOURCE_DIR}/build")
+
+  # Live Retina check of Phase 4 (D-02) on the Cocoa platform. It links core and test_support only, so the GUI sources
+  # are not compiled a second time (open review finding WR-01 is about ui_snapshot). Not registered with ctest (the
+  # seven suites stay).
+  add_executable(retina_check retina_check/main.cpp ${resource_files})
+  target_link_libraries(retina_check PRIVATE core test_support)
+  target_include_directories(
+      retina_check
+      PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+      "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
+  target_compile_definitions(retina_check PRIVATE RETINA_CHECK_ROOT="${CMAKE_SOURCE_DIR}/build")
 endif()
