@@ -162,7 +162,33 @@ Plans:
   4. Dragging the window from the Retina display to a non-Retina display and back re-renders the page view and thumbnails at the right resolution without a restart
   5. On Retina the colour picker returns the colour of the pixel under the cursor, an automated test covers the sampling path, and the full `ctest` suite passes with baselines unchanged
 
-**Plans**: TBD
+**Plans:** 8 plans
+
+Plans:
+**Wave 1**
+- [ ] 04-01-PLAN.md — Tracer: HiDpi helpers, page-view HQ pixmap at device resolution, two-screen offscreen qt_tests (TestHiDpiQt), rebuild on display change
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 04-02-PLAN.md — Live Cocoa harness retina_check: HIDPI-01 ratio measured on the Studio Display, page view at fit/100%/200% against a device reference (Info.plist only if 1.0)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 04-03-PLAN.md — Thumbnail cache keyed by ratio (Quality x DPR, q500 files, flush and stale-load guard), Quality default 250
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 04-04-PLAN.md — Thumbnails drawn at device resolution, ThumbnailDprTracker and MainWindow wiring for display changes
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 04-05-PLAN.md — Picture-zone mask and stage-list animation at device resolution, rebuilt on ratio change
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 04-06-PLAN.md — Icon pixmaps placed by logical size, swatch at view ratio, colour picker median over logical pixels with tests
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 04-07-PLAN.md — Live checks of thumbnails, mask, badges, handles, stage animation, list decorations and colour picker on the Studio Display
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 04-08-PLAN.md — TESTING.md, TESTX-03 traceability, static and sanitizer checks, closing record
+
 **UI hint**: no
 
 ### Phase 5: Mac Menus and Shortcuts
