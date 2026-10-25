@@ -36,7 +36,13 @@ class Utils {
 
   static QString outputDirToThumbDir(const QString& outputDir);
 
-  static std::shared_ptr<ThumbnailPixmapCache> createThumbnailCache(const QString& outputDir);
+  /**
+   * \brief Creates the thumbnail cache of an output directory.
+   *
+   * \param dpr The device pixel ratio of the screen that shows the thumbnails. It is set before the cache is
+   *        returned, so worker threads write thumbnails of the right size from the first page on.
+   */
+  static std::shared_ptr<ThumbnailPixmapCache> createThumbnailCache(const QString& outputDir, double dpr);
 
   /**
    * Unlike QFile::rename(), this one overwrites existing files.

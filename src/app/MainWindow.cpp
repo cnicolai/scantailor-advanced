@@ -429,7 +429,7 @@ void MainWindow::switchToNewProject(const std::shared_ptr<ProjectPages>& pages,
   if (outDir.isEmpty()) {
     m_thumbnailCache.reset();
   } else {
-    m_thumbnailCache = Utils::createThumbnailCache(m_outFileNameGen.outDir());
+    m_thumbnailCache = Utils::createThumbnailCache(m_outFileNameGen.outDir(), thumbView->devicePixelRatioF());
   }
   resetThumbSequence(currentPageOrderProvider());
 

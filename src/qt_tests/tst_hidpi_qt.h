@@ -21,6 +21,10 @@ class TestHiDpiQt : public QObject {
   void testHqRebuildsOnScreenChange();
   void testRepeatedRatioEventKeepsHqPixmap();
   void testSmoothingSwitchPhysicalSize();
+  void testThumbnailEffectiveSize();
+  void testThumbnailFilesKeyedByRatio();
+  void testOldThumbnailLeftInPlace();
+  void testStaleLoadDiscarded();
 };
 
 #endif

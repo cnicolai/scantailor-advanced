@@ -39,10 +39,12 @@ QString Utils::outputDirToThumbDir(const QString& outputDir) {
   return outputDir + QLatin1String("/cache/thumbs");
 }
 
-std::shared_ptr<ThumbnailPixmapCache> Utils::createThumbnailCache(const QString& outputDir) {
+std::shared_ptr<ThumbnailPixmapCache> Utils::createThumbnailCache(const QString& outputDir, const double dpr) {
   const QSize maxPixmapSize = ApplicationSettings::getInstance().getThumbnailQuality();
   const QString thumbsCachePath(outputDirToThumbDir(outputDir));
-  return std::make_shared<ThumbnailPixmapCache>(thumbsCachePath, maxPixmapSize, 40, 5);
+  auto cache = std::make_shared<ThumbnailPixmapCache>(thumbsCachePath, maxPixmapSize, 40, 5);
+  cache->setDevicePixelRatio(dpr);
+  return cache;
 }
 
 QString Utils::qssConvertPxToEm(const QString& stylesheet, const double base, const int precision) {

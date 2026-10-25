@@ -5,22 +5,34 @@
 
 #include <BasicImageView.h>
 #include <HiDpi.h>
+#include <ImageId.h>
+#include <ThumbnailPixmapCache.h>
 #include <Transform.h>
 
+#include <QByteArray>
 #include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDir>
+#include <QElapsedTimer>
 #include <QEvent>
+#include <QFile>
 #include <QGuiApplication>
 #include <QImage>
 #include <QPixmap>
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QString>
+#include <QStringList>
+#include <QTemporaryDir>
+#include <QThread>
 #include <QWidget>
 #include <QWindow>
 #include <QtTest/QtTest>
 #include <algorithm>
+#include <climits>
 #include <cstdlib>
 #include <limits>
+#include <memory>
 
 namespace {
 
@@ -124,6 +136,31 @@ class RatioChangeCounter : public QObject {
 
  private:
   int m_count = 0;
+};
+
+// Names of the thumbnail files with the given quality suffix ("q500"), sorted.
+QStringList thumbFiles(const QString& thumbDir, const QString& quality) {
+  return QDir(thumbDir).entryList(QStringList() << ("*_" + quality + ".png"), QDir::Files, QDir::Name);
+}
+
+QByteArray sha1Of(const QString& path) {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    return QByteArray();
+  }
+  return QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha1);
+}
+
+// Remembers the status of the last completion it received.
+class ResultRecorder : public ThumbnailPixmapCache::CompletionHandler {
+ public:
+  void operator()(const ThumbnailLoadResult& result) override {
+    ++calls;
+    status = result.status();
+  }
+
+  int calls = 0;
+  ThumbnailLoadResult::Status status = ThumbnailLoadResult::LOAD_FAILED;
 };
 
 }  // namespace
@@ -395,4 +432,144 @@ void TestHiDpiQt::testSmoothingSwitchPhysicalSize() {
                             .arg(actual)
                             .arg(expected)));
   }
+}
+
+void TestHiDpiQt::testThumbnailEffectiveSize() {
+  using Cache = ThumbnailPixmapCache;
+  QCOMPARE(Cache::effectiveThumbSize(QSize(250, 250), 1.0), QSize(250, 250));
+  QCOMPARE(Cache::effectiveThumbSize(QSize(250, 250), 2.0), QSize(500, 500));
+  // The dialog maximum is kept and multiplied.
+  QCOMPARE(Cache::effectiveThumbSize(QSize(1500, 1500), 2.0), QSize(3000, 3000));
+  // Beyond the dialog maximum the side is clamped.
+  QCOMPARE(Cache::effectiveThumbSize(QSize(1600, 1600), 2.0), QSize(3000, 3000));
+  // An unusable ratio counts as 1.
+  QCOMPARE(Cache::effectiveThumbSize(QSize(250, 250), 0.0), QSize(250, 250));
+  QCOMPARE(Cache::effectiveThumbSize(QSize(250, 250), std::numeric_limits<double>::quiet_NaN()), QSize(250, 250));
+  // No overflow for a huge side.
+  QCOMPARE(Cache::effectiveThumbSize(QSize(INT_MAX, INT_MAX), 2.0), QSize(3000, 3000));
+  QCOMPARE(Cache::MAX_EFFECTIVE_THUMB_SIDE, 3000);
+}
+
+void TestHiDpiQt::testThumbnailFilesKeyedByRatio() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-ratio-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QImage page = makeNoisePage(QSize(1200, 900), 3);
+  QVERIFY(page.save(dir.path() + "/orig.png"));
+  const ImageId id(dir.path() + "/orig.png");
+  const QString thumbDir = dir.path() + "/thumbs";
+
+  ThumbnailPixmapCache cache(thumbDir, QSize(250, 250), 40, 5);
+  QCOMPARE(cache.getDevicePixelRatio(), 1.0);
+  cache.setDevicePixelRatio(2.0);
+  QCOMPARE(cache.getDevicePixelRatio(), 2.0);
+  QCOMPARE(cache.getMaxThumbSize(), QSize(250, 250));
+
+  cache.ensureThumbnailExists(id, page);
+  const QStringList q500 = thumbFiles(thumbDir, "q500");
+  QCOMPARE(q500.size(), 1);
+  QVERIFY(thumbFiles(thumbDir, "q250").isEmpty());
+  const QString q500Path = thumbDir + "/" + q500.first();
+  QCOMPARE(QImage(q500Path).size(), QSize(500, 375));
+
+  QPixmap pm;
+  QCOMPARE(cache.loadNow(id, pm), ThumbnailPixmapCache::LOADED);
+  QCOMPARE(pm.width(), 500);
+  const QByteArray q500Hash = sha1Of(q500Path);
+  QVERIFY(!q500Hash.isEmpty());
+
+  // A new ratio flushes the pixmap held in memory.
+  cache.setDevicePixelRatio(1.0);
+  QCOMPARE(cache.loadFromCache(id, pm), ThumbnailPixmapCache::LOAD_FAILED);
+  cache.ensureThumbnailExists(id, page);
+  const QStringList q250 = thumbFiles(thumbDir, "q250");
+  QCOMPARE(q250.size(), 1);
+  // makeThumbnail() scales a 1200x900 page to 249x187, not 250x187: QImage::scaled() fits the already fitted size
+  // once more. The behaviour at ratio 1 is kept as it was, so the width is checked within that pixel.
+  const int q250Width = QImage(thumbDir + "/" + q250.first()).width();
+  QVERIFY2(q250Width >= 249 && q250Width <= 250, qPrintable(QString::number(q250Width)));
+  // The file of the other size is left alone.
+  QVERIFY(QFile::exists(q500Path));
+  QCOMPARE(sha1Of(q500Path), q500Hash);
+
+  QCOMPARE(cache.loadNow(id, pm), ThumbnailPixmapCache::LOADED);
+  const int loadedWidth = pm.width();
+  QCOMPARE(loadedWidth, q250Width);
+  // An equal ratio changes nothing, in particular it does not flush.
+  cache.setDevicePixelRatio(1.0);
+  pm = QPixmap();
+  QCOMPARE(cache.loadFromCache(id, pm), ThumbnailPixmapCache::LOADED);
+  QCOMPARE(pm.width(), loadedWidth);
+}
+
+void TestHiDpiQt::testOldThumbnailLeftInPlace() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-old-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QImage page = makeNoisePage(QSize(1200, 900), 3);
+  QVERIFY(page.save(dir.path() + "/orig.png"));
+  const ImageId id(dir.path() + "/orig.png");
+  const QString thumbDir = dir.path() + "/thumbs";
+
+  QString q200Path;
+  QByteArray q200Hash;
+  int fileCount = 0;
+  {
+    ThumbnailPixmapCache oldCache(thumbDir, QSize(200, 200), 40, 5);
+    oldCache.ensureThumbnailExists(id, page);
+    const QStringList q200 = thumbFiles(thumbDir, "q200");
+    QCOMPARE(q200.size(), 1);
+    q200Path = thumbDir + "/" + q200.first();
+    q200Hash = sha1Of(q200Path);
+    QVERIFY(!q200Hash.isEmpty());
+    fileCount = QDir(thumbDir).entryList(QDir::Files).size();
+  }
+
+  ThumbnailPixmapCache cache(thumbDir, QSize(250, 250), 40, 5);
+  cache.setDevicePixelRatio(2.0);
+  QPixmap pm;
+  // Only the old file exists: the request is queued and builds a new one from the original image.
+  QCOMPARE(cache.loadRequest(id, pm, std::weak_ptr<ThumbnailPixmapCache::CompletionHandler>()),
+           ThumbnailPixmapCache::QUEUED);
+  QVERIFY(pm.isNull());
+  QTRY_COMPARE_WITH_TIMEOUT(cache.loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
+  QCOMPARE(pm.width(), 500);
+  QCOMPARE(thumbFiles(thumbDir, "q500").size(), 1);
+  QCOMPARE(sha1Of(q200Path), q200Hash);
+  QVERIFY(QDir(thumbDir).entryList(QDir::Files).size() >= fileCount);
+  QVERIFY(QFile::exists(q200Path));
+}
+
+void TestHiDpiQt::testStaleLoadDiscarded() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-stale-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QImage page = makeNoisePage(QSize(1200, 900), 3);
+  QVERIFY(page.save(dir.path() + "/orig.png"));
+  const ImageId id(dir.path() + "/orig.png");
+  const QString thumbDir = dir.path() + "/thumbs";
+
+  ThumbnailPixmapCache cache(thumbDir, QSize(250, 250), 40, 5);
+  auto recorder = std::make_shared<ResultRecorder>();
+  const std::weak_ptr<ThumbnailPixmapCache::CompletionHandler> handler(recorder);
+
+  QPixmap pm;
+  QCOMPARE(cache.loadRequest(id, pm, handler), ThumbnailPixmapCache::QUEUED);
+  // Wait for the worker to finish the ratio 1 load without processing events here: the file is written after the
+  // worker has read the size generation, and its result event is only delivered once we run the event loop.
+  QElapsedTimer timer;
+  timer.start();
+  while (thumbFiles(thumbDir, "q250").isEmpty() && timer.elapsed() < 10000) {
+    QThread::msleep(5);
+  }
+  QVERIFY(!thumbFiles(thumbDir, "q250").isEmpty());
+
+  cache.setDevicePixelRatio(2.0);
+  QTRY_COMPARE_WITH_TIMEOUT(recorder->calls, 1, 10000);
+  QCOMPARE(recorder->status, ThumbnailLoadResult::REQUEST_EXPIRED);
+  // The old size pixmap was not stored as LOADED.
+  QCOMPARE(cache.loadFromCache(id, pm), ThumbnailPixmapCache::LOAD_FAILED);
+  QVERIFY(pm.isNull());
+
+  // A new request builds the thumbnail at the new size.
+  QCOMPARE(cache.loadRequest(id, pm, handler), ThumbnailPixmapCache::QUEUED);
+  QTRY_COMPARE_WITH_TIMEOUT(cache.loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
+  QCOMPARE(pm.width(), 500);
 }

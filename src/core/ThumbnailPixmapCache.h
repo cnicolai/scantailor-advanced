@@ -52,9 +52,41 @@ class ThumbnailPixmapCache {
 
   void setThumbDir(const QString& thumbDir);
 
+  /**
+   * The largest side, in pixels, of a thumbnail file. It is the dialog maximum for the thumbnail quality (1500)
+   * times the device pixel ratio 2, so every value the dialog allows is kept and multiplied on a Retina display,
+   * while a hand-edited absurd value cannot lead to a huge allocation or an overflow.
+   */
+  static constexpr int MAX_EFFECTIVE_THUMB_SIDE = 3000;
+
+  /**
+   * \brief The size of the thumbnail files for a quality value and a device pixel ratio.
+   *
+   * Each side is the quality side times the (sanitized) ratio, rounded and clamped to 1..MAX_EFFECTIVE_THUMB_SIDE.
+   */
+  static QSize effectiveThumbSize(const QSize& quality, double dpr);
+
+  /**
+   * \brief The quality setting, that is the maximum thumbnail size at device pixel ratio 1.
+   *
+   * It is not multiplied by the device pixel ratio.
+   */
   const QSize& getMaxThumbSize() const;
 
   void setMaxThumbSize(const QSize& maxSize);
+
+  /**
+   * \brief Sets the device pixel ratio of the screen that shows the thumbnails.
+   *
+   * Thumbnail files are built at the quality size times this ratio and named by that width. When the ratio
+   * changes, the pixmaps held in memory are dropped and background loads that started earlier are discarded.
+   * Files on disk are never touched (files of other sizes stay where they are). An equal ratio does nothing.
+   *
+   * \note This function is to be called from the GUI thread only.
+   */
+  void setDevicePixelRatio(double dpr);
+
+  double getDevicePixelRatio() const;
 
   /**
    * \brief Take the pixmap from cache, if it's there.
