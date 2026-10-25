@@ -10,3 +10,4 @@ Each Retina commit that changes a path outside `.planning/` and `.claude/` was g
 | r04-thumb-cache | 7ccaa186 | feat(04-03): key the thumbnail cache by device pixel ratio | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
 | r05-thumb-quality | 18371848 | feat(04-03): raise the thumbnail quality default to 250 | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
 | r06-thumb-paint | a2396af5 | feat(04-04): draw thumbnails at device resolution | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
+| r07-thumb-dpr-follow | 489165ea | feat(04-04): follow display changes in the thumbnail cache | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 3 / 3 | yes: only the new ThumbnailDprTracker.cpp compile line and the core archive line (no automoc change) |
