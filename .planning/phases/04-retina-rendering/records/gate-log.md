@@ -9,3 +9,4 @@ Each Retina commit that changes a path outside `.planning/` and `.claude/` was g
 | r03-retina-check | e028d3b1 | test(04-02): add the live Retina check harness | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (retina_check is not a gated target) |
 | r04-thumb-cache | 7ccaa186 | feat(04-03): key the thumbnail cache by device pixel ratio | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
 | r05-thumb-quality | 18371848 | feat(04-03): raise the thumbnail quality default to 250 | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
+| r06-thumb-paint | a2396af5 | feat(04-04): draw thumbnails at device resolution | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only) |
