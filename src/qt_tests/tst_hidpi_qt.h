@@ -26,6 +26,7 @@ class TestHiDpiQt : public QObject {
   void testOldThumbnailLeftInPlace();
   void testStaleLoadDiscarded();
   void testFlushKeepsLoadedBound();
+  void testRecreateReplacesAllSizes();
   void testThumbnailQualityDefault();
   void testThumbnailPaintAtRatio();
   void testThumbnailsFollowScreenChange();

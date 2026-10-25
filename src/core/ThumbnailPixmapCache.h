@@ -155,6 +155,9 @@ class ThumbnailPixmapCache {
   /**
    * \brief Re-create and replace the existing thumnail.
    *
+   * The thumbnail is written for the current size (quality times device pixel ratio). The thumbnail files of the
+   * same image with other sizes are deleted, as they show the old image; they are built again when needed.
+   *
    * \param imageId The identifier of the full size image and its thumbnail.
    * \param image The full-size image or a thumbnail.
    *

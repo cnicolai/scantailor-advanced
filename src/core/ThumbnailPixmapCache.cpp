@@ -10,6 +10,7 @@
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QThread>
 #include <algorithm>
@@ -506,6 +507,40 @@ void ThumbnailPixmapCache::Impl::ensureThumbnailExists(const ImageId& imageId, c
   }
 }
 
+namespace {
+
+/**
+ * Deletes the thumbnail files of the same image that have another size than \p keepFilePath ("<prefix>_q<width>.png").
+ * Those files were made from the image as it was before and would show stale content once the effective size
+ * returns to their width.
+ */
+void removeOtherSizeThumbnails(const QString& keepFilePath) {
+  const QFileInfo keepInfo(keepFilePath);
+  const QString keepName = keepInfo.fileName();
+  const int qPos = keepName.lastIndexOf(QStringLiteral("_q"));
+  if (qPos < 0) {
+    return;
+  }
+  // The prefix is everything up to and including "_q": file name, page and hash of the original path, then "_q".
+  const QString prefix = keepName.left(qPos + 2);
+  const QString suffix = QStringLiteral(".png");
+
+  const QDir dir(keepInfo.absolutePath());
+  const QStringList names = dir.entryList(QDir::Files);
+  for (const QString& name : names) {
+    if (name == keepName || !name.startsWith(prefix) || !name.endsWith(suffix)) {
+      continue;
+    }
+    const QString width = name.mid(prefix.size(), name.size() - prefix.size() - suffix.size());
+    if (width.isEmpty() || !std::all_of(width.begin(), width.end(), [](const QChar c) { return c.isDigit(); })) {
+      continue;
+    }
+    QFile::remove(dir.filePath(name));
+  }
+}
+
+}  // namespace
+
 void ThumbnailPixmapCache::Impl::recreateThumbnail(const ImageId& imageId, const QImage& image) {
   if (m_shuttingDown) {
     return;
@@ -516,34 +551,39 @@ void ThumbnailPixmapCache::Impl::recreateThumbnail(const ImageId& imageId, const
   }
 
   QMutexLocker locker(&m_mutex);
-  const QString thumbDir(m_thumbDir);
-  const QSize effectiveSize(effectiveThumbSize(m_maxThumbSize, m_dpr));
-  const int generation = m_sizeGeneration;
-  locker.unlock();
 
-  const QString thumbFilePath(getThumbFilePath(imageId, thumbDir, effectiveSize));
-  const QImage thumbnail(makeThumbnail(image, effectiveSize));
-  bool thumbWritten = false;
+  // Write the thumbnail for the size in force. If the size changes while we write (another display, another
+  // quality), write again for the new size, so that neither the file nor the item in memory keep the old content.
+  while (true) {
+    const QString thumbDir(m_thumbDir);
+    const QSize effectiveSize(effectiveThumbSize(m_maxThumbSize, m_dpr));
+    const int generation = m_sizeGeneration;
+    locker.unlock();
 
-  // Note that we may be called from multiple threads at the same time.
-  AtomicFileOverwriter overwriter;
-  QIODevice* iodev = overwriter.startWriting(thumbFilePath);
-  if (iodev && thumbnail.save(iodev, "PNG")) {
-    thumbWritten = overwriter.commit();
-  } else {
-    overwriter.abort();
-  }
+    const QString thumbFilePath(getThumbFilePath(imageId, thumbDir, effectiveSize));
+    const QImage thumbnail(makeThumbnail(image, effectiveSize));
+    bool thumbWritten = false;
 
-  if (!thumbWritten) {
-    return;
-  }
+    // Note that we may be called from multiple threads at the same time.
+    AtomicFileOverwriter overwriter;
+    QIODevice* iodev = overwriter.startWriting(thumbFilePath);
+    if (iodev && thumbnail.save(iodev, "PNG")) {
+      thumbWritten = overwriter.commit();
+    } else {
+      overwriter.abort();
+    }
 
-  const QMutexLocker locker2(&m_mutex);
+    if (!thumbWritten) {
+      return;
+    }
 
-  if (generation != m_sizeGeneration) {
-    // The size changed while we were writing. The file is fine (it carries its own size in its name), but the item
-    // in memory, if any, belongs to the new size and must not be dropped on account of the old one.
-    return;
+    // Files of the other sizes (the other display's ratio, an earlier quality) still hold the old image.
+    removeOtherSizeThumbnails(thumbFilePath);
+
+    locker.relock();
+    if (generation == m_sizeGeneration) {
+      break;
+    }
   }
 
   const ItemsByKey::iterator kIt(m_itemsByKey.find(imageId));

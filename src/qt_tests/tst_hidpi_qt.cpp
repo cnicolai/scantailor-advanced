@@ -833,6 +833,39 @@ void TestHiDpiQt::testFlushKeepsLoadedBound() {
   QCOMPARE(cache.loadFromCache(missing, pm), ThumbnailPixmapCache::LOAD_FAILED);
 }
 
+void TestHiDpiQt::testRecreateReplacesAllSizes() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-recreate-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QString origPath = dir.path() + "/orig.png";
+  const QImage landscape = makeNoisePage(QSize(1200, 900), 7);
+  QVERIFY(landscape.save(origPath));
+  const ImageId id(origPath);
+  const QString thumbDir = dir.path() + "/thumbs";
+
+  ThumbnailPixmapCache cache(thumbDir, QSize(250, 250), 40, 5);
+  cache.ensureThumbnailExists(id, landscape);
+  cache.setDevicePixelRatio(2.0);
+  cache.ensureThumbnailExists(id, landscape);
+  QCOMPARE(thumbFiles(thumbDir, "q250").size(), 1);
+  QCOMPARE(thumbFiles(thumbDir, "q500").size(), 1);
+
+  // The page is replaced by a portrait one (the output stage wrote a new file) and its thumbnail recreated while the
+  // window shows the ratio 2 display.
+  const QImage portrait = makeNoisePage(QSize(900, 1200), 8);
+  QVERIFY(portrait.save(origPath));
+  cache.recreateThumbnail(id, portrait);
+  QCOMPARE(thumbFiles(thumbDir, "q500").size(), 1);
+  QPixmap pm;
+  QCOMPARE(cache.loadNow(id, pm), ThumbnailPixmapCache::LOADED);
+  QVERIFY(pm.height() > pm.width());
+
+  // The window moves to the ratio 1 display: the old landscape thumbnail of that size must be gone.
+  QVERIFY(thumbFiles(thumbDir, "q250").isEmpty());
+  cache.setDevicePixelRatio(1.0);
+  QCOMPARE(cache.loadNow(id, pm), ThumbnailPixmapCache::LOADED);
+  QVERIFY(pm.height() > pm.width());
+}
+
 void TestHiDpiQt::testThumbnailQualityDefault() {
   // The qt_tests settings file lives below the build tree (main.cpp checks it), so this cannot touch real settings.
   QSettings settings;
