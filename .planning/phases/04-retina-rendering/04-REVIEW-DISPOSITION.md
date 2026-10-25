@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`removeLoadedItemsLocked()` resets `m_endOfLoadedItems` to `end()` while non-LOADED items remain, and a display change now reaches it"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`recreateThumbnail()` refreshes only the thumbnail file of the current ratio, and drops its in-memory invalidation when the generation changed"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`ImageViewBase::event()` reads the viewport's ratio inside the scroll area's own `DevicePixelRatioChange`, which the tests show can lag behind"
   - id: IN-01
     severity: info
@@ -35,18 +35,18 @@ findings:
     severity: info
     disposition: open
     title: "`retina_check` output-path guard is lexical"
-open: 8
+open: 5
 total: 8
-recorded: 2026-10-25T15:57:44.154Z
+recorded: 2026-10-25T17:05:15.963Z
 ---
 
 # Phase 04: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
+| WR-01 | warning | fixed | 04-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 04-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 04-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
