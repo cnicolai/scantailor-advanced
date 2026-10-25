@@ -846,7 +846,9 @@ void ThumbnailPixmapCache::Impl::removeLoadedItemsLocked() {
   }
 
   m_numLoadedItems = 0;
-  m_endOfLoadedItems = m_removeQueue.end();
+  // QUEUED, IN_PROGRESS and LOAD_FAILED items stay in the queue; the first of them starts the non-LOADED range.
+  // With an empty queue begin() == end(), which request() relies on.
+  m_endOfLoadedItems = m_removeQueue.begin();
 }
 
 void ThumbnailPixmapCache::Impl::cachePixmapUnlocked(const ImageId& imageId, const QPixmap& pixmap) {

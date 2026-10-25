@@ -792,6 +792,47 @@ void TestHiDpiQt::testStaleLoadDiscarded() {
   QCOMPARE(pm.width(), 500);
 }
 
+void TestHiDpiQt::testFlushKeepsLoadedBound() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-flush-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QImage page = makeNoisePage(QSize(300, 200), 6);
+  std::vector<ImageId> ids;
+  for (int i = 0; i < 7; ++i) {
+    const QString path = QString("%1/page%2.png").arg(dir.path()).arg(i);
+    QVERIFY(page.save(path));
+    ids.emplace_back(path);
+  }
+  const ImageId missing(dir.path() + "/missing.png");
+
+  // At most three pixmaps are held in memory.
+  ThumbnailPixmapCache cache(dir.path() + "/thumbs", QSize(250, 250), 3, 5);
+  QPixmap pm;
+  QCOMPARE(cache.loadNow(ids[0], pm), ThumbnailPixmapCache::LOADED);
+  QCOMPARE(cache.loadNow(ids[1], pm), ThumbnailPixmapCache::LOADED);
+
+  // A failed load leaves a LOAD_FAILED item behind the LOADED ones in the remove queue.
+  auto recorder = std::make_shared<ResultRecorder>();
+  const std::weak_ptr<ThumbnailPixmapCache::CompletionHandler> handler(recorder);
+  QCOMPARE(cache.loadRequest(missing, pm, handler), ThumbnailPixmapCache::QUEUED);
+  QTRY_COMPARE_WITH_TIMEOUT(recorder->calls, 1, 10000);
+  QCOMPARE(recorder->status, ThumbnailLoadResult::LOAD_FAILED);
+
+  // A new ratio flushes the LOADED items but keeps the failed one.
+  cache.setDevicePixelRatio(2.0);
+
+  for (int i = 2; i < 7; ++i) {
+    QCOMPARE(cache.loadNow(ids[i], pm), ThumbnailPixmapCache::LOADED);
+  }
+  // Only the three most recent pixmaps remain. Pages 2 and 3 have to be gone: a stale end-of-LOADED marker used to
+  // let the failed item shield one of them from removal.
+  QCOMPARE(cache.loadFromCache(ids[2], pm), ThumbnailPixmapCache::LOAD_FAILED);
+  QCOMPARE(cache.loadFromCache(ids[3], pm), ThumbnailPixmapCache::LOAD_FAILED);
+  for (int i = 4; i < 7; ++i) {
+    QCOMPARE(cache.loadFromCache(ids[i], pm), ThumbnailPixmapCache::LOADED);
+  }
+  QCOMPARE(cache.loadFromCache(missing, pm), ThumbnailPixmapCache::LOAD_FAILED);
+}
+
 void TestHiDpiQt::testThumbnailQualityDefault() {
   // The qt_tests settings file lives below the build tree (main.cpp checks it), so this cannot touch real settings.
   QSettings settings;
