@@ -245,7 +245,8 @@ class ImageViewBase : public QAbstractScrollArea {
 
  protected:
   /**
-   * Reacts to QEvent::DevicePixelRatioChange (a display change) by dropping an HQ pixmap built for another ratio.
+   * Reacts to QEvent::DevicePixelRatioChange (a display change) by requesting a repaint, which rebuilds an HQ pixmap
+   * built for another ratio.
    */
   bool event(QEvent* event) override;
 

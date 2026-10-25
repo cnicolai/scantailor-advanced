@@ -410,15 +410,10 @@ void ImageViewBase::ensureStatusTip(const QString& statusTip) {
 }
 
 bool ImageViewBase::event(QEvent* event) {
-  if (event->type() == QEvent::DevicePixelRatioChange
-      && !qFuzzyCompare(m_hqDpr, hidpi::sanitizedRatio(viewport()->devicePixelRatioF()))) {
-    // The event can arrive more than once; the comparison above makes this idempotent. The paint-time check in
-    // validateHqPixmap() stays the source of truth if an event is missed.
-    if (m_hqTransformTask) {
-      m_hqTransformTask->cancel();
-      m_hqTransformTask.reset();
-    }
-    m_hqPixmap = QPixmap();
+  if (event->type() == QEvent::DevicePixelRatioChange) {
+    // The viewport can learn about its new ratio after the scroll area, so the ratio is not compared here. The
+    // paint-time check in validateHqPixmap() decides whether the HQ pixmap is still valid, and
+    // scheduleHqVersionRebuild() cancels a build for another ratio.
     update();
   }
   return QAbstractScrollArea::event(event);
@@ -952,7 +947,11 @@ bool ImageViewBase::validateHqPixmap() const {
 void ImageViewBase::scheduleHqVersionRebuild() {
   const QTransform xform(m_imageToVirtual * m_virtualToWidget);
 
-  if (!m_timer.isActive() || (m_potentialHqXform != xform)) {
+  // A build in flight for another ratio (the window moved to another display) is useless; don't let it run on.
+  const bool staleRatio
+      = m_hqTransformTask && !qFuzzyCompare(m_hqDpr, hidpi::sanitizedRatio(viewport()->devicePixelRatioF()));
+
+  if (!m_timer.isActive() || (m_potentialHqXform != xform) || staleRatio) {
     if (m_hqTransformTask) {
       m_hqTransformTask->cancel();
       m_hqTransformTask.reset();
