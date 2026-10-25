@@ -8,6 +8,7 @@
 #include <QShortcut>
 
 #include "ApplicationSettings.h"
+#include "HiDpi.h"
 #include "ImageViewBase.h"
 #include "ScopedIncDec.h"
 #include "ZoneInteractionContext.h"
@@ -73,21 +74,47 @@ void ColorPickupInteraction::takeColor() {
     image = m_context.imageView().sampleImageAtWidgetRect(rect);
   }
   if (image.isNull()) {
+    // The grab of a logical rect has device resolution and carries the device pixel ratio.
     const QPixmap pixmap = m_context.imageView().grab(rect);
     if (pixmap.isNull()) {
       return;
     }
-    image = pixmap.toImage().convertToFormat(QImage::Format_RGB32);
-  } else {
-    image = image.convertToFormat(QImage::Format_RGB32);
+    image = pixmap.toImage();
   }
 
+  const QColor color(medianColor(image));
+  if (!color.isValid()) {
+    return;
+  }
+
+  m_fillColorProp->setColor(color);
+
+  // Update default properties.
+  PropertySet defaultProps(m_zones.defaultProperties());
+  defaultProps.locateOrCreate<FillColorProperty>()->setColor(color);
+  m_zones.setDefaultProperties(defaultProps);
+  m_zones.commit();
+}  // ColorPickupInteraction::takeColor
+
+QColor ColorPickupInteraction::medianColor(const QImage& grabbed) {
+  if (grabbed.isNull()) {
+    return QColor();
+  }
+
+  const double dpr = hidpi::sanitizedRatio(grabbed.devicePixelRatio());
+  const QImage image = grabbed.convertToFormat(QImage::Format_RGB32);
+
+  // The circle is defined on logical pixels, as it is drawn on screen. A device pixel takes part when its logical
+  // pixel does, so at ratio 1 this is the same set of pixels as before and at ratio 2 each logical pixel
+  // contributes its 2x2 block.
   const int width = image.width();
   const int height = image.height();
-  const int xCenter = width / 2;
-  const int yCenter = height / 2;
+  const int logicalWidth = qMax(1, qRound(width / dpr));
+  const int logicalHeight = qMax(1, qRound(height / dpr));
+  const int xCenter = logicalWidth / 2;
+  const int yCenter = logicalHeight / 2;
   const int sqdistThreshold = xCenter * yCenter;
-  const uint32_t* line = (uint32_t*) image.bits();
+  const uint32_t* line = (const uint32_t*) image.constBits();
   const int stride = image.bytesPerLine() / 4;
 
   // We are going to take a median color using the bit-mixing technique.
@@ -95,10 +122,10 @@ void ColorPickupInteraction::takeColor() {
   bitmixedColors.reserve(width * height);
   // Take colors from the circle.
   for (int y = 0; y < height; ++y, line += stride) {
-    const int dy = y - yCenter;
+    const int dy = qMin(int(y / dpr), logicalHeight - 1) - yCenter;
     const int dySq = dy * dy;
     for (int x = 0; x < width; ++x) {
-      const int dx = x - xCenter;
+      const int dx = qMin(int(x / dpr), logicalWidth - 1) - xCenter;
       const int dxSq = dx * dx;
       const int sqdist = dySq + dxSq;
       if (sqdist <= sqdistThreshold) {
@@ -109,21 +136,13 @@ void ColorPickupInteraction::takeColor() {
   }
 
   if (bitmixedColors.empty()) {
-    return;
+    return QColor();
   }
 
   auto halfPos(bitmixedColors.begin() + bitmixedColors.size() / 2);
   std::nth_element(bitmixedColors.begin(), halfPos, bitmixedColors.end());
-  const QColor color(bitUnmixColor(*halfPos));
-
-  m_fillColorProp->setColor(color);
-
-  // Update default properties.
-  PropertySet defaultProps(m_zones.defaultProperties());
-  defaultProps.locateOrCreate<FillColorProperty>()->setColor(color);
-  m_zones.setDefaultProperties(defaultProps);
-  m_zones.commit();
-}  // ColorPickupInteraction::takeColor
+  return QColor(bitUnmixColor(*halfPos));
+}
 
 QRect ColorPickupInteraction::targetBoundingRect() const {
   const QPoint mousePos(m_context.imageView().mapFromGlobal(QCursor::pos()));

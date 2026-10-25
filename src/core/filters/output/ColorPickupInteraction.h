@@ -4,7 +4,9 @@
 #ifndef SCANTAILOR_OUTPUT_COLORPICKUPINTERACTION_H_
 #define SCANTAILOR_OUTPUT_COLORPICKUPINTERACTION_H_
 
+#include <QColor>
 #include <QCoreApplication>
+#include <QImage>
 #include <QRect>
 #include <cstdint>
 #include <memory>
@@ -28,6 +30,14 @@ class ColorPickupInteraction : public InteractionHandler {
   void startInteraction(const EditableZoneSet::Zone& zone, InteractionState& interaction);
 
   bool isActive(const InteractionState& interaction) const;
+
+  /**
+   * Median colour of the pixels inside the circle inscribed in the grabbed area, counted by logical pixels: a device
+   * pixel takes part when its logical pixel lies in the circle of the ratio 1 algorithm, so at ratio 1 the result
+   * equals the old one and at ratio 2 each logical pixel contributes its 2x2 block. Returns an invalid colour for a
+   * null image or an empty sample.
+   */
+  static QColor medianColor(const QImage& grabbed);
 
  protected:
   void onPaint(QPainter& painter, const InteractionState& interaction) override;

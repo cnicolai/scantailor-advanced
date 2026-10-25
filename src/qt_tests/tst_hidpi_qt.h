@@ -35,6 +35,8 @@ class TestHiDpiQt : public QObject {
   void testStageAnimationFollowsScreenChange();
   void testIconPixmapLogicalGeometry();
   void testPageBadgeAtDeviceResolution();
+  void testMedianColorRatioInvariant();
+  void testColorPickerGrabAtRatio2();
 };
 
 #endif

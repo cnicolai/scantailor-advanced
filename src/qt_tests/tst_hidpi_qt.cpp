@@ -22,6 +22,7 @@
 #include <ThumbnailDprTracker.h>
 #include <ThumbnailPixmapCache.h>
 #include <Transform.h>
+#include <filters/output/ColorPickupInteraction.h>
 #include <filters/output/PictureZoneEditor.h>
 #include <filters/output/Settings.h>
 #include <filters/page_split/UnremoveButton.h>
@@ -366,6 +367,18 @@ QString writeIconSheet(const QString& dir) {
                           "</icons>")
                           .arg(squareXml, badge.toHtmlEscaped());
   return writeTextFile(sheet, xml.toUtf8()) ? sheet : QString();
+}
+
+// The image scaled up by an integer factor with every pixel replicated, tagged with that ratio.
+QImage replicate(const QImage& image, const int factor) {
+  QImage result(image.size() * factor, image.format());
+  for (int y = 0; y < result.height(); ++y) {
+    for (int x = 0; x < result.width(); ++x) {
+      result.setPixel(x, y, image.pixel(x / factor, y / factor));
+    }
+  }
+  result.setDevicePixelRatio(factor);
+  return result;
 }
 
 }  // namespace
@@ -1237,4 +1250,84 @@ void TestHiDpiQt::testPageBadgeAtDeviceResolution() {
   QVERIFY2(
       differentFraction >= 0.02,
       qPrintable(QString("a ratio 1 badge differs from the grab in only %1 of the pixels").arg(differentFraction)));
+}
+
+void TestHiDpiQt::testMedianColorRatioInvariant() {
+  using output::ColorPickupInteraction;
+
+  QImage noise(15, 15, QImage::Format_RGB32);
+  QRandomGenerator rng(7);
+  for (int y = 0; y < 15; ++y) {
+    for (int x = 0; x < 15; ++x) {
+      noise.setPixelColor(x, y, QColor(rng.bounded(256), rng.bounded(256), rng.bounded(256)));
+    }
+  }
+  const QColor atRatio1 = ColorPickupInteraction::medianColor(noise);
+  QVERIFY(atRatio1.isValid());
+  const QImage noise2x = replicate(noise, 2);
+  QCOMPARE(noise2x.size(), QSize(30, 30));
+  QCOMPARE(noise2x.devicePixelRatio(), 2.0);
+  QCOMPARE(ColorPickupInteraction::medianColor(noise2x).rgb(), atRatio1.rgb());
+
+  // Colour A with a block of colour B in the top-left quadrant (30 of about 177 pixels of the circle).
+  const QColor a(40, 60, 200);
+  const QColor b(220, 120, 30);
+  QImage quadrant(15, 15, QImage::Format_RGB32);
+  quadrant.fill(a);
+  for (int y = 0; y < 7; ++y) {
+    for (int x = 0; x < 7; ++x) {
+      quadrant.setPixelColor(x, y, b);
+    }
+  }
+  QCOMPARE(ColorPickupInteraction::medianColor(quadrant).rgb(), a.rgb());
+  const QImage quadrant2x = replicate(quadrant, 2);
+  QCOMPARE(ColorPickupInteraction::medianColor(quadrant2x).rgb(), a.rgb());
+
+  // The misreading this guards against: the first 15x15 device pixels of the ratio 2 grab taken as a ratio 1 image
+  // cover mostly the quadrant.
+  QImage misread = quadrant2x.copy(0, 0, 15, 15);
+  misread.setDevicePixelRatio(1.0);
+  QCOMPARE(ColorPickupInteraction::medianColor(misread).rgb(), b.rgb());
+
+  QVERIFY(!ColorPickupInteraction::medianColor(QImage()).isValid());
+}
+
+void TestHiDpiQt::testColorPickerGrabAtRatio2() {
+  using output::ColorPickupInteraction;
+
+  const QColor a(40, 60, 200);
+  const QColor b(220, 120, 30);
+  QImage page(1200, 900, QImage::Format_RGB32);
+  page.fill(a);
+  {
+    QPainter painter(&page);
+    painter.fillRect(QRect(360, 270, 480, 360), b);
+  }
+  page.setDotsPerMeterX(11811);  // 300 dpi
+  page.setDotsPerMeterY(11811);
+
+  BasicImageView view(page);
+  struct Case {
+    const char* screen;
+    double dpr;
+  };
+  for (const Case& c : {Case{"TwoX", 2.0}, Case{"OneX", 1.0}}) {
+    placeOn(view, screenNamed(c.screen), QSize(400, 300));
+    if (QTest::currentTestFailed()) {
+      return;
+    }
+    waitForHq(view, c.dpr);
+    if (QTest::currentTestFailed()) {
+      return;
+    }
+
+    QRect rect(0, 0, 15, 15);
+    rect.moveCenter(view.rect().center());
+    const QPixmap grabbed = view.grab(rect);
+    QCOMPARE(grabbed.devicePixelRatio(), c.dpr);
+    QCOMPARE(grabbed.size(), QSize(qRound(15 * c.dpr), qRound(15 * c.dpr)));
+    const QColor picked = ColorPickupInteraction::medianColor(grabbed.toImage());
+    QVERIFY2(picked.isValid() && picked.rgb() == b.rgb(),
+             qPrintable(QString("on %1 the picker returned %2, expected %3").arg(c.screen, picked.name(), b.name())));
+  }
 }
