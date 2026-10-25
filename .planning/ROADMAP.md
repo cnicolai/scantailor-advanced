@@ -162,14 +162,14 @@ Plans:
   4. Dragging the window from the Retina display to a non-Retina display and back re-renders the page view and thumbnails at the right resolution without a restart
   5. On Retina the colour picker returns the colour of the pixel under the cursor, an automated test covers the sampling path, and the full `ctest` suite passes with baselines unchanged
 
-**Plans:** 1/8 plans executed
+**Plans:** 2/8 plans executed
 
 Plans:
 **Wave 1**
 - [x] 04-01-PLAN.md — Tracer: HiDpi helpers, page-view HQ pixmap at device resolution, two-screen offscreen qt_tests (TestHiDpiQt), rebuild on display change
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 04-02-PLAN.md — Live Cocoa harness retina_check: HIDPI-01 ratio measured on the Studio Display, page view at fit/100%/200% against a device reference (Info.plist only if 1.0)
+- [x] 04-02-PLAN.md — Live Cocoa harness retina_check: HIDPI-01 ratio measured on the Studio Display, page view at fit/100%/200% against a device reference (Info.plist only if 1.0)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 04-03-PLAN.md — Thumbnail cache keyed by ratio (Quality x DPR, q500 files, flush and stale-load guard), Quality default 250
@@ -231,7 +231,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deletion-Free macOS Build | 7/7 | Complete    | 2026-10-23 |
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
-| 4. Retina Rendering | 1/8 | In Progress | - |
+| 4. Retina Rendering | 2/8 | In Progress | - |
 | 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 

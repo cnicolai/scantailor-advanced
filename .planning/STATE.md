@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-10-25T13:34:58.375Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-10-25T13:46:11.725Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 execution started
-state_head: 8f855a0f37c09906968ab3803902197db6010592
+state_head: f0b157c2e36f9c33b03ecbbb05b424e62634a252
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 31
+  completed_plans: 32
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 04 (Retina Rendering) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 04 execution started
 
@@ -90,6 +90,7 @@ Progress: [█████░░░░░] 50%
 | Phase 03 P08 | 14 min | 2 tasks | 3 files |
 | Phase 03 P09 | 7 min | 2 tasks | 9 files |
 | Phase 04 P01 | 19 min | 2 tasks | 10 files |
+| Phase 04 P02 | 11 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-09: the D-10 search keeps one generator-owned line in CLAUDE.md (skills fallback text naming .github/skills/); CLAUDE.md is edited only through generate-claude-md
 - [Phase 04]: Offscreen test windows are placed by setScreen() plus move() into the screen rectangle; setScreen() alone reverts on resize
 - [Phase 04]: Retina tests wait for viewport()->devicePixelRatioF() before the HQ pixmap; the viewport child learns the ratio after its parent
+- [Phase 04]: Plan 04-02: no Info.plist (ratio 2 measured on Studio Display) and no smoothing recalibration (ratio 0.9978)
 
 ### Pending Todos
 
@@ -182,6 +184,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-25T13:34:58.269Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-10-25T13:46:11.554Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
