@@ -24,7 +24,7 @@ status: all_fixed
 
 ## Fixed Issues
 
-### WR-01: `removeLoadedItemsLocked()` resets `m_endOfLoadedItems` to `end()` while non-LOADED items remain
+### WR-01: `removeLoadedItemsLocked()` resets `m_endOfLoadedItems` to `end()` while non-LOADED items remain, and a display change now reaches it
 
 **Files modified:** `src/core/ThumbnailPixmapCache.cpp`, `src/qt_tests/tst_hidpi_qt.cpp`, `src/qt_tests/tst_hidpi_qt.h`
 **Commit:** 68ce944c
@@ -32,7 +32,7 @@ status: all_fixed
 **Regression test:** `testFlushKeepsLoadedBound` uses only the public API. A cache with `maxCachedPixmaps = 3` holds two LOADED items and one LOAD_FAILED item (a missing image requested through `loadRequest`). A ratio change flushes it, five more pages are loaded with `loadNow`, and the test checks that only the three newest are cached. I confirmed it fails without the fix (Release build: page 3 stays cached, expected LOAD_FAILED) and passes with it. In Debug the old code would also trip the `removeExcessLocked()` assert. The QUEUED and IN_PROGRESS cases from the review are not covered, because the background thread drains them too quickly to hold one deterministically without new test seams; the fix is the same single marker for all non-LOADED kinds.
 **Status note:** logic fix, so the marker semantics deserve a human look (the test covers the LOAD_FAILED path).
 
-### WR-02: `recreateThumbnail()` refreshes only the thumbnail file of the current ratio and drops its invalidation when the generation changed
+### WR-02: `recreateThumbnail()` refreshes only the thumbnail file of the current ratio, and drops its in-memory invalidation when the generation changed
 
 **Files modified:** `src/core/ThumbnailPixmapCache.cpp`, `src/core/ThumbnailPixmapCache.h` (doc comment), `src/qt_tests/tst_hidpi_qt.cpp`, `src/qt_tests/tst_hidpi_qt.h`
 **Commit:** 00fc131e
@@ -40,7 +40,7 @@ status: all_fixed
 **Regression test:** `testRecreateReplacesAllSizes` creates `q250` and `q500` files, replaces the page with a portrait one, calls `recreateThumbnail()` at ratio 2, and checks that the `q250` file is gone and that both ratios then load the portrait thumbnail. The race branch (generation change during the write) has no deterministic test.
 **Status note:** logic fix, requires human verification.
 
-### WR-03: `ImageViewBase::event()` reads the viewport's ratio inside the scroll area's own `DevicePixelRatioChange`
+### WR-03: `ImageViewBase::event()` reads the viewport's ratio inside the scroll area's own `DevicePixelRatioChange`, which the tests show can lag behind
 
 **Files modified:** `src/core/ImageViewBase.cpp`, `src/core/ImageViewBase.h` (doc comment)
 **Commit:** 8f28cc37
