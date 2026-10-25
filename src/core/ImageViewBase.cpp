@@ -409,6 +409,28 @@ void ImageViewBase::ensureStatusTip(const QString& statusTip) {
   }
 }
 
+bool ImageViewBase::event(QEvent* event) {
+  if (event->type() == QEvent::DevicePixelRatioChange
+      && !qFuzzyCompare(m_hqDpr, hidpi::sanitizedRatio(viewport()->devicePixelRatioF()))) {
+    // The event can arrive more than once; the comparison above makes this idempotent. The paint-time check in
+    // validateHqPixmap() stays the source of truth if an event is missed.
+    if (m_hqTransformTask) {
+      m_hqTransformTask->cancel();
+      m_hqTransformTask.reset();
+    }
+    m_hqPixmap = QPixmap();
+    update();
+  }
+  return QAbstractScrollArea::event(event);
+}
+
+// widthMM() / width() is millimetres per logical pixel and does not depend on the device pixel ratio, so the
+// 0.5 mm switch in paintEvent() needs no Retina correction. It only affects the preview drawn before the HQ pixmap
+// exists. testSmoothingSwitchPhysicalSize checks this offscreen, retina_check on the real display.
+double ImageViewBase::displayedSourcePixelWidthMM() const {
+  return widthMM() * m_virtualToWidget.m11() / width();
+}
+
 void ImageViewBase::paintEvent(QPaintEvent* event) {
   QPainter painter(viewport());
 
@@ -417,10 +439,8 @@ void ImageViewBase::paintEvent(QPaintEvent* event) {
 
   painter.save();
 
-  const double xscale = m_virtualToWidget.m11();
-
   // Width of a source pixel in mm, as it's displayed on screen.
-  const double pixelWidth = widthMM() * xscale / width();
+  const double pixelWidth = displayedSourcePixelWidthMM();
 
   // Make clipping smooth.
   painter.setRenderHint(QPainter::Antialiasing, true);

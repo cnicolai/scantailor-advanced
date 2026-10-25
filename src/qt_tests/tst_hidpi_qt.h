@@ -15,6 +15,12 @@ class TestHiDpiQt : public QObject {
   void initTestCase();
   void testHqPixmapAtDeviceResolution();
   void testHqPixmapAtOneXUnchanged();
+  void testHelpersMatchLegacyAtRatio1();
+  void testHelpersAtFractionalRatio();
+  void testHqGrabMatchesDeviceReference();
+  void testHqRebuildsOnScreenChange();
+  void testRepeatedRatioEventKeepsHqPixmap();
+  void testSmoothingSwitchPhysicalSize();
 };
 
 #endif

@@ -92,6 +92,12 @@ class ImageViewBase : public QAbstractScrollArea {
   bool hqPixmapIsCurrent() const { return validateHqPixmap(); }
 
   /**
+   * The width in millimetres of one source pixel as it is displayed at the current zoom. paintEvent() turns
+   * pixmap smoothing off above 0.5 mm; the live Retina check also reads it.
+   */
+  double displayedSourcePixelWidthMM() const;
+
+  /**
    * \brief Enable or disable the high-quality transform.
    */
   void hqTransformSetEnabled(bool enabled);
@@ -238,6 +244,11 @@ class ImageViewBase : public QAbstractScrollArea {
   ImageViewInfoProvider& infoProvider();
 
  protected:
+  /**
+   * Reacts to QEvent::DevicePixelRatioChange (a display change) by dropping an HQ pixmap built for another ratio.
+   */
+  bool event(QEvent* event) override;
+
   void paintEvent(QPaintEvent* event) override;
 
   void keyPressEvent(QKeyEvent* event) override;
