@@ -7,6 +7,7 @@
 #include <BasicImageView.h>
 #include <HiDpi.h>
 #include <ImageId.h>
+#include <ThumbnailBase.h>
 #include <ThumbnailPixmapCache.h>
 #include <Transform.h>
 
@@ -19,16 +20,20 @@
 #include <QFile>
 #include <QGuiApplication>
 #include <QImage>
+#include <QPainter>
 #include <QPixmap>
+#include <QPixmapCache>
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
+#include <QStyleOptionGraphicsItem>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QWidget>
 #include <QWindow>
+#include <QtMath>
 #include <QtTest/QtTest>
 #include <algorithm>
 #include <climits>
@@ -164,6 +169,43 @@ class ResultRecorder : public ThumbnailPixmapCache::CompletionHandler {
   int calls = 0;
   ThumbnailLoadResult::Status status = ThumbnailLoadResult::LOAD_FAILED;
 };
+
+// Smallest, over the four offsets (0 or 1 in x and y) of the 2x2 block grid, of the fraction of blocks inside the ROI
+// whose four pixels are not all equal (within 2 levels per channel). A ratio 1 buffer upscaled 2x with nearest
+// sampling has uniform blocks at its aligned offset and so scores 0 there.
+double minBlockNonUniformFraction(const QImage& image, const QRect& deviceRoi) {
+  const QImage rgb = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+  double minFraction = 1.0;
+  for (int offsetY = 0; offsetY < 2; ++offsetY) {
+    for (int offsetX = 0; offsetX < 2; ++offsetX) {
+      int blocks = 0;
+      int nonUniform = 0;
+      for (int y = deviceRoi.top() + offsetY; y + 1 <= deviceRoi.bottom(); y += 2) {
+        const auto* line0 = reinterpret_cast<const QRgb*>(rgb.constScanLine(y));
+        const auto* line1 = reinterpret_cast<const QRgb*>(rgb.constScanLine(y + 1));
+        for (int x = deviceRoi.left() + offsetX; x + 1 <= deviceRoi.right(); x += 2) {
+          const QRgb px[4] = {line0[x], line0[x + 1], line1[x], line1[x + 1]};
+          bool uniform = true;
+          for (int i = 1; i < 4; ++i) {
+            const int diff = std::max({std::abs(qRed(px[i]) - qRed(px[0])), std::abs(qGreen(px[i]) - qGreen(px[0])),
+                                       std::abs(qBlue(px[i]) - qBlue(px[0])), std::abs(qAlpha(px[i]) - qAlpha(px[0]))});
+            if (diff > 2) {
+              uniform = false;
+              break;
+            }
+          }
+          ++blocks;
+          if (!uniform) {
+            ++nonUniform;
+          }
+        }
+      }
+      const double fraction = blocks > 0 ? static_cast<double>(nonUniform) / blocks : 0.0;
+      minFraction = std::min(minFraction, fraction);
+    }
+  }
+  return minFraction;
+}
 
 }  // namespace
 
@@ -582,4 +624,53 @@ void TestHiDpiQt::testThumbnailQualityDefault() {
   settings.remove("settings/thumbnail_quality");
   settings.sync();
   QCOMPARE(ApplicationSettings::getInstance().getThumbnailQuality(), QSize(250, 250));
+}
+
+void TestHiDpiQt::testThumbnailPaintAtRatio() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-paint-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QImage page = makeNoisePage(QSize(1200, 900), 4);
+  QVERIFY(page.save(dir.path() + "/orig.png"));
+  const ImageId id(dir.path() + "/orig.png");
+
+  auto cache = std::make_shared<ThumbnailPixmapCache>(dir.path() + "/thumbs", QSize(250, 250), 40, 5);
+  cache->setDevicePixelRatio(2.0);
+  cache->ensureThumbnailExists(id, page);
+  QPixmap loaded;
+  QCOMPARE(cache->loadNow(id, loaded), ThumbnailPixmapCache::LOADED);
+  QCOMPARE(loaded.width(), 500);
+
+  ThumbnailBase item(cache, QSizeF(250, 160), id, ImageTransformation(QRectF(page.rect()), Dpi(300, 300)));
+  QPixmapCache::clear();
+  const QStyleOptionGraphicsItem option;
+
+  QImage target2x(500, 320, QImage::Format_ARGB32_Premultiplied);
+  target2x.setDevicePixelRatio(2.0);
+  target2x.fill(Qt::transparent);
+  {
+    QPainter painter(&target2x);
+    item.paint(&painter, &option, nullptr);
+  }
+  QPixmap temp;
+  QVERIFY(QPixmapCache::find("ThumbnailBase::tempPixmap@2.00", &temp));
+  QCOMPARE(temp.devicePixelRatio(), 2.0);
+  QVERIFY2(temp.width() >= qCeil(item.boundingRect().width() * 2), qPrintable(QString::number(temp.width())));
+  const QRect deviceRect = QRectF(item.boundingRect().left() * 2, item.boundingRect().top() * 2,
+                                  item.boundingRect().width() * 2, item.boundingRect().height() * 2)
+                               .toAlignedRect()
+                               .adjusted(2, 2, -2, -2);
+  const double fraction = minBlockNonUniformFraction(target2x, deviceRect);
+  QVERIFY2(fraction >= 0.05, qPrintable(QString("non-uniform 2x2 blocks: %1").arg(fraction)));
+
+  QImage target1x(250, 160, QImage::Format_ARGB32_Premultiplied);
+  target1x.fill(Qt::transparent);
+  {
+    QPainter painter(&target1x);
+    item.paint(&painter, &option, nullptr);
+  }
+  QPixmap temp1;
+  QVERIFY(QPixmapCache::find("ThumbnailBase::tempPixmap@1.00", &temp1));
+  QCOMPARE(temp1.devicePixelRatio(), 1.0);
+  QVERIFY(QPixmapCache::find("ThumbnailBase::tempPixmap@2.00", &temp));
+  QCOMPARE(temp.devicePixelRatio(), 2.0);
 }

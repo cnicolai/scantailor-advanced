@@ -9,10 +9,12 @@
 #include <QPainter>
 #include <QPixmapCache>
 #include <QStyleOptionGraphicsItem>
+#include <QtMath>
 #include <cmath>
 #include <utility>
 
 #include "ApplicationSettings.h"
+#include "HiDpi.h"
 #include "PixmapRenderer.h"
 
 using namespace imageproc;
@@ -98,17 +100,23 @@ void ThumbnailBase::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 
   QRectF displayRect(imageToDisplay.map(PolygonUtils::round(m_displayArea)).boundingRect().toAlignedRect());
 
+  // The temp pixmap follows the buffer rule of HiDpi.h: device pixels at the ratio of the target. The ratio is part
+  // of the key, so views on a 1x and a 2x display do not share (and keep rebuilding) one buffer.
+  const double dpr = hidpi::sanitizedRatio(painter->device()->devicePixelRatioF());
   QPixmap tempPixmap;
-  const QString cacheKey(QString::fromLatin1("ThumbnailBase::tempPixmap"));
-  if (!QPixmapCache::find(cacheKey, &tempPixmap) || (tempPixmap.width() < displayRect.width())
-      || (tempPixmap.height() < displayRect.height())) {
-    auto w = (int) displayRect.width();
-    auto h = (int) displayRect.height();
+  const QString cacheKey(QStringLiteral("ThumbnailBase::tempPixmap@%1").arg(dpr, 0, 'f', 2));
+  const int neededWidth = qCeil(displayRect.width() * dpr);
+  const int neededHeight = qCeil(displayRect.height() * dpr);
+  if (!QPixmapCache::find(cacheKey, &tempPixmap) || (tempPixmap.width() < neededWidth)
+      || (tempPixmap.height() < neededHeight)) {
+    int w = neededWidth;
+    int h = neededHeight;
     // Add some extra, to avoid rectreating the pixmap too often.
     w += w / 10;
     h += h / 10;
 
     tempPixmap = QPixmap(w, h);
+    tempPixmap.setDevicePixelRatio(dpr);
 
     if (!tempPixmap.hasAlphaChannel()) {
       // This actually forces the alpha channel to be created.
