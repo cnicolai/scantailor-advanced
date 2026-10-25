@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 04
 current_phase_name: Retina Rendering
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-10-25T13:12:10.015Z"
-last_activity: 2026-10-24
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
-state_head: 03083f55a989185bd0f2e1f568dcd3d3aab37309
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-10-25T13:34:58.375Z"
+last_activity: 2026-10-25
+last_activity_desc: Phase 04 execution started
+state_head: 8f855a0f37c09906968ab3803902197db6010592
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 38
-  completed_plans: 30
+  completed_plans: 31
 milestone_name: macOS
 ---
 
@@ -24,14 +24,14 @@ milestone_name: macOS
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 4 — Retina Rendering
+**Current focus:** Phase 04 — Retina Rendering
 
 ## Current Position
 
-Phase: 04 (Retina Rendering) — READY TO EXECUTE
-Plan: Not started
+Phase: 04 (Retina Rendering) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
-Last activity: 2026-10-24 — Phase 03 complete, transitioned to Phase 4
+Last activity: 2026-10-25 — Phase 04 execution started
 
 Progress: [█████░░░░░] 50%
 
@@ -89,6 +89,7 @@ Progress: [█████░░░░░] 50%
 | Phase 03 P07 | 11 min | 2 tasks | 4 files |
 | Phase 03 P08 | 14 min | 2 tasks | 3 files |
 | Phase 03 P09 | 7 min | 2 tasks | 9 files |
+| Phase 04 P01 | 19 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -162,6 +163,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-07: README Features unchanged except two portable-mode passages; TESTING.md documents artefacts as test-artifacts/<suite>/<name>
 - [Phase 03]: 03-08: ASan+UBSan after the strip equal Phase 2 (0 ASan, 12 UBSan, same 9 locations, 0 new); executables run with their ctest environment so settings stay in build/
 - [Phase 03]: 03-09: the D-10 search keeps one generator-owned line in CLAUDE.md (skills fallback text naming .github/skills/); CLAUDE.md is edited only through generate-claude-md
+- [Phase 04]: Offscreen test windows are placed by setScreen() plus move() into the screen rectangle; setScreen() alone reverts on resize
+- [Phase 04]: Retina tests wait for viewport()->devicePixelRatioF() before the HQ pixmap; the viewport child learns the ratio after its parent
 
 ### Pending Todos
 
@@ -179,6 +182,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-24T22:21:27.341Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-retina-rendering/04-CONTEXT.md
+Last session: 2026-10-25T13:34:58.269Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
