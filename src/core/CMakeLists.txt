@@ -30,6 +30,7 @@ set(common_sources
     ThumbnailLoadResult.h
     ThumbnailPixmapCache.cpp ThumbnailPixmapCache.h
     ThumbnailBase.cpp ThumbnailBase.h
+    ThumbnailDprTracker.cpp ThumbnailDprTracker.h
     ThumbnailFactory.cpp ThumbnailFactory.h
     IncompleteThumbnail.cpp IncompleteThumbnail.h
     ContentBoxPropagator.cpp ContentBoxPropagator.h

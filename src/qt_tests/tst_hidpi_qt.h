@@ -27,6 +27,7 @@ class TestHiDpiQt : public QObject {
   void testStaleLoadDiscarded();
   void testThumbnailQualityDefault();
   void testThumbnailPaintAtRatio();
+  void testThumbnailsFollowScreenChange();
 };
 
 #endif

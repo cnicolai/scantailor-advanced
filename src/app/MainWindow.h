@@ -33,6 +33,7 @@
 class AbstractFilter;
 class AbstractRelinker;
 class ThumbnailPixmapCache;
+class ThumbnailDprTracker;
 class ProjectPages;
 class PageSequence;
 class StageSequence;
@@ -319,6 +320,8 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
   QString m_projectFile;
   OutputFileNameGenerator m_outFileNameGen;
   std::shared_ptr<ThumbnailPixmapCache> m_thumbnailCache;
+  // Owned by thumbView through the Qt parent.
+  ThumbnailDprTracker* m_thumbDprTracker = nullptr;
   std::unique_ptr<ThumbnailSequence> m_thumbSequence;
   std::unique_ptr<WorkerThreadPool> m_workerThreadPool;
   std::unique_ptr<ProcessingTaskQueue> m_batchQueue;

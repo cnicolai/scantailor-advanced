@@ -58,6 +58,7 @@
 #include "StageSequence.h"
 #include "SystemLoadWidget.h"
 #include "TabbedDebugImages.h"
+#include "ThumbnailDprTracker.h"
 #include "ThumbnailFactory.h"
 #include "UnitsProvider.h"
 #include "Utils.h"
@@ -431,6 +432,7 @@ void MainWindow::switchToNewProject(const std::shared_ptr<ProjectPages>& pages,
   } else {
     m_thumbnailCache = Utils::createThumbnailCache(m_outFileNameGen.outDir(), thumbView->devicePixelRatioF());
   }
+  m_thumbDprTracker->setCache(m_thumbnailCache);
   resetThumbSequence(currentPageOrderProvider());
 
   removeFilterOptionsWidget();
@@ -514,6 +516,7 @@ void MainWindow::setupThumbView() {
   updateThumbViewMinWidth();
   m_thumbSequence->attachView(thumbView);
   thumbView->installEventFilter(this);
+  m_thumbDprTracker = new ThumbnailDprTracker(thumbView);
 }
 
 bool MainWindow::eventFilter(QObject* obj, QEvent* ev) {

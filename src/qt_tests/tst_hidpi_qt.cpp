@@ -8,6 +8,7 @@
 #include <HiDpi.h>
 #include <ImageId.h>
 #include <ThumbnailBase.h>
+#include <ThumbnailDprTracker.h>
 #include <ThumbnailPixmapCache.h>
 #include <Transform.h>
 
@@ -18,6 +19,8 @@
 #include <QElapsedTimer>
 #include <QEvent>
 #include <QFile>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QGuiApplication>
 #include <QImage>
 #include <QPainter>
@@ -673,4 +676,55 @@ void TestHiDpiQt::testThumbnailPaintAtRatio() {
   QCOMPARE(temp1.devicePixelRatio(), 1.0);
   QVERIFY(QPixmapCache::find("ThumbnailBase::tempPixmap@2.00", &temp));
   QCOMPARE(temp.devicePixelRatio(), 2.0);
+}
+
+void TestHiDpiQt::testThumbnailsFollowScreenChange() {
+  QTemporaryDir dir(QDir::tempPath() + "/thumbs-follow-XXXXXX");
+  QVERIFY(dir.isValid());
+  const QImage page = makeNoisePage(QSize(1200, 900), 5);
+  QVERIFY(page.save(dir.path() + "/orig.png"));
+  const ImageId id(dir.path() + "/orig.png");
+  const QString thumbDir = dir.path() + "/thumbs";
+  QPixmapCache::clear();
+
+  auto cache = std::make_shared<ThumbnailPixmapCache>(thumbDir, QSize(250, 250), 40, 5);
+  QGraphicsScene scene;
+  scene.addItem(new ThumbnailBase(cache, QSizeF(250, 160), id,
+                                  ImageTransformation(QRectF(page.rect()), Dpi(300, 300))));  // owned by the scene
+  QGraphicsView view(&scene);
+  auto* tracker = new ThumbnailDprTracker(&view);  // owned by the view
+
+  // A null cache is allowed and a cache can be set again.
+  tracker->setCache(nullptr);
+  tracker->setCache(cache);
+
+  placeOn(view, screenNamed("OneX"), QSize(300, 220));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QCOMPARE(cache->getDevicePixelRatio(), 1.0);
+  QPixmap pm;
+  QTRY_COMPARE_WITH_TIMEOUT(cache->loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
+  QVERIFY2(pm.width() >= 249 && pm.width() <= 250, qPrintable(QString::number(pm.width())));
+  QVERIFY(!thumbFiles(thumbDir, "q250").isEmpty());
+
+  placeOn(view, screenNamed("TwoX"), QSize(300, 220));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_COMPARE(cache->getDevicePixelRatio(), 2.0);
+  QTRY_COMPARE_WITH_TIMEOUT(cache->loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
+  QCOMPARE(pm.width(), 500);
+  QVERIFY(!thumbFiles(thumbDir, "q500").isEmpty());
+  QPixmap temp;
+  QTRY_VERIFY_WITH_TIMEOUT(QPixmapCache::find("ThumbnailBase::tempPixmap@2.00", &temp), 10000);
+  QCOMPARE(temp.devicePixelRatio(), 2.0);
+
+  placeOn(view, screenNamed("OneX"), QSize(300, 220));
+  if (QTest::currentTestFailed()) {
+    return;
+  }
+  QTRY_COMPARE(cache->getDevicePixelRatio(), 1.0);
+  QTRY_COMPARE_WITH_TIMEOUT(cache->loadFromCache(id, pm), ThumbnailPixmapCache::LOADED, 10000);
+  QVERIFY2(pm.width() >= 249 && pm.width() <= 250, qPrintable(QString::number(pm.width())));
 }
