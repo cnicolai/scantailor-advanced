@@ -78,6 +78,9 @@ QString localizedAppName();
 /// CFBundleName of the main bundle's info dictionary, empty when absent.
 QString bundleName();
 
+/// Localised name of the frontmost application (loginwindow while the session is locked).
+QString frontmostAppName();
+
 /// NSHomeDirectory().
 QString homeDirectory();
 

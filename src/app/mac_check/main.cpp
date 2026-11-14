@@ -704,6 +704,7 @@ int main(int argc, char* argv[]) {
   const bool redirected = isBelow(cocoaprobe::homeDirectory(), root) && isBelow(QDir::homePath(), root)
                           && isBelow(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), root);
   summary.add("home_redirected", yesNo(redirected));
+  summary.add("frontmost_app", orNone(cocoaprobe::frontmostAppName()));
 
   bool pass = true;
   if (sections.contains("menubar")) {

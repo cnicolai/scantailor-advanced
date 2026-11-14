@@ -148,6 +148,9 @@ QString charactersFor(int keyCode, unsigned modifiers) {
 
 bool keyCodeFor(QChar character, bool withShift, int* keyCode) {
   for (int code = 0; code < 128; ++code) {
+    if (code >= kVK_ANSI_KeypadDecimal && code <= kVK_ANSI_Keypad9) {
+      continue;  // the main keyboard only: the keypad block would answer for = before the real key
+    }
     const QString text = charactersFor(code, withShift ? static_cast<unsigned>(Shift) : 0u);
     if (text.size() == 1 && text.at(0) == character) {
       if (keyCode != nullptr) {
@@ -172,6 +175,9 @@ bool activate(QWindow* window) {
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   [NSApp activateIgnoringOtherApps:YES];
 #pragma clang diagnostic pop
+  if (@available(macOS 14.0, *)) {
+    [NSApp activate];
+  }
   [nsWindow makeKeyAndOrderFront:nil];
   return [NSApp isActive] && [nsWindow isKeyWindow];
 }
@@ -293,6 +299,10 @@ QString bundleName() {
     return QString();
   }
   return toQString((__bridge NSString*) value);
+}
+
+QString frontmostAppName() {
+  return toQString([[[NSWorkspace sharedWorkspace] frontmostApplication] localizedName]);
 }
 
 QString homeDirectory() {
