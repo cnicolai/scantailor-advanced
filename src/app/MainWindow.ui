@@ -106,6 +106,12 @@
     <addaction name="actionSwitchFilter4"/>
     <addaction name="actionSwitchFilter5"/>
     <addaction name="actionSwitchFilter6"/>
+    <addaction name="separator"/>
+    <addaction name="actionZoomIn"/>
+    <addaction name="actionZoomOut"/>
+    <addaction name="separator"/>
+    <addaction name="actionMagnifyThumbnails"/>
+    <addaction name="actionDiminishThumbnails"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -425,7 +431,7 @@ QToolButton:pressed {
           </size>
          </property>
          <property name="toolTip">
-          <string>Magnify thumbnails.  (Ctrl++)</string>
+          <string>Larger thumbnails.  (⌥⌘+)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton:!hover {
@@ -482,7 +488,7 @@ QToolButton:pressed {
           </size>
          </property>
          <property name="toolTip">
-          <string>Diminish thumbnails.  (Ctrl+-)</string>
+          <string>Smaller thumbnails.  (⌥⌘-)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton:!hover {
@@ -1567,16 +1573,44 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionMagnifyThumbnails">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Magnify thumbnails</string>
+    <string>Larger Thumbnails</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Alt++</string>
+   </property>
+  </action>
+  <action name="actionDiminishThumbnails">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+   <property name="text">
+    <string>Smaller Thumbnails</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Alt+-</string>
+   </property>
+  </action>
+  <action name="actionZoomIn">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+   <property name="text">
+    <string>Zoom In</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl++</string>
    </property>
   </action>
-  <action name="actionDiminishThumbnails">
+  <action name="actionZoomOut">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Diminish thumbnails</string>
+    <string>Zoom Out</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+-</string>

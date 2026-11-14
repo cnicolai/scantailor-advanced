@@ -25,9 +25,11 @@
 #include "MainWindow.h"
 #include "SettingsDialog.h"
 
+#include <QAbstractButton>
 #include <QAbstractItemView>
 #include <QAction>
 #include <QApplication>
+#include <QCursor>
 #include <QFrame>
 #include <QGuiApplication>
 #include <QImage>
@@ -44,6 +46,7 @@
 #include <QStringList>
 #include <QWidget>
 #include <QtTest/QtTest>
+#include <cmath>
 #include <memory>
 #include <set>
 #include <vector>
@@ -445,4 +448,153 @@ void TestMacQt::testOutputTabKeys() {
   QTest::keyClick(window.get(), Qt::Key_1, Qt::ControlModifier | Qt::AltModifier);
   QCOMPARE(tabs->currentIndex(), 0);
   QCOMPARE(spy.count(), 1);
+}
+
+void TestMacQt::testZoomActions() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+  emptyImageFrame(*window);
+  QStackedLayout* const layout = imageFrameLayout(*window);
+  QVERIFY(layout != nullptr);
+
+  auto* const view = new BasicImageView(greyImage(1200, 900));
+  layout->addWidget(view);
+  layout->setCurrentWidget(view);
+  QTRY_VERIFY(view->isVisible());
+  view->setFocus();
+
+  QAction* const zoomIn = findAction(*window, "actionZoomIn");
+  QAction* const zoomOut = findAction(*window, "actionZoomOut");
+  QVERIFY(zoomIn != nullptr);
+  QVERIFY(zoomOut != nullptr);
+  QTRY_VERIFY(zoomIn->isEnabled());
+  QVERIFY(zoomOut->isEnabled());
+
+  const QList<QKeySequence> expectedIn{QKeySequence(Qt::CTRL | Qt::Key_Plus), QKeySequence(Qt::CTRL | Qt::Key_Equal)};
+  QCOMPARE(zoomIn->shortcuts(), expectedIn);
+  QCOMPARE(zoomIn->shortcuts().at(0).toString(QKeySequence::NativeText), utf8("⌘+"));
+  const QList<QKeySequence> expectedOut{QKeySequence(Qt::CTRL | Qt::Key_Minus)};
+  QCOMPARE(zoomOut->shortcuts(), expectedOut);
+  QCOMPARE(zoomOut->shortcuts().at(0).toString(QKeySequence::NativeText), utf8("⌘-"));
+
+  // The cursor is away from the view: the view centre is the focus (the cursor rule is a manual check).
+  QCursor::setPos(QPoint(5000, 5000));
+  QVERIFY(!view->rect().contains(view->mapFromGlobal(QCursor::pos())));
+
+  QSignalSpy larger(findAction(*window, "actionMagnifyThumbnails"), &QAction::triggered);
+  QSignalSpy smaller(findAction(*window, "actionDiminishThumbnails"), &QAction::triggered);
+  const double step = std::pow(2.0, 1.0 / 6);
+
+  QCOMPARE(view->zoomLevel(), 1.0);
+  QTest::keyClick(window.get(), Qt::Key_Plus, Qt::ControlModifier);
+  QVERIFY(qFuzzyCompare(view->zoomLevel(), step));
+  QTest::keyClick(window.get(), Qt::Key_Equal, Qt::ControlModifier);
+  QVERIFY(qFuzzyCompare(view->zoomLevel(), step * step));
+  QTest::keyClick(window.get(), Qt::Key_Minus, Qt::ControlModifier);
+  QVERIFY(qFuzzyCompare(view->zoomLevel(), step));
+  for (int i = 0; i < 3; ++i) {
+    QTest::keyClick(window.get(), Qt::Key_Minus, Qt::ControlModifier);
+  }
+  QCOMPARE(view->zoomLevel(), 1.0);
+
+  // The menu items do the same through trigger().
+  zoomIn->trigger();
+  QVERIFY(qFuzzyCompare(view->zoomLevel(), step));
+  QCOMPARE(larger.count(), 0);
+  QCOMPARE(smaller.count(), 0);
+
+  // The plain plus key of ZoomHandler is unchanged.
+  QTest::keyClick(view, Qt::Key_Plus);
+  QVERIFY(qFuzzyCompare(view->zoomLevel(), step * step));
+  QCOMPARE(larger.count(), 0);
+}
+
+void TestMacQt::testZoomDisabledWithoutView() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+
+  QAction* const zoomIn = findAction(*window, "actionZoomIn");
+  QAction* const zoomOut = findAction(*window, "actionZoomOut");
+  QVERIFY(zoomIn != nullptr);
+  QVERIFY(zoomOut != nullptr);
+  QVERIFY(!zoomIn->isEnabled());
+  QVERIFY(!zoomOut->isEnabled());
+
+  QSignalSpy spy(zoomIn, &QAction::triggered);
+  QTest::keyClick(window.get(), Qt::Key_Plus, Qt::ControlModifier);
+  QCOMPARE(spy.count(), 0);
+
+  emptyImageFrame(*window);
+  QStackedLayout* const layout = imageFrameLayout(*window);
+  auto* const view = new BasicImageView(greyImage(400, 300));
+  layout->addWidget(view);
+  layout->setCurrentWidget(view);
+  QVERIFY(zoomIn->isEnabled());
+  QVERIFY(zoomOut->isEnabled());
+
+  layout->removeWidget(view);
+  QVERIFY(!zoomIn->isEnabled());
+  QVERIFY(!zoomOut->isEnabled());
+  delete view;
+}
+
+void TestMacQt::testThumbnailKeys() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+
+  QAction* const larger = findAction(*window, "actionMagnifyThumbnails");
+  QAction* const smaller = findAction(*window, "actionDiminishThumbnails");
+  QAction* const zoomIn = findAction(*window, "actionZoomIn");
+  QVERIFY(larger != nullptr);
+  QVERIFY(smaller != nullptr);
+  QVERIFY(zoomIn != nullptr);
+  QCOMPARE(larger->text(), QString("Larger Thumbnails"));
+  QCOMPARE(smaller->text(), QString("Smaller Thumbnails"));
+
+  const QList<QKeySequence> expectedLarger{QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Plus),
+                                           QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Equal)};
+  const QList<QKeySequence> expectedSmaller{QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Minus)};
+  QCOMPARE(larger->shortcuts(), expectedLarger);
+  QCOMPARE(smaller->shortcuts(), expectedSmaller);
+  QCOMPARE(larger->shortcuts().at(0).toString(QKeySequence::NativeText), utf8("⌥⌘+"));
+  QCOMPARE(smaller->shortcuts().at(0).toString(QKeySequence::NativeText), utf8("⌥⌘-"));
+
+  QAbstractButton* const largerButton = window->findChild<QAbstractButton*>("magnifyThumbnailsBtn");
+  QAbstractButton* const smallerButton = window->findChild<QAbstractButton*>("diminishThumbnailsBtn");
+  QVERIFY(largerButton != nullptr);
+  QVERIFY(smallerButton != nullptr);
+  QCOMPARE(largerButton->toolTip(), utf8("Larger thumbnails.  (⌥⌘+)"));
+  QCOMPARE(smallerButton->toolTip(), utf8("Smaller thumbnails.  (⌥⌘-)"));
+
+  // The production slots are lambdas whose receiver is the action itself; only the key path is under test here.
+  for (QAction* const action : {larger, smaller}) {
+    QObject::disconnect(action, &QAction::triggered, action, nullptr);
+    QObject::disconnect(action, &QAction::triggered, window.get(), nullptr);
+  }
+  QSignalSpy largerSpy(larger, &QAction::triggered);
+  QSignalSpy smallerSpy(smaller, &QAction::triggered);
+  QSignalSpy zoomSpy(zoomIn, &QAction::triggered);
+
+  const Qt::KeyboardModifiers modifiers = Qt::ControlModifier | Qt::AltModifier;
+  QTest::keyClick(window.get(), Qt::Key_Plus, modifiers);
+  QCOMPARE(largerSpy.count(), 1);
+  QCOMPARE(zoomSpy.count(), 0);
+  QTest::keyClick(window.get(), Qt::Key_Equal, modifiers);
+  QCOMPARE(largerSpy.count(), 2);
+  QTest::keyClick(window.get(), Qt::Key_Minus, modifiers);
+  QCOMPARE(smallerSpy.count(), 1);
+  QCOMPARE(zoomSpy.count(), 0);
+
+  // Command-plus belongs to the page zoom; with no page view it does nothing, and never reaches the thumbnails.
+  QTest::keyClick(window.get(), Qt::Key_Plus, Qt::ControlModifier);
+  QCOMPARE(largerSpy.count(), 2);
+  QCOMPARE(smallerSpy.count(), 1);
+}
+
+void TestMacQt::testViewMenuContents() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+  QMenu* const viewMenu = findMenu(*window, "menuView");
+  QVERIFY(viewMenu != nullptr);
+
+  const QStringList expected{
+      "Fix Orientation", "Split Pages", "Deskew", "Select Content",    "Margins",           "Output", "--",
+      "Zoom In",         "Zoom Out",    "--",     "Larger Thumbnails", "Smaller Thumbnails"};
+  QCOMPARE(visibleEntries(*viewMenu), expected);
 }

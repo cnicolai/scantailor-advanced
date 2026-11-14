@@ -94,6 +94,12 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
  private slots:
 
+  void zoomCurrentViewIn();
+
+  void zoomCurrentViewOut();
+
+  void updateZoomActions();
+
   void autoSaveProject();
 
   void goFirstPage();
@@ -316,6 +322,12 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
   // Multi-sequence shortcut lists that a .ui file cannot hold. Called after setupUi() and after retranslateUi().
   void setupMacKeys();
+
+  // The primary page view of the main area (the current tab for the Output stage), null if there is none.
+  ImageViewBase* currentPageView() const;
+
+  // Zooms the page view by the factor around the cursor if it is over the view, else around the view centre.
+  void zoomCurrentView(double factor);
 
   QSizeF m_maxLogicalThumbSize;
   std::shared_ptr<ProjectPages> m_pages;

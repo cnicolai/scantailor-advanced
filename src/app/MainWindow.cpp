@@ -7,6 +7,7 @@
 #include <core/IconProvider.h>
 
 #include <QActionGroup>
+#include <QCursor>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileSystemModel>
@@ -17,7 +18,9 @@
 #include <QSortFilterProxyModel>
 #include <QStackedLayout>
 #include <QtWidgets/QInputDialog>
+#include <algorithm>
 #include <boost/lambda/lambda.hpp>
+#include <cmath>
 #include <memory>
 
 #include "AbstractRelinker.h"
@@ -143,6 +146,10 @@ MainWindow::MainWindow()
 
   m_imageFrameLayout = new QStackedLayout(imageViewFrame);
   m_imageFrameLayout->setStackingMode(QStackedLayout::StackAll);
+  // Both signals fire when a widget enters or leaves the main area, including when a test or removeWidgetsFromLayout()
+  // does it directly.
+  connect(m_imageFrameLayout, &QStackedLayout::currentChanged, this, &MainWindow::updateZoomActions);
+  connect(m_imageFrameLayout, &QStackedLayout::widgetRemoved, this, &MainWindow::updateZoomActions);
 
   m_optionsFrameLayout = new QStackedLayout(filterOptions);
 
@@ -216,6 +223,8 @@ MainWindow::MainWindow()
   addAction(actionGotoPage);
   addAction(actionMagnifyThumbnails);
   addAction(actionDiminishThumbnails);
+  addAction(actionZoomIn);
+  addAction(actionZoomOut);
   addAction(actionReloadPage);
 
   addAction(actionSwitchFilter1);
@@ -262,6 +271,8 @@ MainWindow::MainWindow()
   connect(diminishThumbnailsBtn, &QPushButton::clicked, diminishThumbnails);
   connect(actionMagnifyThumbnails, &QAction::triggered, magnifyThumbnails);
   connect(actionDiminishThumbnails, &QAction::triggered, diminishThumbnails);
+  connect(actionZoomIn, &QAction::triggered, this, &MainWindow::zoomCurrentViewIn);
+  connect(actionZoomOut, &QAction::triggered, this, &MainWindow::zoomCurrentViewOut);
   connect(actionReloadPage, SIGNAL(triggered(bool)), SLOT(reloadCurrentPage()));
 
   connect(actionSwitchFilter1, SIGNAL(triggered(bool)), SLOT(switchFilter1()));
@@ -333,6 +344,7 @@ MainWindow::MainWindow()
   updateProjectActions();
   updateWindowTitle();
   updateMainArea();
+  updateZoomActions();
 
   QSettings qSettings;
   if (qSettings.value("mainWindow/maximized") == false) {
@@ -1626,6 +1638,48 @@ void MainWindow::setupMacKeys() {
   actionSwitchFilter4->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_4), QKeySequence(Qt::Key_V)});
   actionSwitchFilter5->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_5), QKeySequence(Qt::Key_K)});
   actionSwitchFilter6->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_6), QKeySequence(Qt::Key_P)});
+
+  // Command-plus is drawn in the menu (the key a German keyboard has); Command-equals serves a US layout (D-06).
+  actionZoomIn->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Plus), QKeySequence(Qt::CTRL | Qt::Key_Equal)});
+  actionZoomOut->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Minus)});
+
+  // The thumbnail keys sit on the Option-Command group measured on the German layout (D-07).
+  actionMagnifyThumbnails->setShortcuts(
+      {QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Plus), QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Equal)});
+  actionDiminishThumbnails->setShortcuts({QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Minus)});
+}
+
+ImageViewBase* MainWindow::currentPageView() const {
+  return m_imageFrameLayout->count() > 0 ? findPrimaryImageView(m_imageFrameLayout->widget(0)) : nullptr;
+}
+
+void MainWindow::updateZoomActions() {
+  const bool hasView = currentPageView() != nullptr;
+  actionZoomIn->setEnabled(hasView);
+  actionZoomOut->setEnabled(hasView);
+}
+
+void MainWindow::zoomCurrentViewIn() {
+  zoomCurrentView(std::pow(2.0, 1.0 / 6));
+}
+
+void MainWindow::zoomCurrentViewOut() {
+  zoomCurrentView(std::pow(2.0, -1.0 / 6));
+}
+
+void MainWindow::zoomCurrentView(const double factor) {
+  ImageViewBase* const view = currentPageView();
+  if (view == nullptr || view->interactionState().captured()) {
+    return;
+  }
+  const double zoom = std::max(1.0, view->zoomLevel() * factor);
+
+  // The focus rule of UI-SPEC: the cursor if it is over the view, else the view centre. The step is the one of
+  // ZoomHandler, which binds the plain plus and minus keys.
+  const QPoint local = view->mapFromGlobal(QCursor::pos());
+  const QPointF focus = view->rect().contains(local) ? QPointF(local) : QRectF(view->rect()).center();
+  view->setWidgetFocalPointWithoutMoving(focus);
+  view->setZoomLevel(zoom);
 }
 
 bool MainWindow::isBatchProcessingInProgress() const {

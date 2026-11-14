@@ -25,6 +25,10 @@ class TestMacQt : public QObject {
   void testStageActions();
   void testViewMenuStages();
   void testOutputTabKeys();
+  void testZoomActions();
+  void testZoomDisabledWithoutView();
+  void testThumbnailKeys();
+  void testViewMenuContents();
 };
 
 #endif
