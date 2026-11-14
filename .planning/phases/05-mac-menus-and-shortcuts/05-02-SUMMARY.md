@@ -116,7 +116,7 @@ status: complete
 - **Started:** 2026-11-14T22:32:42Z
 - **Completed:** 2026-11-14T23:10Z
 - **Tasks:** 2
-- **Files modified:** 10 (9 under `src/` and the records, plus the gate log; counts the new files)
+- **Files modified:** 11 (7 under `src/`, the SUMMARY, the two records and the gate log)
 
 ## Accomplishments
 
@@ -190,7 +190,6 @@ status: complete
 - The first harness start found the screen locked and the display asleep (`frontmost_app: loginwindow`); it measured nothing and was repeated once the session was unlocked, with no checkpoint needed. The first complete run produced `menubar_verdict: FAIL` because of the empty Help menu and the stale flag; both are handled above.
 - **Open point for the orchestrator or user:** the native Settings item reads "Preferences..." (Qt's own merged text with three ASCII dots), while UI-SPEC section 1 says "Settings…". The key `⌘,`, the single item and its function are right. A later plan can override the text with a `QTranslator` for the context `QMenuBar`.
 - `enable_language(OBJCXX)` worked inside `src/app/CMakeLists.txt` (`if (BUILD_TESTS)`); the top-level fallback was not needed.
-- The plan's 05-01 note about `QObject::disconnect` warnings at MainWindow teardown applies to `mac_check` too; nothing fails on them.
 
 ## User Setup Required
 
