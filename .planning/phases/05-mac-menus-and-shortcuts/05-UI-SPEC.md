@@ -1,7 +1,7 @@
 ---
 phase: "05"
 slug: mac-menus-and-shortcuts
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: "2026-11-14"
@@ -26,6 +26,7 @@ Sources: `05-CONTEXT.md` (D-00a to D-12 and Claude's Discretion), REQUIREMENTS M
 | Font | system font via Qt defaults; **unchanged** |
 | Stylesheet | existing light and dark colour-scheme QSS (`ColorSchemeManager`); **unchanged** (D-00b) |
 | Menu bar | the **native macOS menu bar** (`QMenuBar` on the main window). The QSS `QMenuBar` rules do not apply to it and are not touched. `AA_DontUseNativeMenuBar` and `setNativeMenuBar(false)` are excluded. |
+| Visual anchor | unchanged: the page view, with the stage list and options panel beside it. This phase adds no screen element. |
 | Platform code | Qt C++ only in the app. No Objective-C++ in `src/app`, `src/core`. A test-only Objective-C++ helper is allowed in the live harness (CONTEXT Discretion). |
 
 ---
@@ -60,6 +61,8 @@ Text-content rules that do apply (they are copy, not typography):
 **Unchanged, existing light and dark colour schemes.** No colour, accent or destructive colour is introduced. The native menu bar and the macOS application menu follow the system, not the scheme. No 60/30/10 split is declared because no surface is added.
 
 Accent reserved for: not applicable (no new coloured element).
+
+Destructive actions (remove zone, Remove Content Box) use no colour: their context-menu items keep the default menu text colour, as today.
 
 ---
 
@@ -134,6 +137,7 @@ Menu bar while a dialog is open (MAC-09, **Claude's choice** by measurement, in 
 Binding rules:
 
 - Multiple bindings per action use `setShortcuts({...})`, never `setShortcut` twice (the second call replaces the first). The first entry in the list is the one drawn in the menu or context menu; the order above is the order in the code (Mac key first: ⌘n, then ⌘+, then ⌫, then B).
+- Ins is a hidden second binding for Create Content Box: the context menu shows B, and Ins appears in no menu, tooltip, status tip or help text (so the MAC-06 string check and this table agree).
 - The View-menu zoom actions drive the page view's existing `ZoomHandler::zoom()` step, 2^(±1/6), with the same focus rule as the plain keys (cursor if it is over the view, else the view centre). They are disabled when no page view is shown. They never act on the thumbnail strip.
 - ⌫ and ⌦ stay **"under the pointer"** with no undo and no confirmation, as today. With no zone or box under the pointer the key does nothing (no beep, no dialog).
 - ⌫, ⌦, B, D, Z, X, C, +, - and the single stage letters are window-context shortcuts. They must **not** fire while a text, spin-box or combo-box field in the options panel has focus (those widgets accept `ShortcutOverride`; the permanent test proves it for a spin box and a line edit, PITFALLS 9).
@@ -221,20 +225,67 @@ Text that stays as it is: "Right click" / "Right-click" phrases (a two-finger cl
 
 ## UI Considerations
 
-Applicable state considerations resolved: 8 covered, 2 backstop, 0 unresolved
+**Coverage:** 50 applicable considerations across 15 surfaces · 16 resolved (16 explicit, 0 backstop) · 34 dismissed with reasons · 0 unresolved
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| empty | project-bound menu and View items with no project open | ✅ covered | They are disabled; New, Open, Settings, About, Quit, Default Parameters and Units stay enabled. |
-| empty | Help menu after About is hoisted | ✅ covered | The menu is empty and not shown; the harness records the bar, and no orphan separator is left in File or Tools. |
-| empty | ⌫ / ⌦ / B with nothing under the pointer or a box already present | ✅ covered | The key does nothing and shows no dialog. |
-| overflow | Long status tips (page navigation, zone, Output tabs) | 🧪 backstop | Status bar text is a single line the window width truncates as today; the new strings are no longer than the old ones plus the MacBook note. Held-out offscreen grab of the status bar at the minimum window width. |
-| layout | German keyboard layout, ⌥ changes the typed character | ✅ covered | The harness proves ⌥⌘1 to ⌥⌘5 and ⌥⌘+/- fire on the German layout; fallback is ⌃⌘ (section 2). |
-| layout | US layout, ⌘= | ✅ covered | ⌘= is bound next to ⌘+ for zoom in and ⌥⌘= next to ⌥⌘+. |
-| focus | ⌫ while a text or spin-box field has focus | ✅ covered | The field keeps its text-editing meaning; the zone shortcut does not fire (permanent test). |
-| modal | menu bar while Settings, Fix DPI, Relinking, Default Parameters, About or a file panel is open | ✅ covered | Section 1 measurement rule; the bar is never empty. |
-| long-text | application menu name | 🧪 backstop | Reads "ScanTailor Advanced" if the minimal Info.plist section works, else the process name `scantailor-advanced` is accepted and recorded; held-out harness observation, not a ctest. |
-| permission | harness input injection | ✅ covered | Events are fed at Cocoa level inside the harness process; no Accessibility or screen-recording permission is requested. |
+Generated by the UI-consideration probe after the checker approved this spec (2026-11-14). The prose classifier read most menus as lists or forms. Claude confirmed the kinds below (decision gates are delegated) and passed them to the engine as overrides. Empty-state and error copy stays in the Copywriting Contract; this section covers state coverage only. Every resolved row is explicit: ctest proves it or the live harness records it, so none routes to a human check (D-11).
+
+| ID | Surface | Kind |
+|----|---------|------|
+| E1 | Application menu (About, Settings… ⌘,, Quit ⌘Q) | nav |
+| E2 | File menu | nav |
+| E3 | View menu (stages, zoom, thumbnails) | nav |
+| E4 | Tools menu | nav |
+| E5 | Help menu (empty after About moves) | nav |
+| E6 | Menu bar while a dialog or file panel is open | nav |
+| E7 | Window shortcuts (stages, Output tabs, zoom, thumbnails) | interactive-control |
+| E8 | Zone and content-box keys (⌫, ⌦, B, Ins) | interactive-control |
+| E9 | Zone, content-box and guide context menus | nav |
+| E10 | Status tips and toolbar tooltips | static-content |
+| E11 | Batch-finished alert | interactive-control |
+| E12 | Native open, save and folder panels, including relinking | form |
+| E13 | Multi-page hint in the nine apply dialogs | static-content |
+| E14 | Margins options rich-text help | static-content |
+| E15 | Application menu title | static-content |
+
+### Resolved
+
+| Category | Element | Status | Resolution / Reason |
+|----------|---------|--------|---------------------|
+| error | E1 | ✅ covered | `actionAbout`, `actionSettings` and `actionQuit` carry `AboutRole`, `PreferencesRole` and `QuitRole` (ctest), and the harness records each exactly once in the application menu. A missing or duplicated item fails MAC-01; the user never sees an error. |
+| error | E3 | ✅ covered | With no project open the six stage items are disabled; with no page view shown Zoom In and Zoom Out are disabled. A disabled item's shortcut does nothing. The zoom items never act on the thumbnail strip. |
+| error | E5 | ✅ covered | About appears only in the application menu. If macOS still shows a Help menu (for example with its own search field), the harness records it and it is accepted. |
+| error | E6 | ✅ covered | While Settings, Fix DPI, Relinking, Default Parameters, About or a native file panel is open, the bar shows the application menu and is not empty. If the harness finds it empty or reduced to the system items, one parentless `QMenuBar` with a File menu (`actionQuit`) and a Help menu (`actionAbout`), holding the same `QAction` objects, becomes the default bar (section 1). |
+| error | E7 | ✅ covered | A shortcut whose action is disabled does nothing and opens no dialog. No window shortcut fires while a line edit, spin box or combo box in the options panel has focus (permanent test for a spin box and a line edit). If a ⌥⌘ chord does not fire on the German layout, its whole group moves to ⌃⌘ and the outcome is recorded (section 2); ⌘= and ⌥⌘= cover a US layout. |
+| error | E8 | ✅ covered | ⌫ or ⌦ with no zone under the pointer does nothing. Remove Content Box with no box, Create Content Box (B, Ins) with a box already present, and either during a drag do nothing (existing early returns in `select_content::ImageView::createContentBox` / `removeContentBox`). With focus in a text or spin-box field ⌫ edits the field and removes nothing. No confirmation, no undo, as today. |
+| error | E9 | ✅ covered | Right-click, two-finger click and ⌃-click each open the menu, and the first click on an item takes effect (harness). Dismissing the menu without a choice changes nothing. The 200 ms deferral stays unless the harness shows `triggered()` always arrives before `aboutToHide()` returns. |
+| overflow | E10 | ✅ covered | No rewritten tooltip or status tip contains a line break; the status bar shows each tip on one line and cuts it at the window edge, as today. |
+| error | E11 | ✅ covered | The beep plays only when every queued page is processed (`m_batchQueue->allProcessed()`); a batch run stopped by the user stays silent, as today. `QApplication::beep()` has no failure path: with the alert sound muted nothing is heard, and no fallback sound or command runs. |
+| empty | E12 | ✅ covered | A cancelled panel returns an empty path and changes nothing (existing early returns, e.g. `RelinkingDialog::pathButtonClicked`). |
+| error | E12 | ✅ covered | The native panel returns only an existing file or folder, so relinking cannot receive a missing path. Choosing the old path again changes nothing (existing early return). Relinking's existing messages are unchanged. |
+| partial | E12 | ✅ covered | The native folder panel shows files greyed out. That is why upstream forced Qt's own dialog (comment in `RelinkingDialog.cpp`). It is accepted, because the user picks a folder there, not a file; the comment is removed with the option. |
+| long-text | E12 | ✅ covered | The harness records whether the native panel shows the "Substitution File for <path>" / "Substitution Directory for <path>" title. If macOS hides it, that is accepted: the relinking dialog already shows the path the user clicked, and the panel opens in the old folder when it still exists. |
+| overflow | E13 | ✅ covered | "Use ⌘-click / ⇧-click to select multiple pages." is shorter than the text it replaces, so it fits each of the nine labels with no layout change. |
+| overflow | E14 | ✅ covered | The help sits in a read-only `QTextEdit` that wraps and scrolls. The new key names are shorter than "Ctrl+Alt+LMB" and "Shift/Ctrl+LMB", and the layout does not change. |
+| long-text | E15 | ✅ covered | The harness records the title. It reads "ScanTailor Advanced" if a minimal Info.plist section changes it; otherwise the process name `scantailor-advanced` is accepted and recorded. The settings file and profile paths are unchanged either way. |
+
+### Dismissed
+
+| Category | Elements | Status | Reason |
+|----------|----------|--------|--------|
+| loading | E1, E2, E3, E4, E5, E6, E9 | ⛔ dismissed | Qt builds menus synchronously from `QAction`s; nothing loads asynchronously. |
+| loading | E7, E8 | ⛔ dismissed | Shortcuts act synchronously; the page-loading display that a stage switch or zoom triggers is unchanged. |
+| loading | E11 | ⛔ dismissed | The batch run's progress display is unchanged; the phase changes only the sound at the end. |
+| loading | E12 | ⛔ dismissed | macOS draws the panel and lists the folder; the app waits modally, as today. |
+| error | E2, E4 | ⛔ dismissed | The phase changes no command behind these items; failures of New, Open, Save, Save As, Fix DPI, Relinking and Default Parameters keep their existing messages. |
+| overflow | E1, E2, E3, E4, E5, E6, E9 | ⛔ dismissed | macOS (menu bar) and Qt (context menus) size and position menus; the longest has ten items in three groups. |
+| overflow | E15 | ⛔ dismissed | A short title drawn by macOS; its wording is the E15 long-text row. |
+| long-text | E1, E2, E3, E4, E5, E6, E9 | ⛔ dismissed | Menu items are fixed short strings (Copywriting Contract); the only variable text, the application name, is row E15. |
+| long-text | E7, E8 | ⛔ dismissed | Shortcuts carry no free text; macOS and Qt draw the key glyphs from the `QKeySequence`. The status tip that names ⌫ is E10. |
+| long-text | E10 | ⛔ dismissed | Each tip is a fixed sentence or two; its length is the E10 overflow row. |
+| long-text | E11 | ⛔ dismissed | The checkbox label "Beep when finished" is unchanged. |
+| long-text | E13, E14 | ⛔ dismissed | Fixed text; its length is the overflow row of the same element. |
+
+Outside the compiled taxonomy: the live harness injects events at Cocoa level inside its own process and needs no Accessibility or screen-recording permission (D-12). Keyboard layout and field focus are part of rows E7 and E8, and the menu bar during dialogs is E6.
 
 ---
 
@@ -282,14 +333,14 @@ No human walkthrough, no checkpoint. The records say no key or click was physica
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: FLAG (non-blocking: single-word menu labels "Quit", "About", "Debug Mode" kept on purpose, Apple menu convention)
+- [x] Dimension 2 Visuals: FLAG (non-blocking: visual anchor now stated in Design System, unchanged)
+- [x] Dimension 3 Color: FLAG (non-blocking: destructive items now stated as using no colour)
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-11-14 (gsd-ui-checker: no BLOCK, three non-blocking FLAGs; UI Considerations added after approval)
 
 Note for the checker: Dimensions 3 to 5 and 7 are "unchanged / not applicable" by design (native Qt app, no design system, CONTEXT D-00b keeps Fusion and the QSS). No token is invented.
