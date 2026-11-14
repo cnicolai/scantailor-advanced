@@ -22,6 +22,9 @@ class TestMacQt : public QObject {
   void testToolsMenuWithoutSettings();
   void testQuitClosesWindow();
   void testProjectActionsDisabledWithoutProject();
+  void testStageActions();
+  void testViewMenuStages();
+  void testOutputTabKeys();
 };
 
 #endif

@@ -3,28 +3,49 @@
 
 #include "tst_mac_qt.h"
 
+#include <AbstractFilter.h>
 #include <ApplicationSettings.h>
+#include <BasicImageView.h>
 #include <ColorSchemeFactory.h>
 #include <ColorSchemeManager.h>
 #include <IconProvider.h>
+#include <PageId.h>
+#include <PageRange.h>
+#include <PageSelectionAccessor.h>
+#include <PageSelectionProvider.h>
+#include <PageSequence.h>
+#include <ProjectPages.h>
+#include <StageSequence.h>
 #include <StyledIconPack.h>
+#include <filters/output/ImageViewTab.h>
+#include <filters/output/TabbedImageView.h>
 
 #include <config.h>
 
 #include "MainWindow.h"
 #include "SettingsDialog.h"
 
+#include <QAbstractItemView>
 #include <QAction>
+#include <QApplication>
+#include <QFrame>
 #include <QGuiApplication>
+#include <QImage>
+#include <QItemSelectionModel>
 #include <QKeySequence>
+#include <QLayoutItem>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QSignalSpy>
+#include <QStackedLayout>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
 #include <QtTest/QtTest>
 #include <memory>
+#include <set>
 #include <vector>
 
 namespace {
@@ -66,6 +87,52 @@ QStringList visibleEntries(const QMenu& menu) {
 QString utf8(const char* text) {
   return QString::fromUtf8(text);
 }
+
+// A page selection without pages, enough to build a StageSequence (as in tst_hidpi_qt.cpp).
+class EmptySelectionProvider : public PageSelectionProvider {
+ public:
+  PageSequence allPages() const override { return PageSequence(); }
+
+  std::set<PageId> selectedPages() const override { return std::set<PageId>(); }
+
+  std::vector<PageRange> selectedRanges() const override { return std::vector<PageRange>(); }
+};
+
+QStackedLayout* imageFrameLayout(MainWindow& window) {
+  QFrame* const frame = window.findChild<QFrame*>("imageViewFrame");
+  return frame != nullptr ? qobject_cast<QStackedLayout*>(frame->layout()) : nullptr;
+}
+
+// Removes every widget from the main area (the widgets stay children of the frame, hidden) so that a test can put
+// its own view in. Deletes the layout items, not the widgets.
+void emptyImageFrame(MainWindow& window) {
+  QStackedLayout* const layout = imageFrameLayout(window);
+  while (layout != nullptr && layout->count() > 0) {
+    QLayoutItem* const item = layout->takeAt(0);
+    if (item->widget() != nullptr) {
+      item->widget()->hide();
+    }
+    delete item;
+  }
+}
+
+QImage greyImage(int width, int height) {
+  QImage image(width, height, QImage::Format_RGB32);
+  image.fill(QColor(128, 128, 128));
+  return image;
+}
+
+QAbstractItemView* stageList(MainWindow& window) {
+  return window.findChild<QAbstractItemView*>("filterList");
+}
+
+int selectedStageRow(MainWindow& window) {
+  const QModelIndexList rows = stageList(window)->selectionModel()->selectedRows();
+  return rows.isEmpty() ? -1 : rows.first().row();
+}
+
+const char* const kStageActionNames[] = {"actionSwitchFilter1", "actionSwitchFilter2", "actionSwitchFilter3",
+                                         "actionSwitchFilter4", "actionSwitchFilter5", "actionSwitchFilter6"};
 
 }  // namespace
 
@@ -253,4 +320,129 @@ void TestMacQt::testProjectActionsDisabledWithoutProject() {
   QSignalSpy spy(saveAs, &QAction::triggered);
   QTest::keyClick(window.get(), Qt::Key_S, Qt::ControlModifier | Qt::ShiftModifier);
   QCOMPARE(spy.count(), 0);
+}
+
+void TestMacQt::testStageActions() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+
+  const auto provider = std::make_shared<EmptySelectionProvider>();
+  const StageSequence stages(std::make_shared<ProjectPages>(), PageSelectionAccessor(provider));
+  const Qt::Key digits[] = {Qt::Key_1, Qt::Key_2, Qt::Key_3, Qt::Key_4, Qt::Key_5, Qt::Key_6};
+  const Qt::Key letters[] = {Qt::Key_O, Qt::Key_E, Qt::Key_N, Qt::Key_V, Qt::Key_K, Qt::Key_P};
+
+  // Nothing is loaded: the six actions are disabled and the keys do nothing.
+  for (int n = 1; n <= 6; ++n) {
+    QAction* const action = findAction(*window, kStageActionNames[n - 1]);
+    QVERIFY2(action != nullptr, kStageActionNames[n - 1]);
+    QCOMPARE(action->text(), stages.filterAt(n - 1)->getName());
+    QCOMPARE(action->toolTip(), "Switch to " + stages.filterAt(n - 1)->getName());
+    QCOMPARE(action->menuRole(), QAction::NoRole);
+    const QList<QKeySequence> expected{QKeySequence(Qt::CTRL | digits[n - 1]), QKeySequence(letters[n - 1])};
+    QCOMPARE(action->shortcuts(), expected);
+    QCOMPARE(action->shortcuts().at(0).toString(QKeySequence::NativeText), utf8("⌘") + QString::number(n));
+    QVERIFY2(!action->isEnabled(), kStageActionNames[n - 1]);
+
+    QSignalSpy spy(action, &QAction::triggered);
+    QTest::keyClick(window.get(), digits[n - 1], Qt::ControlModifier);
+    QTest::keyClick(window.get(), letters[n - 1]);
+    QCOMPARE(spy.count(), 0);
+  }
+  QCOMPARE(selectedStageRow(*window), 0);
+
+  // With a project loaded the actions are enabled; the production slot selects stage n in the stage list.
+  for (int n = 1; n <= 6; ++n) {
+    QAction* const action = findAction(*window, kStageActionNames[n - 1]);
+    action->setEnabled(true);
+    QSignalSpy spy(action, &QAction::triggered);
+
+    QTest::keyClick(window.get(), digits[n - 1], Qt::ControlModifier);
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(selectedStageRow(*window), n - 1);
+
+    if (n == 3) {
+      // Twice is twice, never four times (menu and window shortcut), and the letter is the same action.
+      QTest::keyClick(window.get(), Qt::Key_3, Qt::ControlModifier);
+      QCOMPARE(spy.count(), 2);
+      QCOMPARE(selectedStageRow(*window), 2);
+      QTest::keyClick(window.get(), Qt::Key_N);
+      QCOMPARE(spy.count(), 3);
+      QCOMPARE(selectedStageRow(*window), 2);
+    }
+  }
+
+  // The letter types into a focused line edit and triggers no stage; the Command digit still switches the stage.
+  QLineEdit* const edit = new QLineEdit;
+  window->findChild<QStatusBar*>("statusBar")->addWidget(edit);
+  edit->setFocus();
+  QTRY_VERIFY(QApplication::focusWidget() == edit);
+
+  QAction* const stage1 = findAction(*window, "actionSwitchFilter1");
+  QSignalSpy spy1(stage1, &QAction::triggered);
+  QTest::keyClick(QApplication::focusWidget(), Qt::Key_O);
+  QCOMPARE(spy1.count(), 0);
+  QCOMPARE(edit->text(), QString("o"));
+  QTest::keyClick(QApplication::focusWidget(), Qt::Key_1, Qt::ControlModifier);
+  QCOMPARE(spy1.count(), 1);
+  QCOMPARE(edit->text(), QString("o"));
+  QCOMPARE(selectedStageRow(*window), 0);
+}
+
+void TestMacQt::testViewMenuStages() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+
+  QStringList topLevel;
+  for (const QAction* menuAction : window->menuBar()->actions()) {
+    if (menuAction->menu() != nullptr) {
+      topLevel.append(menuAction->menu()->objectName());
+    }
+  }
+  QCOMPARE(topLevel, QStringList({"menuFile", "menuView", "menuDebug"}));
+
+  QMenu* const viewMenu = findMenu(*window, "menuView");
+  QVERIFY(viewMenu != nullptr);
+  QCOMPARE(viewMenu->title(), QString("View"));
+  QVERIFY(viewMenu->actions().size() >= 6);
+  for (int n = 0; n < 6; ++n) {
+    QVERIFY2(viewMenu->actions().at(n) == findAction(*window, kStageActionNames[n]), kStageActionNames[n]);
+  }
+}
+
+void TestMacQt::testOutputTabKeys() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+  emptyImageFrame(*window);
+  QStackedLayout* const layout = imageFrameLayout(*window);
+  QVERIFY(layout != nullptr);
+
+  auto* const tabs = new output::TabbedImageView;
+  tabs->addTab(new BasicImageView(greyImage(200, 150)), "Output", output::TAB_OUTPUT);
+  tabs->addTab(new BasicImageView(greyImage(200, 150)), "Picture Zones", output::TAB_PICTURE_ZONES);
+  tabs->addTab(new BasicImageView(greyImage(200, 150)), "Fill Zones", output::TAB_FILL_ZONES);
+  layout->addWidget(tabs);
+  layout->setCurrentWidget(tabs);
+  QTRY_VERIFY(tabs->isVisible());
+  tabs->currentWidget()->setFocus();
+  QCOMPARE(tabs->currentIndex(), 0);
+
+  QCOMPARE(tabs->statusTip(), utf8("Use ⌥⌘1 to ⌥⌘5 to switch the tabs."));
+
+  QAction* const stage1 = findAction(*window, "actionSwitchFilter1");
+  QObject::disconnect(stage1, &QAction::triggered, window.get(), nullptr);
+  stage1->setEnabled(true);
+  QSignalSpy spy(stage1, &QAction::triggered);
+
+  // Command-1 is the stage key; it changes no tab.
+  QTest::keyClick(window.get(), Qt::Key_1, Qt::ControlModifier);
+  QCOMPARE(spy.count(), 1);
+  QCOMPARE(tabs->currentIndex(), 0);
+
+  // Option-Command-n is the tab key; it triggers no stage action.
+  QTest::keyClick(window.get(), Qt::Key_2, Qt::ControlModifier | Qt::AltModifier);
+  QCOMPARE(tabs->currentIndex(), 1);
+  QCOMPARE(spy.count(), 1);
+  QTest::keyClick(window.get(), Qt::Key_3, Qt::ControlModifier | Qt::AltModifier);
+  QCOMPARE(tabs->currentIndex(), 2);
+  QCOMPARE(spy.count(), 1);
+  QTest::keyClick(window.get(), Qt::Key_1, Qt::ControlModifier | Qt::AltModifier);
+  QCOMPARE(tabs->currentIndex(), 0);
+  QCOMPARE(spy.count(), 1);
 }

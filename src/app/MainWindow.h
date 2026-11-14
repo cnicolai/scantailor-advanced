@@ -314,6 +314,9 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
   void setupIcons();
 
+  // Multi-sequence shortcut lists that a .ui file cannot hold. Called after setupUi() and after retranslateUi().
+  void setupMacKeys();
+
   QSizeF m_maxLogicalThumbSize;
   std::shared_ptr<ProjectPages> m_pages;
   std::shared_ptr<StageSequence> m_stages;

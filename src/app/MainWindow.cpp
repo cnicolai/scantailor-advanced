@@ -125,6 +125,7 @@ MainWindow::MainWindow()
   connect(&m_autoSaveTimer, SIGNAL(timeout()), SLOT(autoSaveProject()));
 
   setupUi(this);
+  setupMacKeys();
   setupIcons();
 
   sortOptions->setVisible(false);
@@ -1610,6 +1611,21 @@ void MainWindow::updateProjectActions() {
   actionFixDpi->setEnabled(loaded);
   actionRelinking->setEnabled(loaded);
   actionReverseTwoPageOrder->setEnabled(loaded);
+  // With no project there is no stage to switch to; the letter keys of the stage actions stay bound.
+  for (QAction* const action : {actionSwitchFilter1, actionSwitchFilter2, actionSwitchFilter3, actionSwitchFilter4,
+                                actionSwitchFilter5, actionSwitchFilter6}) {
+    action->setEnabled(loaded);
+  }
+}
+
+void MainWindow::setupMacKeys() {
+  // The first sequence is the one a menu draws: the Command digit. The letter keeps the old key (D-01, D-03).
+  actionSwitchFilter1->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_1), QKeySequence(Qt::Key_O)});
+  actionSwitchFilter2->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_2), QKeySequence(Qt::Key_E)});
+  actionSwitchFilter3->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_3), QKeySequence(Qt::Key_N)});
+  actionSwitchFilter4->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_4), QKeySequence(Qt::Key_V)});
+  actionSwitchFilter5->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_5), QKeySequence(Qt::Key_K)});
+  actionSwitchFilter6->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_6), QKeySequence(Qt::Key_P)});
 }
 
 bool MainWindow::isBatchProcessingInProgress() const {
@@ -2147,6 +2163,7 @@ void MainWindow::changeEvent(QEvent* event) {
     switch (event->type()) {
       case QEvent::LanguageChange:
         retranslateUi(this);
+        setupMacKeys();
         updateWindowTitle();
         break;
       default:

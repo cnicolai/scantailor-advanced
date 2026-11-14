@@ -96,7 +96,19 @@
     <addaction name="actionSettings"/>
     <addaction name="actionQuit"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionSwitchFilter1"/>
+    <addaction name="actionSwitchFilter2"/>
+    <addaction name="actionSwitchFilter3"/>
+    <addaction name="actionSwitchFilter4"/>
+    <addaction name="actionSwitchFilter5"/>
+    <addaction name="actionSwitchFilter6"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
    <addaction name="menuDebug"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -1313,81 +1325,102 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionSwitchFilter1">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Switch filter to orientation</string>
+    <string>Fix Orientation</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to Fix Orientation</string>
    </property>
    <property name="shortcut">
-    <string notr="true">O</string>
+    <string notr="true">Ctrl+1</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
   </action>
   <action name="actionSwitchFilter2">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Switch filter to orientation</string>
+    <string>Split Pages</string>
    </property>
    <property name="toolTip">
-    <string>Switch filter to split pages</string>
+    <string>Switch to Split Pages</string>
    </property>
    <property name="shortcut">
-    <string notr="true">E</string>
+    <string notr="true">Ctrl+2</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
   </action>
   <action name="actionSwitchFilter3">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Switch filter to orientation</string>
+    <string>Deskew</string>
    </property>
    <property name="toolTip">
-    <string>Switch filter to deskew</string>
+    <string>Switch to Deskew</string>
    </property>
    <property name="shortcut">
-    <string notr="true">N</string>
+    <string notr="true">Ctrl+3</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
   </action>
   <action name="actionSwitchFilter4">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Switch filter to orientation</string>
+    <string>Select Content</string>
    </property>
    <property name="toolTip">
-    <string>Switch filter to select content</string>
+    <string>Switch to Select Content</string>
    </property>
    <property name="shortcut">
-    <string notr="true">V</string>
+    <string notr="true">Ctrl+4</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
   </action>
   <action name="actionSwitchFilter5">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Switch filter to orientation</string>
+    <string>Margins</string>
    </property>
    <property name="toolTip">
-    <string>Switch filter to margins</string>
+    <string>Switch to Margins</string>
    </property>
    <property name="shortcut">
-    <string notr="true">K</string>
+    <string notr="true">Ctrl+5</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
   </action>
   <action name="actionSwitchFilter6">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Switch filter to orientation</string>
+    <string>Output</string>
    </property>
    <property name="toolTip">
-    <string>Switch filter to output</string>
+    <string>Switch to Output</string>
    </property>
    <property name="shortcut">
-    <string notr="true">P</string>
+    <string notr="true">Ctrl+6</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
