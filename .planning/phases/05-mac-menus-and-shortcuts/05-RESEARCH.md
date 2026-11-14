@@ -481,18 +481,25 @@ Qt-level injection (`QTest::keyClick` on Cocoa) is not enough: it bypasses `QApp
 | A11 | German-layout ⌥⌘1-5, ⌥⌘+/- match via `possibleKeyCombinations` | Don't Hand-Roll | Fall back to ⌃⌘ per UI-SPEC, change menu text, tooltips, status tips and tests together. |
 | A12 | The `Delete` and `Backspace` shortcuts reach `QShortcut` through `QNSView` as in the offscreen spike (QTBUG-33015 is Qt 5, menu items) | Pitfall 7 | The harness row decides; if ⌫ fails live, bind through a `QAction` in the window or `keyPressEvent`. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+Each question is closed by a decision rule written into a plan. Q1 to Q3 are measured by the live harness at execution time and the plan applies the rule to the result; Q4 and Q5 were decided during planning.
 
 1. **What does the macOS bar show while each dialog is open, and are its items enabled?**
    - Known: Qt source says the main bar stays; enabled state is not updated on the early return.
    - Unclear: live behaviour on macOS 26, including native panels (focus window null) and `QMessageBox`.
    - Recommendation: harness section `dialogs` dumps the NSMenu for Settings, Fix DPI, Default Parameters, About, Relinking, `QMessageBox` and a native panel, and tries ⌘N during Settings. Add a parentless bar only if the dump shows an empty or system-only bar.
+   - **RESOLVED (decision rule, applied by plan 05-10):** Task 1 builds the `dialogs` section (rows `settings`, `about`, `fix_dpi`, `relinking`, `default_params`, `message_box`, `open_panel`; each records the top-level menus, the application menu, the New Project item's enabled state and whether ⌘N fired). Task 2 runs it: if any row records `dialogs_<row>_populated: no`, the parentless fallback bar `MainWindow::m_fallbackMenuBar` with the same menus and actions is added (gated commit `m14f-menubar-fallback`); otherwise no source changes. A ⌘N that fires under a dialog (assumption A9) is recorded as a finding for the closing report, not fixed in this phase.
 2. **Does the Info.plist embed change what the user sees?**
    - Recommendation: harness `menubar` section prints Qt-set titles and `localizedName` for a build with and without the plist (two small variants of the harness, or one run per link flag). Decide from that.
+   - **RESOLVED (decision rule, applied by plan 05-02 Task 2 step 3):** embed a `CFBundleName`-only plist only if the first `menubar` run shows `About mac_check` (the process name). Keep it only if the re-run shows `About ScanTailor Advanced` and `Quit ScanTailor Advanced` with an unchanged window ratio, and two `identity` runs (without and with the plist, home redirected below the output directory) show the plist in the process and byte-identical application and organisation names, default settings file and profiles path. Otherwise revert and record the process name as accepted.
 3. **Can the live harness drive a native `QMenu` popup?**
    - Recommendation: first spike inside Wave 0; if not, accept the reduced MAC-08 record and keep the delay.
+   - **RESOLVED (decision rule, applied by plan 05-06 Task 1):** the `context` section records `context_menu_kind`. For a `qt` menu the harness clicks its Delete item and dismisses it with Escape; the 200 ms delay is removed (conditional commit `m09d-menu-delay`, Task 2) only when all 20 ordering runs show the trigger before the queued hide. For a `native` menu it dismisses the menu with `cocoaprobe::cancelMenuTracking()`, records the first-click rows as not measurable in-process, and keeps the delay.
 4. **Where should `actionSettings` live in the `.ui`?** It must stay a direct child of a top-level menu. Recommendation: `menuFile`, after `actionCloseProject`, next to `actionQuit` (both are role actions; File shows neither once merged).
+   - **RESOLVED (planning decision, plan 05-01 "Reconciliations" and Task 1 step 5):** `actionSettings` goes into `menuFile` directly after `actionCloseProject`, and the separator before `actionQuit` is removed so File never ends on an orphan separator once macOS moves Settings and Quit into the application menu.
 5. **Disabled stage actions without a project (UI-SPEC empty state)** also disable the letter keys O, E, N, V, K, P, which are on the same actions and are enabled today (`switchFilterN` does not check `isProjectLoaded()`). Recommendation: follow the UI-SPEC (harmless; the stage list is cosmetic without a project), mention it in the plan.
+   - **RESOLVED (orchestrator decision 2026-11-14, plan 05-03 "Reconciliations" and Task 1 step 3):** the six stage actions are disabled without a project, as UI-SPEC "Empty state" and row E3 specify. The letter keys stay bound to the same actions (D-03 unchanged), so they work exactly as today once a project is loaded.
 
 ## Environment Availability
 

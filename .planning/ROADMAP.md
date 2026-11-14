@@ -203,7 +203,45 @@ Plans:
   4. When a batch run finishes, the Mac plays the system beep and no shell command runs
   5. Every open, save and folder dialog, including the relinking dialog, is the native macOS panel
 
-**Plans**: TBD
+**Plans:** 11 plans
+
+Plans:
+**Wave 1**
+- [ ] 05-01-PLAN.md — Tracer: app_gui library so qt_tests builds MainWindow, Settings… ⌘, in the application menu; explicit roles, Mac File and Tools menus, ⇧⌘S (TestMacQt)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 05-02-PLAN.md — Live Cocoa harness mac_check (Objective-C++ probe): native application menu, app name (Info.plist if needed), empty Help menu, German-layout chord groups
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 05-03-PLAN.md — View menu: ⌘1–⌘6 for stages with Output tabs on the measured ⌥⌘ group in the same commit, ⌘+/⌘=/⌘- page zoom, thumbnail keys moved
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 05-04-PLAN.md — ⌫ and ⌦ remove zones and the content box, B creates it, fields keep their keys, right-click menus offscreen
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 05-05-PLAN.md — Live window keys and zone keys on Cocoa with the German layout (answers the Backspace question)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 05-06-PLAN.md — Live context-menu triggers (right-click, Control-click; two-finger click recorded as a residual) and the 200 ms deferral decided by measurement
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 05-07-PLAN.md — Mac key names in the multi-page hint of the nine apply dialogs
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 05-08-PLAN.md — Mac key names in the Margins help, the main window and the C++ tips, with a permanent scan for PC key names
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 05-09-PLAN.md — System beep instead of the shell command, native relinking panels, both pinned by source checks
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 05-10-PLAN.md — Live menu bar during dialogs (fallback bar only if measured reduced) and native file panels, with a redirected home
+
+**Wave 11** *(blocked on Wave 10 completion)*
+- [ ] 05-11-PLAN.md — TESTING.md live Mac check, closing runs, sanitizer and static checks, closing record
+
+**Cross-cutting constraints:** <!-- gsd:generated -->
+- Every commit of this plan passes gate.sh with Release and Debug 100% tests passed out of 7 and goldens unchanged (D-00a)
+
 **UI hint**: no
 
 ### Phase 6: Hardening and Cleanup
@@ -232,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
-| 5. Mac Menus and Shortcuts | 0/TBD | Not started | - |
+| 5. Mac Menus and Shortcuts | 0/11 | Not started | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
 ---
