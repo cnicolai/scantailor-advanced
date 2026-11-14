@@ -17,6 +17,11 @@ class TestMacQt : public QObject {
   void initTestCase();
   void testSettingsInFileWithPreferencesRole();
   void testSettingsShortcutOpensSettings();
+  void testMenuRoles();
+  void testFileMenuTextsAndKeys();
+  void testToolsMenuWithoutSettings();
+  void testQuitClosesWindow();
+  void testProjectActionsDisabledWithoutProject();
 };
 
 #endif

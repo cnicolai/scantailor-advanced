@@ -77,11 +77,9 @@
     <addaction name="actionRelinking"/>
     <addaction name="actionReverseTwoPageOrder"/>
     <addaction name="separator"/>
-    <addaction name="actionDebug"/>
-    <addaction name="separator"/>
     <addaction name="actionDefaults"/>
-    <addaction name="separator"/>
     <addaction name="menuUnits"/>
+    <addaction name="actionDebug"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -1078,6 +1076,9 @@ QToolButton:pressed {
    </widget>
   </widget>
   <action name="actionDebug">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1095,6 +1096,9 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionSaveProject">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
     <string>Save Project</string>
    </property>
@@ -1106,11 +1110,14 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionSaveProjectAs">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Save Project As ...</string>
+    <string>Save Project As…</string>
    </property>
    <property name="shortcut">
-    <string notr="true"/>
+    <string notr="true">Ctrl+Shift+S</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
@@ -1139,8 +1146,11 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionNewProject">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>New Project ...</string>
+    <string>New Project…</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+N</string>
@@ -1150,8 +1160,11 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionOpenProject">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Open Project ...</string>
+    <string>Open Project…</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+O</string>
@@ -1183,6 +1196,9 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionCloseProject">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
     <string>Close Project</string>
    </property>
@@ -1194,6 +1210,9 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionQuit">
+   <property name="menuRole">
+    <enum>QAction::QuitRole</enum>
+   </property>
    <property name="text">
     <string>Quit</string>
    </property>
@@ -1241,6 +1260,9 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionAbout">
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
@@ -1252,8 +1274,11 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionFixDpi">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Fix DPI ...</string>
+    <string>Fix DPI…</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -1263,8 +1288,11 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionRelinking">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Relinking ...</string>
+    <string>Relinking…</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -1274,8 +1302,11 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionReverseTwoPageOrder">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Reverse two-page spread order</string>
+    <string>Reverse Two-Page Spread Order</string>
    </property>
    <property name="toolTip">
     <string>Swap left/right page order for two-page scans (e.g. Japanese book reading order).</string>
@@ -1428,8 +1459,11 @@ QToolButton:pressed {
    </property>
   </action>
   <action name="actionDefaults">
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
    <property name="text">
-    <string>Default parameters ...</string>
+    <string>Default Parameters…</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>

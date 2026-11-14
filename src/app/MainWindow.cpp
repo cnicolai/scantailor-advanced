@@ -312,6 +312,8 @@ MainWindow::MainWindow()
   connect(actionReverseTwoPageOrder, SIGNAL(triggered(bool)), SLOT(toggleTwoPageSpreadReadingOrder()));
   connect(actionRelinking, SIGNAL(triggered(bool)), SLOT(showRelinkingDialog()));
 #ifdef ENABLE_DEBUG_FEATURES
+  // The separator exists only while Debug Mode is visible, so Tools never ends on a separator.
+  menuDebug->insertSeparator(actionDebug);
   connect(actionDebug, SIGNAL(toggled(bool)), SLOT(debugToggled(bool)));
 #else
   actionDebug->setVisible(false);
@@ -1604,6 +1606,7 @@ void MainWindow::updateProjectActions() {
   const bool loaded = isProjectLoaded();
   actionSaveProject->setEnabled(loaded);
   actionSaveProjectAs->setEnabled(loaded);
+  actionCloseProject->setEnabled(loaded);
   actionFixDpi->setEnabled(loaded);
   actionRelinking->setEnabled(loaded);
   actionReverseTwoPageOrder->setEnabled(loaded);
