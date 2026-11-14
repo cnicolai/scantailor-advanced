@@ -59,6 +59,12 @@ target_include_directories(
 add_executable(${target_name} main.cpp ${resource_files})
 target_link_libraries(${target_name} PRIVATE app_gui)
 
+# Names the application menu items after the app instead of the process (RESEARCH Pitfall 2). The plist is embedded as a
+# section of the executable and stays in the source tree: an Info.plist next to the executable would fake a bundle.
+set(info_plist "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist")
+target_link_options(${target_name} PRIVATE "LINKER:-sectcreate,__TEXT,__info_plist,${info_plist}")
+set_property(TARGET ${target_name} APPEND PROPERTY LINK_DEPENDS "${info_plist}")
+
 # Offscreen UI snapshot tool for Phase 3 D-12; built with the tests, not registered with ctest (TESTING.md lists
 # seven suites). It links the shared app_gui library, so the GUI sources are compiled once.
 if (BUILD_TESTS)
@@ -86,4 +92,7 @@ if (BUILD_TESTS)
   target_compile_definitions(mac_check PRIVATE MAC_CHECK_ROOT="${CMAKE_SOURCE_DIR}/build")
   set_target_properties(mac_check PROPERTIES OBJCXX_STANDARD 17)
   set_source_files_properties(mac_check/CocoaProbe.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  # The same embedded name as the app, so the harness shows what the app shows.
+  target_link_options(mac_check PRIVATE "LINKER:-sectcreate,__TEXT,__info_plist,${info_plist}")
+  set_property(TARGET mac_check APPEND PROPERTY LINK_DEPENDS "${info_plist}")
 endif()
