@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Mac Menus and Shortcuts
 status: executing
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-11-14T22:12:11.327Z"
-last_activity: 2026-10-25
-last_activity_desc: Phase 04 complete, transitioned to Phase 5
-state_head: f6cc445770d9c68d9ff1e247d457dfc2ddbddaa0
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-11-14T22:31:29.654Z"
+last_activity: 2026-11-14
+last_activity_desc: Phase 05 execution started
+state_head: ddce1874cf6044125b0a06290fe5483af037be98
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 49
-  completed_plans: 38
+  completed_plans: 39
 milestone_name: macOS
 ---
 
@@ -24,14 +24,14 @@ milestone_name: macOS
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 5 — Mac Menus and Shortcuts
+**Current focus:** Phase 05 — Mac Menus and Shortcuts
 
 ## Current Position
 
-Phase: 05 (Mac Menus and Shortcuts) — READY TO EXECUTE
-Plan: Not started
+Phase: 05 (Mac Menus and Shortcuts) — EXECUTING
+Plan: 2 of 11
 Status: Ready to execute
-Last activity: 2026-10-25 — Phase 04 complete, transitioned to Phase 5
+Last activity: 2026-11-14 — Phase 05 execution started
 
 Progress: [███████░░░] 67%
 
@@ -98,6 +98,7 @@ Progress: [███████░░░] 67%
 | Phase 04 P06 | 19 min | 2 tasks | 10 files |
 | Phase 04 P07 | 50min | 2 tasks | 10 files |
 | Phase 04 P08 | 10 min | 2 tasks | 4 files |
+| Phase 05 P01 | 30 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -185,6 +186,7 @@ Recent decisions affecting current work:
 - [Phase 04]: retina_check links dewarping; stage-list centring is measured on ink united over 12 grabs and list-decoration size on the first ink column run (plan recipes measured a comet fragment and the item text); no threshold changed
 - [Phase 04]: Phase 4 closing: sanitizer report at BinaryImage.cpp:1044 (known Phase 1 location) reached through the Phase 4 test helper makeZoneMask is recorded as old code, not fixed
 - [Phase 04]: HIDPI-01 recorded as measured with retina_check, which shares the app's Mach-O properties; the app binary itself was not launched (home-folder rule)
+- [Phase 05]: 05-01: explicit key sequences Ctrl+, and Ctrl+Shift+S instead of StandardKeys (empty offscreen); Settings sits between Close Project and Quit with no separator; GUI sources are the static library app_gui (WR-01 closed)
 
 ### Pending Todos
 
@@ -203,6 +205,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-14T19:36:59.396Z
-Stopped at: Phase 5 UI-SPEC approved
-Resume file: .planning/phases/05-mac-menus-and-shortcuts/05-UI-SPEC.md
+Last session: 2026-11-14T22:31:25.650Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
