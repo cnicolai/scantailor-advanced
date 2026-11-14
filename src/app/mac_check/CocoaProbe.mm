@@ -272,6 +272,9 @@ std::vector<MenuInfo> mainMenu() {
     NSMenu* const submenu = [topItem submenu];
     info.title = toQString(submenu != nil ? [submenu title] : [topItem title]);
     if (submenu != nil) {
+      // Validates the items the way AppKit does when the menu opens: until then Qt's merged About and Settings items
+      // still carry their initial disabled flag, so isEnabled would not report what the user sees.
+      [submenu update];
       for (NSMenuItem* const item in [submenu itemArray]) {
         MenuItemInfo entry;
         entry.title = toQString([item title]);

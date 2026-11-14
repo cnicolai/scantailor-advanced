@@ -221,6 +221,8 @@ bool runMenubarSection(Summary& summary) {
   QString settingsKey;
   QString quitKey;
   bool settingsEnabled = false;
+  bool aboutEnabled = false;
+  bool quitEnabled = false;
   if (!menus.empty()) {
     for (const cocoaprobe::MenuItemInfo& item : menus[0].items) {
       if (item.separator || item.hidden) {
@@ -229,6 +231,7 @@ bool runMenubarSection(Summary& summary) {
       appMenuItems << item.title;
       if (item.title.startsWith("About")) {
         aboutTitles << item.title;
+        aboutEnabled = aboutEnabled || item.enabled;
       } else if (item.title.startsWith("Settings") || item.title.startsWith("Preferences")) {
         settingsTitles << item.title;
         if (settingsKey.isEmpty()) {
@@ -237,6 +240,7 @@ bool runMenubarSection(Summary& summary) {
         }
       } else if (item.title.startsWith("Quit")) {
         quitTitles << item.title;
+        quitEnabled = quitEnabled || item.enabled;
         if (quitKey.isEmpty()) {
           quitKey = keyText(item);
         }
@@ -253,6 +257,13 @@ bool runMenubarSection(Summary& summary) {
   summary.add("settings_item_key", orNone(settingsKey));
   summary.add("quit_item_key", orNone(quitKey));
   summary.add("settings_item_enabled", yesNo(settingsEnabled));
+  summary.add("about_item_enabled", yesNo(aboutEnabled));
+  summary.add("quit_item_enabled", yesNo(quitEnabled));
+  for (const char* const name : {"actionAbout", "actionSettings", "actionQuit"}) {
+    const QAction* const action = window.findChild<QAction*>(name);
+    summary.add(QString("%1_enabled").arg(name),
+                action != nullptr ? yesNo(action->isEnabled()) + (action->isVisible() ? "" : " (hidden)") : "missing");
+  }
   summary.add("about_items", QString::number(aboutTitles.size()));
   summary.add("settings_items", QString::number(settingsTitles.size()));
   summary.add("quit_items", QString::number(quitTitles.size()));
@@ -299,6 +310,9 @@ bool runMenubarSection(Summary& summary) {
       QString entry = item.title;
       if (!item.keyEquivalent.isEmpty()) {
         entry += " (" + keyText(item) + ")";
+      }
+      if (!item.enabled) {
+        entry += " {disabled}";
       }
       if (item.hidden) {
         entry = "[" + entry + "]";

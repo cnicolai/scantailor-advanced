@@ -155,9 +155,16 @@ void TestMacQt::testFileMenuTextsAndKeys() {
   QMenu* const fileMenu = findMenu(*window, "menuFile");
   QVERIFY(fileMenu != nullptr);
 
-  const QStringList expectedEntries{utf8("New Project…"), utf8("Open Project…"),    "--",
-                                    "Save Project",       utf8("Save Project As…"), "--",
-                                    "Close Project",      utf8("Settings…"),        "Quit"};
+  const QStringList expectedEntries{utf8("New Project…"),
+                                    utf8("Open Project…"),
+                                    "--",
+                                    "Save Project",
+                                    utf8("Save Project As…"),
+                                    "--",
+                                    "Close Project",
+                                    "About",
+                                    utf8("Settings…"),
+                                    "Quit"};
   QCOMPARE(visibleEntries(*fileMenu), expectedEntries);
 
   struct Binding {
