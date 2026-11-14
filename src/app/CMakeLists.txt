@@ -26,7 +26,6 @@ set(gui_only_sources
     NewOpenProjectPanel.cpp NewOpenProjectPanel.h
     SystemLoadWidget.cpp SystemLoadWidget.h
     MainWindow.cpp MainWindow.h
-    main.cpp
     StatusBarPanel.cpp StatusBarPanel.h
     DefaultParamsDialog.cpp DefaultParamsDialog.h)
 
@@ -46,35 +45,29 @@ set(gui_only_ui_files
     StatusBarPanel.ui
     SystemLoadWidget.ui)
 
-add_executable(
-    ${target_name} ${gui_only_sources} ${gui_only_ui_files}
-    ${resource_files})
-target_link_libraries(
-    ${target_name}
-    PRIVATE core)
+# The GUI sources as a library, so the app, ui_snapshot, qt_tests and the live Mac check share one compile (closes
+# Phase 3 review finding WR-01). The autogen include directory is public because the app headers include generated
+# ui_*.h files.
+add_library(app_gui STATIC ${gui_only_sources} ${gui_only_ui_files})
+target_link_libraries(app_gui PUBLIC core)
 target_include_directories(
-    ${target_name}
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+    app_gui
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/app_gui_autogen/include"
     "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
 
+add_executable(${target_name} main.cpp ${resource_files})
+target_link_libraries(${target_name} PRIVATE app_gui)
 
 # Offscreen UI snapshot tool for Phase 3 D-12; built with the tests, not registered with ctest (TESTING.md lists
-# seven suites).
+# seven suites). It links the shared app_gui library, so the GUI sources are compiled once.
 if (BUILD_TESTS)
-  set(ui_snapshot_sources ${gui_only_sources})
-  list(REMOVE_ITEM ui_snapshot_sources main.cpp)
-  add_executable(
-      ui_snapshot ui_snapshot/main.cpp ${ui_snapshot_sources}
-      ${gui_only_ui_files} ${resource_files})
-  target_link_libraries(ui_snapshot PRIVATE core)
-  target_include_directories(
-      ui_snapshot
-      PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-      "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
+  add_executable(ui_snapshot ui_snapshot/main.cpp ${resource_files})
+  target_link_libraries(ui_snapshot PRIVATE app_gui)
   target_compile_definitions(ui_snapshot PRIVATE UI_SNAPSHOT_ROOT="${CMAKE_SOURCE_DIR}/build")
 
   # Live Retina check of Phase 4 (D-02) on the Cocoa platform. It links core and test_support only, so the GUI sources
-  # are not compiled a second time (open review finding WR-01 is about ui_snapshot). Not registered with ctest (the
+  # are not compiled a second time. Not registered with ctest (the
   # seven suites stay).
   add_executable(retina_check retina_check/main.cpp ${resource_files})
   target_link_libraries(retina_check PRIVATE core dewarping test_support)

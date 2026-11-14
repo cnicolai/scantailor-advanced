@@ -79,7 +79,6 @@
     <addaction name="separator"/>
     <addaction name="actionDebug"/>
     <addaction name="separator"/>
-    <addaction name="actionSettings"/>
     <addaction name="actionDefaults"/>
     <addaction name="separator"/>
     <addaction name="menuUnits"/>
@@ -95,7 +94,7 @@
     <addaction name="actionSaveProjectAs"/>
     <addaction name="separator"/>
     <addaction name="actionCloseProject"/>
-    <addaction name="separator"/>
+    <addaction name="actionSettings"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1207,10 +1206,13 @@ QToolButton:pressed {
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Settings ...</string>
+    <string>Settings…</string>
    </property>
    <property name="shortcut">
-    <string notr="true"/>
+    <string notr="true">Ctrl+,</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::PreferencesRole</enum>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>

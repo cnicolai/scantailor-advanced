@@ -3,6 +3,7 @@
 
 #include "tst_core_qt.h"
 #include "tst_hidpi_qt.h"
+#include "tst_mac_qt.h"
 #include "tst_ux_qt.h"
 
 #include <QApplication>
@@ -64,6 +65,9 @@ int main(int argc, char* argv[]) {
 
   TestHiDpiQt tc3;
   status |= QTest::qExec(&tc3, argc, argv);
+
+  TestMacQt tc4;
+  status |= QTest::qExec(&tc4, argc, argv);
 
   return status;
 }
