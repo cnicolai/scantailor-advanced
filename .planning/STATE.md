@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 5
 current_phase_name: Mac Menus and Shortcuts
 status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-11-14T19:18:08.588Z"
+stopped_at: Phase 5 UI-SPEC approved
+last_updated: "2026-11-14T19:36:59.746Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 04 complete, transitioned to Phase 5
-state_head: dbad5dd124c98040f6699994ee2205d19bf435c8
+state_head: ca0af84becdf6a9c1aa028083d4cfb5f50b759fd
 progress:
   total_phases: 6
   completed_phases: 4
@@ -203,6 +203,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-14T19:18:08.157Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-mac-menus-and-shortcuts/05-CONTEXT.md
+Last session: 2026-11-14T19:36:59.396Z
+Stopped at: Phase 5 UI-SPEC approved
+Resume file: .planning/phases/05-mac-menus-and-shortcuts/05-UI-SPEC.md
