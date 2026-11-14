@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Mac Menus and Shortcuts
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-11-14T23:09:01.544Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-11-14T23:26:18.372Z"
 last_activity: 2026-11-14
 last_activity_desc: Phase 05 execution started
-state_head: 28c6b08d14b31c48550b2ead8c966ac2377a8fb7
+state_head: 782867f14ebf28f02dd8b034cf3836c94d7020e6
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 49
-  completed_plans: 40
+  completed_plans: 41
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 05 (Mac Menus and Shortcuts) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-11-14 — Phase 05 execution started
 
@@ -100,6 +100,7 @@ Progress: [███████░░░] 67%
 | Phase 04 P08 | 10 min | 2 tasks | 4 files |
 | Phase 05 P01 | 30 min | 2 tasks | 8 files |
 | Phase 05 P02 | 35 min | 2 tasks | 10 files |
+| Phase 05 P03 | 15 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -190,6 +191,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-01: explicit key sequences Ctrl+, and Ctrl+Shift+S instead of StandardKeys (empty offscreen); Settings sits between Close Project and Quit with no separator; GUI sources are the static library app_gui (WR-01 closed)
 - [Phase 05]: 05-02: About moved from the empty Help menu into File and Help is gone; the application menu names ScanTailor Advanced through an embedded Info.plist section (CFBundleName only, settings and profiles paths measured identical)
 - [Phase 05]: 05-02: German layout measured live: Option-Command digits and plus/minus fire once each, so plan 05-03 binds the Output tabs and thumbnail keys with Option-Command; native Settings item reads "Preferences..." not "Settings…" (open point, unchanged)
+- [Phase 05]: Plan 05-03: Option-Command binds both the Output tabs and the thumbnail keys; the six stage actions stay disabled without a project while the letter keys stay bound (D-03 vs E3)
 
 ### Pending Todos
 
@@ -208,6 +210,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-14T23:09:01.182Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-11-14T23:26:18.030Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None

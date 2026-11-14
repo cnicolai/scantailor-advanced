@@ -203,7 +203,7 @@ Plans:
   4. When a batch run finishes, the Mac plays the system beep and no shell command runs
   5. Every open, save and folder dialog, including the relinking dialog, is the native macOS panel
 
-**Plans:** 2/11 plans executed
+**Plans:** 3/11 plans executed
 
 Plans:
 **Wave 1**
@@ -213,7 +213,7 @@ Plans:
 - [x] 05-02-PLAN.md — Live Cocoa harness mac_check (Objective-C++ probe): native application menu, app name (Info.plist if needed), empty Help menu, German-layout chord groups
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 05-03-PLAN.md — View menu: ⌘1–⌘6 for stages with Output tabs on the measured ⌥⌘ group in the same commit, ⌘+/⌘=/⌘- page zoom, thumbnail keys moved
+- [x] 05-03-PLAN.md — View menu: ⌘1–⌘6 for stages with Output tabs on the measured ⌥⌘ group in the same commit, ⌘+/⌘=/⌘- page zoom, thumbnail keys moved
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 05-04-PLAN.md — ⌫ and ⌦ remove zones and the content box, B creates it, fields keep their keys, right-click menus offscreen
@@ -270,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
-| 5. Mac Menus and Shortcuts | 2/11 | In Progress | - |
+| 5. Mac Menus and Shortcuts | 3/11 | In Progress | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
 ---
