@@ -76,4 +76,14 @@ if (BUILD_TESTS)
       PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
       "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
   target_compile_definitions(retina_check PRIVATE RETINA_CHECK_ROOT="${CMAKE_SOURCE_DIR}/build")
+
+  # Live Mac check of Phase 5 (D-12) on the Cocoa platform: application menu, key chords on the German layout and
+  # the app's storage identity. Objective-C++ lives only here (CocoaProbe.mm), never in the app (D-00b). Not
+  # registered with ctest.
+  enable_language(OBJCXX)
+  add_executable(mac_check mac_check/main.cpp mac_check/CocoaProbe.h mac_check/CocoaProbe.mm ${resource_files})
+  target_link_libraries(mac_check PRIVATE app_gui dewarping "-framework AppKit" "-framework Carbon")
+  target_compile_definitions(mac_check PRIVATE MAC_CHECK_ROOT="${CMAKE_SOURCE_DIR}/build")
+  set_target_properties(mac_check PROPERTIES OBJCXX_STANDARD 17)
+  set_source_files_properties(mac_check/CocoaProbe.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 endif()
