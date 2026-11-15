@@ -54,10 +54,10 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 ### Mac Shortcuts & Menus
 
 - [ ] **MAC-01**: About, Preferences and Quit appear in the application menu (menu roles); Settings moves out of the Debug menu
-- [ ] **MAC-02**: Cmd+, opens Preferences
-- [ ] **MAC-03**: Cmd+Shift+S saves the project under a new name
-- [ ] **MAC-04**: Cmd+= and Cmd+- zoom the page view
-- [ ] **MAC-05**: Existing shortcuts work with Cmd: New, Open, Save, Close, Quit, and Cmd+1… to switch stages
+- [x] **MAC-02**: Cmd+, opens Preferences
+- [x] **MAC-03**: Cmd+Shift+S saves the project under a new name
+- [x] **MAC-04**: Cmd+= and Cmd+- zoom the page view
+- [x] **MAC-05**: Existing shortcuts work with Cmd: New, Open, Save, Close, Quit, and Cmd+1… to switch stages
 - [x] **MAC-06**: Tooltips, status tips and help text show Mac key names (⌘, ⌥) instead of "Ctrl"/"Alt"
 - [x] **MAC-07**: In the zone editor, Backspace or Delete removes a zone, and creating a content box uses a key a MacBook has
 - [x] **MAC-08**: Context menus open with a right-click, a two-finger click and a Control-click
@@ -158,10 +158,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HIDPI-06 | Phase 4 | Complete |
 | TESTX-03 | Phase 4 | Complete |
 | MAC-01 | Phase 5 | Pending |
-| MAC-02 | Phase 5 | Pending |
-| MAC-03 | Phase 5 | Pending |
-| MAC-04 | Phase 5 | Pending |
-| MAC-05 | Phase 5 | Pending |
+| MAC-02 | Phase 5 | Complete |
+| MAC-03 | Phase 5 | Complete |
+| MAC-04 | Phase 5 | Complete |
+| MAC-05 | Phase 5 | Complete |
 | MAC-06 | Phase 5 | Complete |
 | MAC-07 | Phase 5 | Complete |
 | MAC-08 | Phase 5 | Complete |

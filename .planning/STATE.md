@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Mac Menus and Shortcuts
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-11-15T09:34:38.223Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-11-15T09:50:47.673Z"
 last_activity: 2026-11-15
 last_activity_desc: Phase 05 execution started
-state_head: 309649c295b585217faee2821c08e657499a8961
+state_head: 273df6b44e122513420a736da21999bffdd01ac8
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 49
-  completed_plans: 42
+  completed_plans: 43
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 05 (Mac Menus and Shortcuts) — EXECUTING
-Plan: 5 of 11
+Plan: 6 of 11
 Status: Ready to execute
 Last activity: 2026-11-15 — Phase 05 execution started
 
@@ -102,6 +102,7 @@ Progress: [███████░░░] 67%
 | Phase 05 P02 | 35 min | 2 tasks | 10 files |
 | Phase 05 P03 | 15 min | 2 tasks | 7 files |
 | Phase 05 P04 | resumed | 2 tasks | 6 files |
+| Phase 05 P05-05 | 12 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-02: German layout measured live: Option-Command digits and plus/minus fire once each, so plan 05-03 binds the Output tabs and thumbnail keys with Option-Command; native Settings item reads "Preferences..." not "Settings…" (open point, unchanged)
 - [Phase 05]: Plan 05-03: Option-Command binds both the Output tabs and the thumbnail keys; the six stage actions stay disabled without a project while the letter keys stay bound (D-03 vs E3)
 - [Phase 05]: 05-04: Backspace and Delete stay window-context shortcuts; a focused field takes them through ShortcutOverride, no extra guard
+- [Phase 05]: 05-05: pointer placed with CGWarpMouseCursorPosition (cocoaprobe::warpPointer) because QCursor::setPos left the pointer in place on Cocoa
+- [Phase 05]: 05-05: Backspace reaches the zone and content-box shortcuts under Qt 6.12 on Cocoa (live zone_verdict PASS)
 
 ### Pending Todos
 
@@ -208,10 +211,10 @@ None yet.
 - Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
 - [Phase 4] Code review left WR-01 open and worth fixing soon: `ThumbnailPixmapCache::removeLoadedItemsLocked()` sets `m_endOfLoadedItems` to `end()` instead of `begin()`; display moves now reach this old bug (possible dangling iterator). One-line fix plus a test, e.g. `/gsd-code-review 4 --fix`. WR-02 (stale other-ratio thumbnail after reprocessing) and WR-03 (benign) are open too (`04-REVIEW-DISPOSITION.md`).
 - [Phase 4] A real drag between a 1x and a 2x display is unverified (one display attached; criterion 4 rests on the offscreen two-screen simulation). Thumbnails depend on the `DevicePixelRatioChange` event alone. Re-check procedure: `phases/04-retina-rendering/records/closing-check.md`.
-- Phase 5: check on the Mac whether Backspace works for deleting zones under Qt 6 (low confidence in research).
+- Phase 5: Backspace works for deleting zones and the content box under Qt 6.12 on Cocoa (answered live in 05-05, records/zone.md).
 
 ## Session Continuity
 
-Last session: 2026-11-15T09:34:37.895Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-11-15T09:50:47.326Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
