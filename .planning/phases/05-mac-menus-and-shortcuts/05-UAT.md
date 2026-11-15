@@ -3,7 +3,7 @@ status: complete
 phase: 05-mac-menus-and-shortcuts
 source: [05-VERIFICATION.md]
 started: 2026-11-15T13:30:00Z
-updated: 2026-11-15T18:40:26.066Z
+updated: 2026-11-15T18:50:52.148Z
 ---
 
 ## Current Test
@@ -21,7 +21,7 @@ evidence: Picture Zones tab of the Output stage; a two-finger click opened one m
 ### 2. Batch run with 'Beep when finished' ticked
 expected: System beep audible
 result: skipped
-reason: "User does not need the beep: \"I could not care less whether it beeps or not\". The source check in 05-VERIFICATION.md (QApplication::beep() after QApplication::alert(), no shell command) stands; the sound itself was not heard."
+reason: "Deferred follow-up: out of scope for the user, who does not need the beep: \"skip – I could not care less whether it beeps or not\". The sound was not heard; MAC-10 is carried as a source-verified override in 05-VERIFICATION.md (QApplication::beep() after QApplication::alert(), no shell command)."
 
 ### 3. Look at the nine apply dialogs (multi-page hint) and the Margins help in the running app
 expected: The shortened hints with the Mac key glyphs and the 7 pt bold glyphs of the Margins help are readable and not clipped
@@ -54,3 +54,9 @@ skipped: 1
 blocked: 0
 
 ## Gaps
+
+## Deferred Follow-Ups
+
+- test: 2
+  idea: "skip – I could not care less whether it beeps or not"
+  deferred_at: 2026-11-15
