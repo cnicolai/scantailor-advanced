@@ -1212,6 +1212,8 @@ struct TriggerResult {
   bool deleted = false;
   bool hideRan = false;
   bool triggeredBeforeHide = false;
+  bool confirmed = false;  // a menu showed on an attempt that started with the pointer confirmed on the target
+  int retries = 0;
 };
 
 // Probe filled by the Delete action's triggered signal and by a queued slot of the menu's aboutToHide, the order the
@@ -1294,24 +1296,36 @@ bool runContextSection(Summary& summary) {
   };
 
   int retries = 0;
-  int failedCursorOff = 0;  // attempts without a menu while QCursor::pos() was away from the target
-  int failedCursorOn = 0;   // attempts without a menu although QCursor::pos() was on the target
-  // Triggers on the zone until a menu shows, at most twice: when no menu appears nothing has changed (the default
-  // interaction stays), so the trigger can be repeated; failed attempts and retries are counted and reported.
+  int interference = 0;    // attempts where the pointer was off the target (moved by someone else) when it mattered
+  int failedCursorOn = 0;  // attempts without a menu although the pointer was confirmed on the target
+  const auto nearTarget = [&targetGlobal] { return (QCursor::pos() - targetGlobal).manhattanLength() <= 3; };
+  // Triggers on the zone until a menu shows on a confirmed attempt, at most three times. An attempt is only sent
+  // with QCursor::pos() on the target (re-warped when it is not); a miss with the pointer off the target is counted
+  // as interference, a miss with the pointer on the target as a failure. Nothing changes when no menu shows (the
+  // default interaction stays), so the trigger can be repeated.
   auto openMenu = [&](const cocoaprobe::MouseAction action, const unsigned modifiers, TriggerResult& result) {
     result.tracked = prepare();
-    for (int attempt = 0; attempt < 2 && !result.menuShown; ++attempt) {
+    for (int attempt = 0; attempt < 3 && !result.confirmed; ++attempt) {
       if (attempt > 0) {
         ++retries;
+        ++result.retries;
         result.tracked = prepare() && result.tracked;
       }
       confirmCursor();
+      if (!nearTarget()) {
+        ++interference;
+        continue;
+      }
       counter.reset();
       cocoaprobe::sendMouse(handle, zoneWindowPos(), action, modifiers);
       result.menuShown = waitFor([&editor] { return visibleZoneMenu(editor) != nullptr; }, 2000);
       result.events = counter.count();
-      if (!result.menuShown) {
-        ((QCursor::pos() - targetGlobal).manhattanLength() <= 1 ? failedCursorOn : failedCursorOff) += 1;
+      if (result.menuShown) {
+        result.confirmed = true;
+      } else if (nearTarget()) {
+        ++failedCursorOn;
+      } else {
+        ++interference;
       }
     }
   };
@@ -1359,6 +1373,8 @@ bool runContextSection(Summary& summary) {
     summary.add(prefix + "tracked", yesNo(result.tracked));
     summary.add(prefix + "events", QString::number(result.events));
     summary.add(prefix + "menu_shown", yesNo(result.menuShown));
+    summary.add(prefix + "pointer_confirmed", yesNo(result.confirmed));
+    summary.add(prefix + "retries", QString::number(result.retries));
     summary.add(prefix + "first_click_deleted", result.qtMenu ? yesNo(result.deleted) : "not measurable in-process");
     summary.add(prefix + "triggered_before_queued_hide",
                 result.qtMenu ? (result.hideRan ? yesNo(result.triggeredBeforeHide) : "hide slot did not run")
@@ -1377,12 +1393,16 @@ bool runContextSection(Summary& summary) {
   bool dismissHidden = false;
   bool dismissUnchanged = false;
   bool dismissRestored = false;
+  bool dismissConfirmed = false;
   QString dismissVia = "none";
   {
     TriggerResult opened;
     openMenu(cocoaprobe::MouseAction::RightClick, 0, opened);
     const int before = zoneCount(editor);
     summary.add("context_dismiss_menu_shown", yesNo(opened.tracked && opened.menuShown));
+    summary.add("context_dismiss_pointer_confirmed", yesNo(opened.confirmed));
+    summary.add("context_dismiss_retries", QString::number(opened.retries));
+    dismissConfirmed = opened.confirmed;
     QMenu* const menu = visibleZoneMenu(editor);
     if (menu != nullptr) {
       if (menu->windowHandle() != nullptr) {
@@ -1410,16 +1430,26 @@ bool runContextSection(Summary& summary) {
 
   // Ordering: in how many of 20 right-click plus Delete runs had triggered() fired before the queued aboutToHide slot
   // ran.
+  // Only runs whose attempt had the pointer confirmed on the target count; unconfirmed runs are repeated, with a bound
+  // on how many runs may fail.
   int before = 0;
   int ran = 0;
   int deleted = 0;
-  for (int run = 0; run < orderRuns; ++run) {
+  int orderConfirmed = 0;
+  int orderAttempted = 0;
+  while (orderConfirmed < orderRuns && orderAttempted - orderConfirmed < 5) {
+    ++orderAttempted;
     const TriggerResult result = runTrigger(cocoaprobe::MouseAction::RightClick, 0, true);
+    if (!result.confirmed) {
+      continue;
+    }
+    ++orderConfirmed;
     before += result.triggeredBeforeHide ? 1 : 0;
     ran += result.hideRan ? 1 : 0;
     deleted += result.deleted ? 1 : 0;
   }
-  summary.add("context_order_runs", QString::number(orderRuns));
+  summary.add("context_order_runs", QString::number(orderConfirmed));
+  summary.add("context_order_attempted", QString::number(orderAttempted));
   summary.add("context_order_hide_ran", QString::number(ran));
   summary.add("context_order_deleted", QString::number(deleted));
   summary.add("context_triggered_before_queued_hide_count", QString::number(before));
@@ -1429,16 +1459,16 @@ bool runContextSection(Summary& summary) {
   summary.add("context_cursor_lagged", QString::number(cursorLagged));
   summary.add("context_cursor_unconfirmed", QString::number(cursorUnconfirmed));
   summary.add("context_retries", QString::number(retries));
-  summary.add("context_failed_attempts_cursor_off_target", QString::number(failedCursorOff));
-  summary.add("context_failed_attempts_cursor_on_target", QString::number(failedCursorOn));
+  summary.add("context_pointer_interference", QString::number(interference));
+  summary.add("context_failed_attempts_pointer_confirmed", QString::number(failedCursorOn));
 
-  const bool removeDeferral = qtMenu && before == orderRuns;
+  const bool removeDeferral = qtMenu && orderConfirmed == orderRuns && before == orderRuns;
   summary.add("context_delay_decision", removeDeferral ? "remove" : "keep");
 
   QCoreApplication::instance()->removeEventFilter(&counter);
   const bool pass = appActive && pointerPlaced && right.tracked && control.tracked && right.events == 1
-                    && control.events == 1 && right.menuShown && control.menuShown && right.deleted && control.deleted
-                    && dismissHidden && dismissUnchanged && dismissRestored;
+                    && control.events == 1 && right.confirmed && control.confirmed && dismissConfirmed && right.deleted
+                    && control.deleted && dismissHidden && dismissUnchanged && dismissRestored;
   summary.add("context_verdict", pass ? "PASS" : "FAIL");
   return pass;
 }
