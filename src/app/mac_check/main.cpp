@@ -780,6 +780,7 @@ bool runKeysSection(Summary& summary) {
   };
   ActionCounter counts;
   bool actionsFound = true;
+  bool slotsDisconnected = true;
   for (const Watched& entry : watched) {
     QAction* const action = window.findChild<QAction*>(entry.objectName);
     if (action == nullptr) {
@@ -790,11 +791,26 @@ bool runKeysSection(Summary& summary) {
     if (entry.disconnectProduction) {
       QObject::disconnect(action, &QAction::triggered, &window, nullptr);
       QObject::disconnect(action, &QAction::triggered, action, nullptr);
-    }
-    if (entry.disconnectProduction) {
+      // Qt's menus listen to the triggered signal of their actions to close themselves; they react to nothing here.
+      for (QMenu* const menu : window.findChildren<QMenu*>()) {
+        QObject::disconnect(action, &QAction::triggered, menu, nullptr);
+      }
+      // Fail closed: the wildcard disconnect returns true only if another receiver was left. Such a receiver could
+      // open a native panel on the real home folder, so no key is sent. The check precedes the counter's own
+      // connection.
+      if (QObject::disconnect(action, &QAction::triggered, nullptr, nullptr)) {
+        slotsDisconnected = false;
+        summary.add(QString("keys_slot_still_connected_%1").arg(entry.objectName), "yes");
+        continue;
+      }
       action->setEnabled(true);
     }
     counts.watch(entry.name, action, &window);
+  }
+  if (!slotsDisconnected) {
+    summary.add("keys_reason", "a production slot is still connected; no key was sent");
+    summary.add("keys_verdict", "FAIL");
+    return false;
   }
   const QStringList stageNames = {"stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"};
 
