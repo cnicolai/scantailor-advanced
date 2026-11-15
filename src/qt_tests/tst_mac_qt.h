@@ -38,6 +38,7 @@ class TestMacQt : public QObject {
   void testZoneMenuDismissRestoresDefaultAtOnce();
   void testNoPcKeyNames();
   void testRewrittenStrings();
+  void testBatchAlarmUsesBeep();
 };
 
 #endif

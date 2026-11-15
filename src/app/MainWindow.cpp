@@ -1340,16 +1340,11 @@ void MainWindow::filterResult(const BackgroundTaskPtr& task, const FilterResultP
     if (m_batchQueue->allProcessed()) {
       stopBatchProcessing();
 
-      QApplication::alert(this);  // Flash the taskbar entry.
+      QApplication::alert(this);  // Request the user's attention (the Dock icon on macOS).
       if (m_checkBeepWhenFinished()) {
-        QString extPlayCmd("play /usr/share/sounds/freedesktop/stereo/bell.oga");
-        QSettings settings;
-        QString cmd = settings.value("main_window/external_alarm_cmd", extPlayCmd).toString();
-        if (cmd.isEmpty()) {
-          QApplication::beep();
-        } else {
-          Q_UNUSED(std::system(cmd.toStdString().c_str()));
-        }
+        // The system alert sound. No shell command is run; an alarm command stored by an earlier version is no longer
+        // read and stays in the settings file.
+        QApplication::beep();
       }
 
       if (m_selectedPage.get(getCurrentView()) == m_thumbSequence->lastPage().id()) {

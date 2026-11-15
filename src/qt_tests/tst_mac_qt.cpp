@@ -1356,3 +1356,61 @@ void TestMacQt::testRewrittenStrings() {
   QVERIFY(helpText.contains(boldOpen + utf8("‣ Double-click</span>")));
   QVERIFY(helpText.contains(QStringLiteral("font-size:8.25pt")));
 }
+
+void TestMacQt::testBatchAlarmUsesBeep() {
+  // Words that would mean a shell command is run from the application. The control proves the search finds them.
+  const QStringList forbidden{"std::system", "system(", "QProcess", "popen", "/usr/share/sounds", "external_alarm_cmd"};
+  const auto firstForbidden = [&forbidden](const QString& text) {
+    for (const QString& word : forbidden) {
+      if (text.contains(word)) {
+        return word;
+      }
+    }
+    return QString();
+  };
+  QCOMPARE(firstForbidden(QStringLiteral("Q_UNUSED(std::system(cmd));")), QStringLiteral("std::system"));
+  QCOMPARE(firstForbidden(QStringLiteral("settings.value(\"main_window/external_alarm_cmd\")")),
+           QStringLiteral("external_alarm_cmd"));
+  QCOMPARE(firstForbidden(QStringLiteral("QApplication::beep();")), QString());
+
+  const QDir root(sourceRoot());
+  const QString text = readUtf8(root.filePath("src/app/MainWindow.cpp"));
+  QVERIFY(!text.isEmpty());
+  QCOMPARE(firstForbidden(text), QString());
+
+  // The batch-finished block: from the "all processed" test to the return that ends it.
+  const int start = text.indexOf("m_batchQueue->allProcessed()");
+  QVERIFY(start >= 0);
+  const int end = text.indexOf("return;", start);
+  QVERIFY(end > start);
+  const QString block = text.mid(start, end - start);
+
+  const QString alert = QStringLiteral("QApplication::alert(this);");
+  const QString beep = QStringLiteral("QApplication::beep();");
+  QCOMPARE(block.count(alert), 1);
+  QCOMPARE(block.count(QStringLiteral("m_checkBeepWhenFinished()")), 1);
+  QCOMPARE(block.count(beep), 1);
+  QVERIFY(block.indexOf(alert) < block.indexOf(beep));
+
+  // No C++ file of the app runs a shell command (test support is outside the scope).
+  const QStringList commandWords{"std::system", "popen(", "QProcess"};
+  QStringList hits;
+  int fileCount = 0;
+  for (const QString& suffix : {QStringLiteral(".cpp"), QStringLiteral(".h"), QStringLiteral(".mm")}) {
+    for (const QString& relative : scanScopeFiles(suffix)) {
+      const QString source = readUtf8(root.filePath(relative));
+      if (source.isEmpty()) {
+        hits.append(relative + ": unreadable");
+        continue;
+      }
+      ++fileCount;
+      for (const QString& word : commandWords) {
+        if (source.contains(word)) {
+          hits.append(relative + ": " + word);
+        }
+      }
+    }
+  }
+  QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
+  QVERIFY2(hits.isEmpty(), qPrintable("shell command paths in the app:\n" + hits.join('\n')));
+}
