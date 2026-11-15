@@ -4,8 +4,9 @@
 // Live Mac check for Phase 5 (D-12): shows the real MainWindow on the default Cocoa platform and reads the native
 // menu bar (application menu, Help menu, application name), sends synthesised key events to a probe window to find
 // which chords fire on the German keyboard layout, and measures the app's storage identity (names and paths) the way
-// src/app/main.cpp sets it up.
-// usage: mac_check <output-dir> [--section menubar|layout|all, comma-separated | --section identity]
+// src/app/main.cpp sets it up. The sections keys and zone press the window keys of the real MainWindow and the zone and
+// content-box keys, and read the native View menu.
+// usage: mac_check <output-dir> [--section menubar|layout|keys|zone|all, comma-separated | --section identity]
 // The output directory must lie below the checkout's build/ directory. QSettings and temporary files are kept inside
 // it, so a run never touches the user's real settings. The section identity runs alone and needs HOME and
 // CFFIXED_USER_HOME set to <output-dir>/home.
@@ -23,28 +24,58 @@
 #include <pwd.h>
 #include <unistd.h>
 
+#include <BasicImageView.h>
+#include <BinaryImage.h>
+#include <ContentMask.h>
+#include <Dpi.h>
+#include <ImageId.h>
+#include <ImagePixmapUnion.h>
+#include <ImageTransformation.h>
+#include <InteractionState.h>
+#include <PageId.h>
+#include <SerializableSpline.h>
+#include <filters/output/ImageViewTab.h>
+#include <filters/output/PictureZoneEditor.h>
+#include <filters/output/Settings.h>
+#include <filters/output/TabbedImageView.h>
+#include <filters/select_content/ImageView.h>
+
 #include <QAction>
+#include <QApplication>
 #include <QByteArray>
 #include <QCoreApplication>
+#include <QCursor>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QEvent>
 #include <QFile>
+#include <QFrame>
 #include <QGuiApplication>
+#include <QImage>
 #include <QKeySequence>
+#include <QLayoutItem>
+#include <QLineEdit>
 #include <QList>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMouseEvent>
+#include <QPolygonF>
 #include <QSettings>
+#include <QSpinBox>
+#include <QStackedLayout>
 #include <QStandardPaths>
 #include <QString>
 #include <QStringList>
 #include <QTextStream>
 #include <QThread>
+#include <QVBoxLayout>
 #include <QWidget>
 #include <QWindow>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <deque>
 #include <memory>
 #include <vector>
 
@@ -54,7 +85,7 @@
 namespace {
 
 const char* const kUsage
-    = "usage: mac_check <output-dir> [--section menubar|layout|all, comma-separated | --section identity]\n";
+    = "usage: mac_check <output-dir> [--section menubar|layout|keys|zone|all, comma-separated | --section identity]\n";
 
 // Collects the "key: value" result lines, echoes them to stdout and writes them to summary.txt.
 class Summary {
@@ -79,8 +110,18 @@ class Summary {
     return true;
   }
 
+  // The path flush() writes to; a section that might end the process (Cmd-Q) saves what it has first.
+  void setPath(const QString& path) { m_path = path; }
+
+  void flush() const {
+    if (!m_path.isEmpty()) {
+      save(m_path);
+    }
+  }
+
  private:
   QStringList m_lines;
+  QString m_path;
 };
 
 QString yesNo(const bool value) {
@@ -549,6 +590,576 @@ bool runLayoutSection(Summary& summary) {
   return pass;
 }
 
+// Sections keys and zone ----------------------------------------------------------------------------------------
+
+// Option-Command is the group plan 05-02 measured for the Output tabs and the thumbnail keys (records/layout.md:
+// output_tabs_group and thumbnails_group are option-command).
+const unsigned kGroupModifiers = cocoaprobe::Command | cocoaprobe::Option;
+
+// Counts the triggers of a set of actions by name. The counters live in a deque so that their addresses stay valid.
+class ActionCounter {
+ public:
+  void watch(const QString& name, QAction* const action, QObject* const context) {
+    m_names << name;
+    m_counts.push_back(0);
+    int* const counter = &m_counts.back();
+    QObject::connect(action, &QAction::triggered, context, [counter] { ++*counter; });
+  }
+
+  void reset() { std::fill(m_counts.begin(), m_counts.end(), 0); }
+
+  int count(const QString& name) const {
+    const int index = m_names.indexOf(name);
+    return index >= 0 ? m_counts[static_cast<size_t>(index)] : 0;
+  }
+
+  int others(const QString& name) const {
+    int sum = 0;
+    for (int i = 0; i < m_names.size(); ++i) {
+      sum += m_names[i] == name ? 0 : m_counts[static_cast<size_t>(i)];
+    }
+    return sum;
+  }
+
+  QString describeOthers(const QString& name) const {
+    QStringList parts;
+    for (int i = 0; i < m_names.size(); ++i) {
+      if (m_names[i] != name && m_counts[static_cast<size_t>(i)] != 0) {
+        parts << QString("%1=%2").arg(m_names[i]).arg(m_counts[static_cast<size_t>(i)]);
+      }
+    }
+    return parts.join(", ");
+  }
+
+  int total(const QStringList& names) const {
+    int sum = 0;
+    for (const QString& name : names) {
+      sum += count(name);
+    }
+    return sum;
+  }
+
+ private:
+  QStringList m_names;
+  std::deque<int> m_counts;
+};
+
+// Counts the close events of the window it is installed on and swallows them, so that Cmd-Q can be observed without
+// ending the run.
+class CloseSwallower : public QObject {
+ public:
+  bool eventFilter(QObject* const watched, QEvent* const event) override {
+    if (event->type() == QEvent::Close) {
+      ++m_count;
+      event->ignore();
+      return true;
+    }
+    return QObject::eventFilter(watched, event);
+  }
+
+  int count() const { return m_count; }
+
+ private:
+  int m_count = 0;
+};
+
+// Looks the character up in the current layout (with Shift when the layout needs it, as for = on the German layout),
+// sends the chord to the window and processes events for 300 ms. False when the layout has no such key or the window
+// has no NSWindow.
+bool pressCharacter(QWindow* const window, const QChar character, unsigned modifiers) {
+  int code = 0;
+  if (!cocoaprobe::keyCodeFor(character, false, &code)) {
+    if (!cocoaprobe::keyCodeFor(character, true, &code)) {
+      return false;
+    }
+    modifiers |= cocoaprobe::Shift;
+  }
+  const bool sent = cocoaprobe::sendKey(window, code, modifiers);
+  pump(300);
+  return sent;
+}
+
+bool pressSpecial(QWindow* const window, const cocoaprobe::SpecialKey key) {
+  const bool sent = cocoaprobe::sendKey(window, cocoaprobe::specialKeyCode(key), 0);
+  pump(300);
+  return sent;
+}
+
+// Shows a widget as a top-level window, activates the application and waits for the window to have the keyboard focus.
+bool showAndActivate(QWidget& widget) {
+  widget.show();
+  widget.activateWindow();
+  widget.raise();
+  cocoaprobe::activate(widget.windowHandle());
+  const bool focused = waitFor([&widget] { return QGuiApplication::focusWindow() == widget.windowHandle(); }, 5000);
+  pump(500);
+  return cocoaprobe::activate(widget.windowHandle()) && focused;
+}
+
+QImage greyImage(const int width, const int height) {
+  QImage image(width, height, QImage::Format_RGB32);
+  image.fill(QColor(128, 128, 128));
+  return image;
+}
+
+QStackedLayout* imageFrameLayout(MainWindow& window) {
+  QFrame* const frame = window.findChild<QFrame*>("imageViewFrame");
+  return frame != nullptr ? qobject_cast<QStackedLayout*>(frame->layout()) : nullptr;
+}
+
+// Removes every widget from the main area (they stay children of the frame, hidden) so that the section can put its own
+// view in. Deletes the layout items, not the widgets.
+void emptyImageFrame(MainWindow& window) {
+  QStackedLayout* const layout = imageFrameLayout(window);
+  while (layout != nullptr && layout->count() > 0) {
+    QLayoutItem* const item = layout->takeAt(0);
+    if (item->widget() != nullptr) {
+      item->widget()->hide();
+    }
+    delete item;
+  }
+}
+
+QString ratioText(const double value) {
+  return QString::number(value, 'f', 6);
+}
+
+bool nearly(const double value, const double expected) {
+  return std::abs(value - expected) <= 0.000002;
+}
+
+bool runKeysSection(Summary& summary) {
+  MainWindow window;
+  window.resize(1280, 800);
+  CloseSwallower closeSwallower;
+  window.installEventFilter(&closeSwallower);
+  const bool appActive = showAndActivate(window);
+  summary.add("keys_app_active", yesNo(appActive));
+  const bool german = cocoaprobe::keyboardLayoutId().contains("German");
+  summary.add("keys_layout_german", yesNo(german));
+  QWindow* const handle = window.windowHandle();
+
+  // Production slots that would open dialogs or panels, close the window or change the stage are disconnected; the
+  // zoom actions stay connected because their effect is measured.
+  struct Watched {
+    const char* name;
+    const char* objectName;
+    bool disconnectProduction;
+  };
+  const Watched watched[] = {
+      {"stage_1", "actionSwitchFilter1", true},
+      {"stage_2", "actionSwitchFilter2", true},
+      {"stage_3", "actionSwitchFilter3", true},
+      {"stage_4", "actionSwitchFilter4", true},
+      {"stage_5", "actionSwitchFilter5", true},
+      {"stage_6", "actionSwitchFilter6", true},
+      {"new", "actionNewProject", true},
+      {"open", "actionOpenProject", true},
+      {"save", "actionSaveProject", true},
+      {"save_as", "actionSaveProjectAs", true},
+      {"close", "actionCloseProject", true},
+      {"quit", "actionQuit", true},
+      {"settings", "actionSettings", true},
+      {"zoom_in", "actionZoomIn", false},
+      {"zoom_out", "actionZoomOut", false},
+      {"thumbs_larger", "actionMagnifyThumbnails", true},
+      {"thumbs_smaller", "actionDiminishThumbnails", true},
+  };
+  ActionCounter counts;
+  bool actionsFound = true;
+  for (const Watched& entry : watched) {
+    QAction* const action = window.findChild<QAction*>(entry.objectName);
+    if (action == nullptr) {
+      actionsFound = false;
+      summary.add(QString("keys_missing_action_%1").arg(entry.objectName), "yes");
+      continue;
+    }
+    if (entry.disconnectProduction) {
+      QObject::disconnect(action, &QAction::triggered, &window, nullptr);
+      QObject::disconnect(action, &QAction::triggered, action, nullptr);
+    }
+    if (entry.disconnectProduction) {
+      action->setEnabled(true);
+    }
+    counts.watch(entry.name, action, &window);
+  }
+  const QStringList stageNames = {"stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"};
+
+  bool allKeysOk = actionsFound;
+  // One chord: counts the own action and every other watched action, records the own count and, if there is one, the
+  // cross fires. True when the own action fired exactly once and no other did.
+  auto press = [&](const QString& key, const QString& own, const QChar character, const unsigned modifiers) {
+    counts.reset();
+    const bool sent = pressCharacter(handle, character, modifiers);
+    const int ownCount = counts.count(own);
+    const int others = counts.others(own);
+    summary.add(key, QString::number(ownCount));
+    if (others != 0) {
+      summary.add(key + "_cross", counts.describeOthers(own));
+    }
+    if (!sent) {
+      summary.add(key + "_note", "event not sent or no key code in this layout");
+    }
+    const bool ok = sent && ownCount == 1 && others == 0;
+    allKeysOk = allKeysOk && ok;
+    return ok;
+  };
+
+  // Stage keys: the Command digits and the letters.
+  for (int n = 1; n <= 6; ++n) {
+    press(QString("keys_stage_cmd_%1").arg(n), QString("stage_%1").arg(n), QChar('0' + n), cocoaprobe::Command);
+  }
+  const char letters[6] = {'o', 'e', 'n', 'v', 'k', 'p'};
+  for (int n = 1; n <= 6; ++n) {
+    const QChar letter(letters[n - 1]);
+    press(QString("keys_stage_letter_%1").arg(letter.toUpper()), QString("stage_%1").arg(n), letter, 0);
+  }
+
+  // File and Settings keys.
+  press("keys_new", "new", 'n', cocoaprobe::Command);
+  press("keys_open", "open", 'o', cocoaprobe::Command);
+  press("keys_save", "save", 's', cocoaprobe::Command);
+  press("keys_save_as", "save_as", 's', cocoaprobe::Command | cocoaprobe::Shift);
+  press("keys_close", "close", 'w', cocoaprobe::Command);
+  press("keys_settings", "settings", ',', cocoaprobe::Command);
+  summary.add("keys_close_events_before_quit", QString::number(closeSwallower.count()));
+
+  // Output tabs: a TabbedImageView with five tabs in the main area. The current tab starts at the last one so that
+  // every key has to change it.
+  emptyImageFrame(window);
+  QStackedLayout* const layout = imageFrameLayout(window);
+  auto* const tabs = new output::TabbedImageView;
+  const output::ImageViewTab tabIds[5] = {output::TAB_OUTPUT, output::TAB_PICTURE_ZONES, output::TAB_FILL_ZONES,
+                                          output::TAB_DEWARPING, output::TAB_DESPECKLING};
+  const char* const tabNames[5] = {"Output", "Picture Zones", "Fill Zones", "Dewarping", "Despeckling"};
+  for (int i = 0; i < 5; ++i) {
+    tabs->addTab(new BasicImageView(greyImage(200, 150)), tabNames[i], tabIds[i]);
+  }
+  bool tabsOk = layout != nullptr;
+  if (layout != nullptr) {
+    layout->addWidget(tabs);
+    layout->setCurrentWidget(tabs);
+  }
+  tabsOk = waitFor([tabs] { return tabs->isVisible(); }, 3000) && tabsOk;
+  tabs->setCurrentIndex(4);
+  tabs->currentWidget()->setFocus();
+  pump(300);
+  counts.reset();
+  for (int n = 1; n <= 5; ++n) {
+    pressCharacter(handle, QChar('0' + n), kGroupModifiers);
+    summary.add(QString("keys_output_tab_%1").arg(n), QString::number(tabs->currentIndex()));
+    tabsOk = tabsOk && tabs->currentIndex() == n - 1;
+    tabs->setCurrentIndex(4);  // back to the last tab, so the next key has to change it again
+    tabs->currentWidget()->setFocus();
+    pump(100);
+  }
+  const int tabStageFires = counts.total(stageNames);
+  summary.add("keys_output_tab_stage_fires", QString::number(tabStageFires));
+  tabsOk = tabsOk && tabStageFires == 0;
+
+  // Command-1 in the Output stage: the stage key fires once and changes no tab.
+  tabs->setCurrentIndex(2);
+  tabs->currentWidget()->setFocus();
+  pump(300);
+  counts.reset();
+  pressCharacter(handle, '1', cocoaprobe::Command);
+  const int cmd1Stage = counts.count("stage_1");
+  const bool cmd1TabChanged = tabs->currentIndex() != 2;
+  summary.add("keys_cmd1_in_output_stage", QString::number(cmd1Stage));
+  summary.add("keys_cmd1_in_output_tab_changed", yesNo(cmd1TabChanged));
+  tabsOk = tabsOk && cmd1Stage == 1 && !cmd1TabChanged;
+
+  // Zoom keys: a page view in the main area.
+  emptyImageFrame(window);
+  auto* const view = new BasicImageView(greyImage(1200, 900));
+  if (layout != nullptr) {
+    layout->addWidget(view);
+    layout->setCurrentWidget(view);
+  }
+  QAction* const zoomIn = window.findChild<QAction*>("actionZoomIn");
+  bool zoomOk = layout != nullptr && zoomIn != nullptr;
+  zoomOk = waitFor([zoomIn] { return zoomIn != nullptr && zoomIn->isEnabled(); }, 3000) && zoomOk;
+  view->setFocus();
+  pump(300);
+  const double zoom0 = view->zoomLevel();
+  pressCharacter(handle, '+', cocoaprobe::Command);
+  const double zoom1 = view->zoomLevel();
+  pressCharacter(handle, '-', cocoaprobe::Command);
+  const double zoom2 = view->zoomLevel();
+  pressCharacter(handle, '=', cocoaprobe::Command);
+  const double zoom3 = view->zoomLevel();
+  const double plusRatio = zoom1 / zoom0;
+  const double minusRatio = zoom2 / zoom1;
+  summary.add("keys_zoom_plus_ratio", ratioText(plusRatio));
+  summary.add("keys_zoom_minus_ratio", ratioText(minusRatio));
+  summary.add("keys_zoom_equal_ratio", ratioText(zoom3 / zoom2));
+  zoomOk = zoomOk && nearly(plusRatio, std::pow(2.0, 1.0 / 6)) && nearly(minusRatio, std::pow(2.0, -1.0 / 6));
+
+  // Thumbnail keys: the secondary group; the page zoom must not move.
+  counts.reset();
+  const double zoomBeforeThumbs = view->zoomLevel();
+  pressCharacter(handle, '+', kGroupModifiers);
+  const int larger = counts.count("thumbs_larger");
+  pressCharacter(handle, '-', kGroupModifiers);
+  const int smaller = counts.count("thumbs_smaller");
+  counts.reset();
+  pressCharacter(handle, '=', kGroupModifiers);
+  const int largerEqual = counts.count("thumbs_larger");
+  summary.add("keys_thumbs_larger", QString::number(larger));
+  summary.add("keys_thumbs_smaller", QString::number(smaller));
+  summary.add("keys_thumbs_larger_equal", QString::number(largerEqual));
+  summary.add("keys_thumbs_zoom_moved", yesNo(view->zoomLevel() != zoomBeforeThumbs));
+  const bool thumbsOk = larger == 1 && smaller == 1 && view->zoomLevel() == zoomBeforeThumbs;
+
+  // The native View menu with the key equivalents Qt gave its items.
+  QStringList actualView;
+  bool viewFound = false;
+  for (const cocoaprobe::MenuInfo& menu : cocoaprobe::mainMenu()) {
+    if (menu.title != "View") {
+      continue;
+    }
+    viewFound = true;
+    for (const cocoaprobe::MenuItemInfo& item : menu.items) {
+      if (item.separator || item.hidden) {
+        continue;
+      }
+      actualView << (item.keyEquivalent.isEmpty() ? item.title : item.title + " " + keyText(item));
+    }
+  }
+  summary.add("keys_view_menu", viewFound ? actualView.join(" | ") : "no View menu");
+  const QString cmd = modifierGlyphs(cocoaprobe::Command);
+  const QString optCmd = modifierGlyphs(kGroupModifiers);
+  QStringList expectedView;
+  for (int n = 1; n <= 6; ++n) {
+    const QAction* const stage = window.findChild<QAction*>(QString("actionSwitchFilter%1").arg(n));
+    expectedView << (stage != nullptr ? stripAmpersand(stage->text()) : QString("?")) + " " + cmd + QString::number(n);
+  }
+  expectedView << "Zoom In " + cmd + "+" << "Zoom Out " + cmd + "-" << "Larger Thumbnails " + optCmd + "+"
+               << "Smaller Thumbnails " + optCmd + "-";
+  const bool viewOk = viewFound && actualView == expectedView;
+  if (!viewOk) {
+    summary.add("keys_view_menu_expected", expectedView.join(" | "));
+  }
+
+  // Cmd-Q last: through actionQuit or through the application's termination request, both end in the window's close
+  // path, which the swallower counts. The summary is saved first in case the run ends here.
+  summary.flush();
+  counts.reset();
+  const bool quitSent = pressCharacter(handle, 'q', cocoaprobe::Command);
+  const int quitTriggered = counts.count("quit");
+  const int quitCloseEvents = closeSwallower.count();
+  summary.add("keys_quit_triggered", QString::number(quitTriggered));
+  summary.add("keys_quit_close_events", QString::number(quitCloseEvents));
+  const bool quitOk = quitSent && (quitTriggered >= 1 || quitCloseEvents >= 1);
+
+  const bool pass = appActive && german && allKeysOk && tabsOk && zoomOk && thumbsOk && viewOk && quitOk;
+  summary.add("keys_verdict", pass ? "PASS" : "FAIL");
+  return pass;
+}
+
+// Zone editor of an empty picture mask over a white page, as in tst_mac_qt.cpp.
+std::unique_ptr<output::PictureZoneEditor> makeZoneEditor(const QImage& page) {
+  QImage maskImage(page.size(), QImage::Format_RGB32);
+  maskImage.fill(Qt::black);
+  return std::make_unique<output::PictureZoneEditor>(
+      page, ImagePixmapUnion(), imageproc::BinaryImage(maskImage), QTransform(), QPolygonF(QRectF(page.rect())),
+      PageId(ImageId(QStringLiteral("page.png"))), std::make_shared<output::Settings>());
+}
+
+QImage zonePage() {
+  QImage page(1200, 900, QImage::Format_RGB32);
+  page.fill(Qt::white);
+  page.setDotsPerMeterX(11811);
+  page.setDotsPerMeterY(11811);
+  return page;
+}
+
+// Adds a rectangular zone (image pixels) the way the creation interaction does, without committing.
+void addRectZone(output::PictureZoneEditor& editor, const QRectF& imageRect) {
+  QPolygonF polygon;
+  polygon << imageRect.topLeft() << imageRect.topRight() << imageRect.bottomRight() << imageRect.bottomLeft();
+  editor.zones().addZone(std::make_shared<EditableSpline>(SerializableSpline(polygon)));
+}
+
+int zoneCount(const output::PictureZoneEditor& editor) {
+  int count = 0;
+  for (const EditableZoneSet::Zone& zone : editor.zones()) {
+    Q_UNUSED(zone);
+    ++count;
+  }
+  return count;
+}
+
+// A top-level window with a zone editor, a line edit with the text abc and a spin box. The window is declared first so
+// that it is destroyed last.
+struct ZoneWindow {
+  ZoneWindow() {
+    editor = makeZoneEditor(zonePage());
+    auto* const layout = new QVBoxLayout(&window);
+    layout->addWidget(editor.get(), 1);
+    spinBox = new QSpinBox(&window);
+    spinBox->setValue(5);
+    lineEdit = new QLineEdit(QStringLiteral("abc"), &window);
+    layout->addWidget(spinBox);
+    layout->addWidget(lineEdit);
+    window.resize(700, 760);
+  }
+
+  QWidget window;
+  std::unique_ptr<output::PictureZoneEditor> editor;
+  QSpinBox* spinBox = nullptr;
+  QLineEdit* lineEdit = nullptr;
+};
+
+// A top-level window with a Select Content view that has no box. The window is declared first so that it is destroyed
+// last.
+struct ContentWindow {
+  ContentWindow() {
+    QImage page(800, 600, QImage::Format_RGB32);
+    page.fill(Qt::white);
+    view = std::make_unique<select_content::ImageView>(
+        page, page, ContentMask(), ImageTransformation(QRectF(page.rect()), Dpi(300, 300)), QRectF(), QRectF(), false);
+    auto* const layout = new QVBoxLayout(&window);
+    layout->addWidget(view.get(), 1);
+    window.resize(700, 600);
+  }
+
+  QWidget window;
+  std::unique_ptr<select_content::ImageView> view;
+};
+
+bool runZoneSection(Summary& summary) {
+  const QRectF zoneRect(400, 300, 400, 300);  // centre of the 1200 by 900 page, image pixels
+  const QString tip = QString::fromUtf8("Press \xE2\x8C\xAB");
+
+  bool zonesOk = true;
+  bool appActive = false;
+  {
+    ZoneWindow zw;
+    appActive = showAndActivate(zw.window);
+    summary.add("zone_app_active", yesNo(appActive));
+    QWindow* const handle = zw.window.windowHandle();
+    output::PictureZoneEditor& editor = *zw.editor;
+    addRectZone(editor, zoneRect);
+
+    // The pointer is placed with cocoaprobe::warpPointer (QCursor::setPos left it where it was, see the record) and
+    // one synthesised mouse-move event; a nudge of a few pixels on every call makes sure the interaction sees a move
+    // even when the zone is new.
+    bool pointerPlaced = false;
+    int nudge = 0;
+    auto pointAtZone = [&]() {
+      const QPoint local = editor.imageToWidget().map(zoneRect.center()).toPoint() + QPoint(nudge, nudge);
+      nudge = (nudge + 3) % 9;
+      pointerPlaced = cocoaprobe::warpPointer(editor.viewport()->mapToGlobal(local));
+      cocoaprobe::sendMouse(handle, QPointF(editor.viewport()->mapTo(&zw.window, local)), cocoaprobe::MouseAction::Move,
+                            0);
+      const bool tracked
+          = waitFor([&editor, &tip] { return editor.interactionState().statusTip().contains(tip); }, 2000);
+      pump(100);
+      return tracked;
+    };
+    auto focusEditor = [&]() {
+      editor.viewport()->setFocus();
+      waitFor(
+          [&] {
+            const QWidget* const focus = QApplication::focusWidget();
+            return focus != nullptr && (focus == &editor || editor.isAncestorOf(focus));
+          },
+          2000);
+    };
+
+    focusEditor();
+    const bool tracked = pointAtZone();
+    summary.add("zone_pointer_tracked", yesNo(tracked));
+    const QPoint expectedGlobal
+        = editor.viewport()->mapToGlobal(editor.imageToWidget().map(zoneRect.center()).toPoint());
+    const QPoint actualGlobal = QCursor::pos();
+    const bool placed = pointerPlaced && (actualGlobal - expectedGlobal).manhattanLength() <= 12;
+    summary.add("zone_pointer_placed", yesNo(placed));
+    int trackedLater = 0;
+
+    // Backspace over the zone.
+    pressSpecial(handle, cocoaprobe::SpecialKey::Backspace);
+    const bool backspaceRemoved = zoneCount(editor) == 0;
+    summary.add("zone_backspace_removed", yesNo(backspaceRemoved));
+
+    // Forward delete over a new zone.
+    addRectZone(editor, zoneRect);
+    trackedLater += pointAtZone() ? 1 : 0;
+    pressSpecial(handle, cocoaprobe::SpecialKey::ForwardDelete);
+    const bool forwardRemoved = zoneCount(editor) == 0;
+    summary.add("zone_forward_delete_removed", yesNo(forwardRemoved));
+
+    // Backspace in the focused line edit: the field edits its text and the zone stays.
+    addRectZone(editor, zoneRect);
+    trackedLater += pointAtZone() ? 1 : 0;
+    zw.lineEdit->setFocus();
+    zw.lineEdit->end(false);
+    waitFor([&zw] { return QApplication::focusWidget() == zw.lineEdit; }, 2000);
+    pressSpecial(handle, cocoaprobe::SpecialKey::Backspace);
+    const bool lineEditRemoved = zoneCount(editor) == 0;
+    summary.add("zone_backspace_in_line_edit_removed", yesNo(lineEditRemoved));
+    summary.add("zone_line_edit_text", zw.lineEdit->text());
+
+    // Backspace in the focused spin box.
+    zw.spinBox->setFocus();
+    waitFor(
+        [&zw] {
+          const QWidget* const focus = QApplication::focusWidget();
+          return focus != nullptr && (focus == zw.spinBox || zw.spinBox->isAncestorOf(focus));
+        },
+        2000);
+    pressSpecial(handle, cocoaprobe::SpecialKey::Backspace);
+    const bool spinBoxRemoved = zoneCount(editor) == 0;
+    summary.add("zone_backspace_in_spin_box_removed", yesNo(spinBoxRemoved));
+    summary.add("zone_pointer_tracked_later", QString("%1 of 2").arg(trackedLater));
+
+    zonesOk = appActive && placed && tracked && trackedLater == 2 && backspaceRemoved && forwardRemoved
+              && !lineEditRemoved && !spinBoxRemoved && zw.lineEdit->text() == "ab";
+  }
+
+  // Select Content: B creates the box, Backspace and forward delete remove it.
+  bool contentOk = false;
+  {
+    ContentWindow cw;
+    const bool contentActive = showAndActivate(cw.window);
+    summary.add("content_app_active", yesNo(contentActive));
+    QWindow* const handle = cw.window.windowHandle();
+    int events = 0;
+    QRectF last;
+    QObject::connect(cw.view.get(), &select_content::ImageView::manualContentRectSet, &cw.window,
+                     [&events, &last](const QRectF& rect) {
+                       ++events;
+                       last = rect;
+                     });
+    cw.view->viewport()->setFocus();
+    waitFor(
+        [&cw] {
+          const QWidget* const focus = QApplication::focusWidget();
+          return focus != nullptr && (focus == cw.view.get() || cw.view->isAncestorOf(focus));
+        },
+        2000);
+
+    pressCharacter(handle, 'b', 0);
+    const bool created = events == 1 && !last.isEmpty();
+    summary.add("content_b_created", yesNo(created));
+    pressSpecial(handle, cocoaprobe::SpecialKey::Backspace);
+    const bool backspaceRemoved = events == 2 && last.isEmpty();
+    summary.add("content_backspace_removed", yesNo(backspaceRemoved));
+    pressCharacter(handle, 'b', 0);
+    const bool createdAgain = events == 3 && !last.isEmpty();
+    pressSpecial(handle, cocoaprobe::SpecialKey::ForwardDelete);
+    const bool forwardRemoved = events == 4 && last.isEmpty();
+    summary.add("content_forward_delete_removed", yesNo(forwardRemoved));
+    summary.add("content_events", QString::number(events));
+    contentOk = contentActive && created && backspaceRemoved && createdAgain && forwardRemoved;
+  }
+
+  const bool pass = zonesOk && contentOk;
+  summary.add("zone_verdict", pass ? "PASS" : "FAIL");
+  return pass;
+}
+
 // Section identity ----------------------------------------------------------------------------------------------
 
 // Repeats the order of src/app/main.cpp (application object, then the two names, then the INI format and a
@@ -635,14 +1246,14 @@ int main(int argc, char* argv[]) {
   }
 
   // The list of section names: known names only, "all" expands to every name except identity, identity runs alone.
-  const QStringList knownSections = {"menubar", "layout", "identity", "all"};
+  const QStringList knownSections = {"menubar", "layout", "keys", "zone", "identity", "all"};
   const QStringList requested = sectionArg.split(',');
   QStringList sections;
   for (const QString& name : requested) {
     if (!knownSections.contains(name)) {
       badArguments = true;
     } else if (name == "all") {
-      sections << "menubar" << "layout";
+      sections << "menubar" << "layout" << "zone" << "keys";
     } else {
       sections << name;
     }
@@ -710,6 +1321,7 @@ int main(int argc, char* argv[]) {
   IconProvider::getInstance().setIconPack(StyledIconPack::createDefault());
 
   Summary summary;
+  summary.setPath(out + "/summary.txt");
   summary.add("platform", QGuiApplication::platformName());
   summary.add("qt_runtime", QString::fromLatin1(qVersion()));
   summary.add("section", sectionArg);
@@ -726,6 +1338,13 @@ int main(int argc, char* argv[]) {
   }
   if (sections.contains("layout")) {
     pass = runLayoutSection(summary) && pass;
+  }
+  // The zone section runs before keys: keys ends with Cmd-Q, which might end the process.
+  if (sections.contains("zone")) {
+    pass = runZoneSection(summary) && pass;
+  }
+  if (sections.contains("keys")) {
+    pass = runKeysSection(summary) && pass;
   }
   summary.add("verdict", pass ? "PASS" : "FAIL");
   if (!summary.save(out + "/summary.txt")) {

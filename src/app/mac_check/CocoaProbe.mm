@@ -261,6 +261,15 @@ bool sendMouse(QWindow* window, const QPointF& logicalPos, MouseAction action, u
   return true;
 }
 
+bool warpPointer(const QPoint& globalPos) {
+  if (CGWarpMouseCursorPosition(CGPointMake(globalPos.x(), globalPos.y())) != kCGErrorSuccess) {
+    return false;
+  }
+  // The warp suppresses local mouse events for a moment unless the mouse and the pointer are associated again.
+  CGAssociateMouseAndMouseCursorPosition(true);
+  return true;
+}
+
 std::vector<MenuInfo> mainMenu() {
   std::vector<MenuInfo> menus;
   NSMenu* const bar = [NSApp mainMenu];

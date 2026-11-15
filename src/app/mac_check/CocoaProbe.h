@@ -10,6 +10,7 @@
 #define MAC_CHECK_COCOA_PROBE_H
 
 #include <QChar>
+#include <QPoint>
 #include <QPointF>
 #include <QString>
 #include <functional>
@@ -68,6 +69,10 @@ bool sendKey(QWindow* window, int keyCode, unsigned modifiers);
 /// Mouse events at the window-relative logical position through [NSApp sendEvent:]: Move is one mouse-moved event,
 /// a click a down and up pair of the left or right button.
 bool sendMouse(QWindow* window, const QPointF& logicalPos, MouseAction action, unsigned modifiers);
+
+/// Moves the pointer to a position in Qt's global logical coordinates with CGWarpMouseCursorPosition. No event is
+/// posted and no privacy permission is needed; QCursor::setPos did not move the pointer in the measured setup.
+bool warpPointer(const QPoint& globalPos);
 
 /// NSApp.mainMenu; element 0 is the application menu.
 std::vector<MenuInfo> mainMenu();
