@@ -943,6 +943,24 @@ void TestMacQt::testContentMenuShowsKeys() {
   QCOMPARE(remove->shortcuts().at(1), QKeySequence(Qt::Key_Delete));
 }
 
+void TestMacQt::testZoneMenuDismissRestoresDefaultAtOnce() {
+  ZoneWindow zw(false);
+  output::PictureZoneEditor& editor = *zw.editor;
+  addRectZone(editor, kZoneA);
+  QCOMPARE(zoneCount(editor), 1);
+
+  const QPoint centre = viewportPointOf(editor, kZoneA.center());
+  pointAt(editor.viewport(), centre);
+  rightClickThroughWindow(zw.window, editor.viewport(), centre);
+  QTRY_VERIFY(visibleMenuOf(editor) != nullptr);
+
+  // Dismissed without a click: the interaction, and with it the menu, is gone well before the 200 ms the removed
+  // deferral used to wait.
+  visibleMenuOf(editor)->hide();
+  QTRY_COMPARE_WITH_TIMEOUT(editor.findChildren<QMenu*>().size(), 0, 100);
+  QCOMPARE(zoneCount(editor), 1);
+}
+
 void TestMacQt::testRightClickOpensZoneMenu() {
   {
     ZoneWindow zw(false);
