@@ -196,7 +196,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Use Ctrl+Click / Shift+Click to select multiple pages.</string>
+           <string>Use ⌘-click / ⇧-click to select multiple pages.</string>
           </property>
          </widget>
         </item>
