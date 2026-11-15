@@ -5,11 +5,11 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Zoom actions keep a stale enabled state when the Output tab or its view changes"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`mac_check` keys section does not verify that the production slots were disconnected"
   - id: IN-01
     severity: info
@@ -35,17 +35,17 @@ findings:
     severity: info
     disposition: open
     title: "Test brittleness and duplication"
-open: 8
+open: 6
 total: 8
-recorded: 2026-11-15T11:54:02.967Z
+recorded: 2026-11-15T17:18:11.673Z
 ---
 
 # Phase 05: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
+| WR-01 | warning | fixed | 05-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 05-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
