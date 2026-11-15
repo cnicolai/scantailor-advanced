@@ -203,7 +203,7 @@ Plans:
   4. When a batch run finishes, the Mac plays the system beep and no shell command runs
   5. Every open, save and folder dialog, including the relinking dialog, is the native macOS panel
 
-**Plans:** 6/11 plans executed
+**Plans:** 7/11 plans executed
 
 Plans:
 **Wave 1**
@@ -225,7 +225,7 @@ Plans:
 - [x] 05-06-PLAN.md — Live context-menu triggers (right-click, Control-click; two-finger click recorded as a residual) and the 200 ms deferral decided by measurement
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 05-07-PLAN.md — Mac key names in the multi-page hint of the nine apply dialogs
+- [x] 05-07-PLAN.md — Mac key names in the multi-page hint of the nine apply dialogs
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 05-08-PLAN.md — Mac key names in the Margins help, the main window and the C++ tips, with a permanent scan for PC key names
@@ -270,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
-| 5. Mac Menus and Shortcuts | 6/11 | In Progress | - |
+| 5. Mac Menus and Shortcuts | 7/11 | In Progress | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
 ---

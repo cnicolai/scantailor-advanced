@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Mac Menus and Shortcuts
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-11-15T10:23:45.478Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-11-15T10:37:54.419Z"
 last_activity: 2026-11-15
 last_activity_desc: Phase 05 execution started
-state_head: c478a5df154bb144c629b885f789098037b659cc
+state_head: db95ee96ca800929875883c499f8923b0f440395
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 49
-  completed_plans: 44
+  completed_plans: 45
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 05 (Mac Menus and Shortcuts) — EXECUTING
-Plan: 7 of 11
+Plan: 8 of 11
 Status: Ready to execute
 Last activity: 2026-11-15 — Phase 05 execution started
 
@@ -104,6 +104,7 @@ Progress: [███████░░░] 67%
 | Phase 05 P04 | resumed | 2 tasks | 6 files |
 | Phase 05 P05-05 | 12 min | 2 tasks | 7 files |
 | Phase 05 P06 | n/a | 2 tasks | 7 files |
+| Phase 05 P07 | not measured | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -199,6 +200,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-05: pointer placed with CGWarpMouseCursorPosition (cocoaprobe::warpPointer) because QCursor::setPos left the pointer in place on Cocoa
 - [Phase 05]: 05-05: Backspace reaches the zone and content-box shortcuts under Qt 6.12 on Cocoa (live zone_verdict PASS)
 - [Phase 05]: 05-06: 200 ms context menu hide delay removed after 20 of 20 confirmed live runs with triggered() before the queued aboutToHide slot; two-finger click stays an unverified residual
+- [Phase 05]: 05-07: apply-dialog hint rewritten to Use ⌘-click / ⇧-click, one line per .ui file, nine dialogs in two gated commits
 
 ### Pending Todos
 
@@ -217,6 +219,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-15T10:23:45.065Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-11-15T10:37:54.081Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: None
