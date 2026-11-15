@@ -5,8 +5,9 @@
 // menu bar (application menu, Help menu, application name), sends synthesised key events to a probe window to find
 // which chords fire on the German keyboard layout, and measures the app's storage identity (names and paths) the way
 // src/app/main.cpp sets it up. The sections keys and zone press the window keys of the real MainWindow and the zone and
-// content-box keys, and read the native View menu.
-// usage: mac_check <output-dir> [--section menubar|layout|keys|zone|all, comma-separated | --section identity]
+// content-box keys, and read the native View menu. The section context right-clicks and Control-clicks a zone, clicks
+// the first menu item, dismisses the menu with Escape and measures the order of triggered() and aboutToHide.
+// usage: mac_check <output-dir> [--section menubar|layout|keys|zone|context|all, comma-separated | --section identity]
 // The output directory must lie below the checkout's build/ directory. QSettings and temporary files are kept inside
 // it, so a run never touches the user's real settings. The section identity runs alone and needs HOME and
 // CFFIXED_USER_HOME set to <output-dir>/home.
@@ -85,7 +86,8 @@
 namespace {
 
 const char* const kUsage
-    = "usage: mac_check <output-dir> [--section menubar|layout|keys|zone|all, comma-separated | --section identity]\n";
+    = "usage: mac_check <output-dir> [--section menubar|layout|keys|zone|context|all, comma-separated | --section "
+      "identity]\n";
 
 // Collects the "key: value" result lines, echoes them to stdout and writes them to summary.txt.
 class Summary {
@@ -1160,6 +1162,278 @@ bool runZoneSection(Summary& summary) {
   return pass;
 }
 
+// Section context -----------------------------------------------------------------------------------------------
+
+// Counts the QEvent::ContextMenu events delivered to one object; installed on the application so that nothing that
+// reaches the object is missed.
+class ContextEventCounter : public QObject {
+ public:
+  explicit ContextEventCounter(QObject* const target) : m_target(target) {}
+
+  bool eventFilter(QObject* const watched, QEvent* const event) override {
+    if (watched == m_target && event->type() == QEvent::ContextMenu) {
+      ++m_count;
+    }
+    return false;
+  }
+
+  int count() const { return m_count; }
+
+  void reset() { m_count = 0; }
+
+ private:
+  QObject* const m_target;
+  int m_count = 0;
+};
+
+// The zone menu is a QMenu child of the editor, created per interaction.
+QMenu* visibleZoneMenu(const QWidget& editor) {
+  for (QMenu* const menu : editor.findChildren<QMenu*>()) {
+    if (menu->isVisible()) {
+      return menu;
+    }
+  }
+  return nullptr;
+}
+
+bool anyZoneMenuObject(const QWidget& editor) {
+  return !editor.findChildren<QMenu*>().isEmpty();
+}
+
+// What happened after one right-click or Control-click on a zone, and after the first click on Delete.
+struct TriggerResult {
+  bool tracked = false;
+  int events = 0;
+  bool menuShown = false;
+  bool qtMenu = false;
+  bool nativeMenuObject = false;
+  bool deleteFound = false;
+  bool clickSent = false;
+  bool deleted = false;
+  bool hideRan = false;
+  bool triggeredBeforeHide = false;
+};
+
+// Probe filled by the Delete action's triggered signal and by a queued slot of the menu's aboutToHide, the order the
+// interaction relies on.
+struct HideProbe {
+  bool triggered = false;
+  bool hideRan = false;
+  bool triggeredBeforeHide = false;
+};
+
+const int kEscapeKeyCode = 53;  // kVK_Escape
+
+bool runContextSection(Summary& summary) {
+  const QRectF zoneRect(400, 300, 400, 300);  // centre of the 1200 by 900 page, image pixels
+  const QString tip = QString::fromUtf8("Press \xE2\x8C\xAB");
+  const int orderRuns = 20;
+
+  ZoneWindow zw;
+  const bool appActive = showAndActivate(zw.window);
+  summary.add("context_app_active", yesNo(appActive));
+  QWindow* const handle = zw.window.windowHandle();
+  output::PictureZoneEditor& editor = *zw.editor;
+  ContextEventCounter counter(editor.viewport());
+  QCoreApplication::instance()->installEventFilter(&counter);
+
+  bool pointerPlaced = true;
+  int nudge = 0;
+  auto zoneWindowPos = [&]() {
+    const QPoint local = editor.imageToWidget().map(zoneRect.center()).toPoint();
+    return QPointF(editor.viewport()->mapTo(&zw.window, local));
+  };
+  // The zone menu is looked up through QCursor::pos(), which can lag behind a pointer warp: after the warp the target
+  // is waited for (re-warping every 100 ms) before the move event is sent, and again right before each trigger.
+  int cursorLagged = 0;       // placements where QCursor::pos() was not at the target at the first look
+  int cursorUnconfirmed = 0;  // placements where it never got there within the bound
+  QPoint targetGlobal;
+  auto confirmCursor = [&]() {
+    const auto atTarget = [&targetGlobal] { return (QCursor::pos() - targetGlobal).manhattanLength() <= 1; };
+    if (atTarget()) {
+      return true;
+    }
+    ++cursorLagged;
+    for (int attempt = 0; attempt < 10; ++attempt) {
+      pointerPlaced = cocoaprobe::warpPointer(targetGlobal) && pointerPlaced;
+      if (waitFor(atTarget, 100)) {
+        return true;
+      }
+    }
+    ++cursorUnconfirmed;
+    return false;
+  };
+  auto pointAtZone = [&]() {
+    const QPoint local = editor.imageToWidget().map(zoneRect.center()).toPoint() + QPoint(nudge, nudge);
+    nudge = (nudge + 3) % 9;
+    targetGlobal = editor.viewport()->mapToGlobal(local);
+    pointerPlaced = cocoaprobe::warpPointer(targetGlobal) && pointerPlaced;
+    confirmCursor();
+    cocoaprobe::sendMouse(handle, QPointF(editor.viewport()->mapTo(&zw.window, local)), cocoaprobe::MouseAction::Move,
+                          0);
+    const bool tracked = waitFor([&editor, &tip] { return editor.interactionState().statusTip().contains(tip); }, 2000);
+    pump(100);
+    return tracked;
+  };
+  auto focusEditor = [&]() {
+    editor.viewport()->setFocus();
+    waitFor(
+        [&] {
+          const QWidget* const focus = QApplication::focusWidget();
+          return focus != nullptr && (focus == &editor || editor.isAncestorOf(focus));
+        },
+        2000);
+  };
+  // One zone under the pointer with the default interaction active.
+  auto prepare = [&]() {
+    if (zoneCount(editor) == 0) {
+      addRectZone(editor, zoneRect);
+    }
+    focusEditor();
+    return pointAtZone();
+  };
+
+  int retries = 0;
+  // One trigger on the zone; with clickDelete the first click on the Delete item follows.
+  auto runTrigger = [&](const cocoaprobe::MouseAction action, const unsigned modifiers, const bool clickDelete) {
+    TriggerResult result;
+    result.tracked = prepare();
+    const int before = zoneCount(editor);
+    // One retry when no menu appears: nothing has changed then (the default interaction stays), so the trigger can be
+    // repeated; retries are counted and reported.
+    for (int attempt = 0; attempt < 2 && !result.menuShown; ++attempt) {
+      if (attempt > 0) {
+        ++retries;
+        result.tracked = prepare() && result.tracked;
+      }
+      confirmCursor();
+      counter.reset();
+      cocoaprobe::sendMouse(handle, zoneWindowPos(), action, modifiers);
+      result.menuShown = waitFor([&editor] { return visibleZoneMenu(editor) != nullptr; }, 2000);
+      result.events = counter.count();
+    }
+    QMenu* const menu = visibleZoneMenu(editor);
+    result.qtMenu = menu != nullptr;
+    result.nativeMenuObject = menu == nullptr && anyZoneMenuObject(editor);
+    if (menu == nullptr || !clickDelete) {
+      return result;
+    }
+    QAction* deleteAction = nullptr;
+    for (QAction* const candidate : menu->actions()) {
+      if (candidate->text() == "Delete") {
+        deleteAction = candidate;
+      }
+    }
+    result.deleteFound = deleteAction != nullptr;
+    if (deleteAction == nullptr || menu->windowHandle() == nullptr) {
+      return result;
+    }
+    const auto probe = std::make_shared<HideProbe>();
+    QObject::connect(deleteAction, &QAction::triggered, &zw.window, [probe] { probe->triggered = true; });
+    QObject::connect(
+        menu, &QMenu::aboutToHide, &zw.window,
+        [probe] {
+          probe->hideRan = true;
+          probe->triggeredBeforeHide = probe->triggered;
+        },
+        Qt::QueuedConnection);
+    result.clickSent = cocoaprobe::sendMouse(menu->windowHandle(), QPointF(menu->actionGeometry(deleteAction).center()),
+                                             cocoaprobe::MouseAction::LeftClick, 0);
+    pump(400);  // longer than the 200 ms deferral of the interaction
+    result.deleted = zoneCount(editor) == before - 1;
+    result.hideRan = probe->hideRan;
+    result.triggeredBeforeHide = probe->hideRan && probe->triggeredBeforeHide;
+    waitFor([&editor] { return visibleZoneMenu(editor) == nullptr; }, 2000);
+    return result;
+  };
+  auto report = [&summary](const QString& name, const TriggerResult& result) {
+    const QString prefix = "context_" + name + "_";
+    summary.add(prefix + "tracked", yesNo(result.tracked));
+    summary.add(prefix + "events", QString::number(result.events));
+    summary.add(prefix + "menu_shown", yesNo(result.menuShown));
+    summary.add(prefix + "first_click_deleted", result.qtMenu ? yesNo(result.deleted) : "not measurable in-process");
+    summary.add(prefix + "triggered_before_queued_hide",
+                result.qtMenu ? (result.hideRan ? yesNo(result.triggeredBeforeHide) : "hide slot did not run")
+                              : "not measurable in-process");
+  };
+
+  const TriggerResult right = runTrigger(cocoaprobe::MouseAction::RightClick, 0, true);
+  report("right_click", right);
+  const TriggerResult control = runTrigger(cocoaprobe::MouseAction::LeftClick, cocoaprobe::Control, true);
+  report("control_click", control);
+  const bool qtMenu = right.qtMenu && control.qtMenu;
+  const bool nativeMenu = right.nativeMenuObject || control.nativeMenuObject;
+  summary.add("context_menu_kind", qtMenu ? "qt" : nativeMenu ? "native" : "none");
+
+  // Dismissal: Escape on the open menu changes nothing and leaves the default interaction in place.
+  bool dismissHidden = false;
+  bool dismissUnchanged = false;
+  bool dismissRestored = false;
+  QString dismissVia = "none";
+  {
+    const bool tracked = prepare();
+    const int before = zoneCount(editor);
+    cocoaprobe::sendMouse(handle, zoneWindowPos(), cocoaprobe::MouseAction::RightClick, 0);
+    const bool shown = waitFor([&editor] { return visibleZoneMenu(editor) != nullptr; }, 2000);
+    summary.add("context_dismiss_menu_shown", yesNo(tracked && shown));
+    QMenu* const menu = visibleZoneMenu(editor);
+    if (menu != nullptr) {
+      if (menu->windowHandle() != nullptr) {
+        cocoaprobe::sendKey(menu->windowHandle(), kEscapeKeyCode, 0);
+        dismissVia = "menu window";
+      }
+      dismissHidden = waitFor([&editor] { return visibleZoneMenu(editor) == nullptr; }, 1000);
+      if (!dismissHidden) {
+        cocoaprobe::sendKey(handle, kEscapeKeyCode, 0);
+        dismissVia = "main window";
+        dismissHidden = waitFor([&editor] { return visibleZoneMenu(editor) == nullptr; }, 1000);
+      }
+      if (!dismissHidden) {
+        menu->hide();  // never leave a menu open under the real session
+      }
+    }
+    pump(500);  // the interaction's deferred restore of the default interaction (200 ms) and a margin
+    dismissUnchanged = zoneCount(editor) == before;
+    dismissRestored = pointAtZone();
+  }
+  summary.add("context_dismiss_via", dismissVia);
+  summary.add("context_dismiss_menu_hidden", yesNo(dismissHidden));
+  summary.add("context_dismiss_zones_unchanged", yesNo(dismissUnchanged));
+  summary.add("context_dismiss_default_restored", yesNo(dismissRestored));
+
+  // Ordering: in how many of 20 right-click plus Delete runs had triggered() fired before the queued aboutToHide slot
+  // ran.
+  int before = 0;
+  int ran = 0;
+  int deleted = 0;
+  for (int run = 0; run < orderRuns; ++run) {
+    const TriggerResult result = runTrigger(cocoaprobe::MouseAction::RightClick, 0, true);
+    before += result.triggeredBeforeHide ? 1 : 0;
+    ran += result.hideRan ? 1 : 0;
+    deleted += result.deleted ? 1 : 0;
+  }
+  summary.add("context_order_runs", QString::number(orderRuns));
+  summary.add("context_order_hide_ran", QString::number(ran));
+  summary.add("context_order_deleted", QString::number(deleted));
+  summary.add("context_triggered_before_queued_hide_count", QString::number(before));
+  summary.add("context_two_finger_click",
+              "same rightMouseDown event as right_click; not distinguishable in-process; unverified residual");
+  summary.add("context_pointer_placed", yesNo(pointerPlaced));
+  summary.add("context_cursor_lagged", QString::number(cursorLagged));
+  summary.add("context_cursor_unconfirmed", QString::number(cursorUnconfirmed));
+  summary.add("context_retries", QString::number(retries));
+
+  const bool removeDeferral = qtMenu && before == orderRuns;
+  summary.add("context_delay_decision", removeDeferral ? "remove" : "keep");
+
+  QCoreApplication::instance()->removeEventFilter(&counter);
+  const bool pass = appActive && pointerPlaced && right.tracked && control.tracked && right.events == 1
+                    && control.events == 1 && right.menuShown && control.menuShown && right.deleted && control.deleted
+                    && dismissHidden && dismissUnchanged && dismissRestored;
+  summary.add("context_verdict", pass ? "PASS" : "FAIL");
+  return pass;
+}
+
 // Section identity ----------------------------------------------------------------------------------------------
 
 // Repeats the order of src/app/main.cpp (application object, then the two names, then the INI format and a
@@ -1246,14 +1520,14 @@ int main(int argc, char* argv[]) {
   }
 
   // The list of section names: known names only, "all" expands to every name except identity, identity runs alone.
-  const QStringList knownSections = {"menubar", "layout", "keys", "zone", "identity", "all"};
+  const QStringList knownSections = {"menubar", "layout", "keys", "zone", "context", "identity", "all"};
   const QStringList requested = sectionArg.split(',');
   QStringList sections;
   for (const QString& name : requested) {
     if (!knownSections.contains(name)) {
       badArguments = true;
     } else if (name == "all") {
-      sections << "menubar" << "layout" << "zone" << "keys";
+      sections << "menubar" << "layout" << "zone" << "context" << "keys";
     } else {
       sections << name;
     }
@@ -1342,6 +1616,9 @@ int main(int argc, char* argv[]) {
   // The zone section runs before keys: keys ends with Cmd-Q, which might end the process.
   if (sections.contains("zone")) {
     pass = runZoneSection(summary) && pass;
+  }
+  if (sections.contains("context")) {
+    pass = runContextSection(summary) && pass;
   }
   if (sections.contains("keys")) {
     pass = runKeysSection(summary) && pass;
