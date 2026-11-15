@@ -29,6 +29,9 @@ class TestMacQt : public QObject {
   void testZoomDisabledWithoutView();
   void testThumbnailKeys();
   void testViewMenuContents();
+  void testZoneRemoveKeys();
+  void testZoneKeysIgnoredInTextFields();
+  void testZoneStatusTips();
 };
 
 #endif

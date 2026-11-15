@@ -6,18 +6,25 @@
 #include <AbstractFilter.h>
 #include <ApplicationSettings.h>
 #include <BasicImageView.h>
+#include <BinaryImage.h>
 #include <ColorSchemeFactory.h>
 #include <ColorSchemeManager.h>
 #include <IconProvider.h>
+#include <ImageId.h>
+#include <ImagePixmapUnion.h>
+#include <InteractionState.h>
 #include <PageId.h>
 #include <PageRange.h>
 #include <PageSelectionAccessor.h>
 #include <PageSelectionProvider.h>
 #include <PageSequence.h>
 #include <ProjectPages.h>
+#include <SerializableSpline.h>
 #include <StageSequence.h>
 #include <StyledIconPack.h>
 #include <filters/output/ImageViewTab.h>
+#include <filters/output/PictureZoneEditor.h>
+#include <filters/output/Settings.h>
 #include <filters/output/TabbedImageView.h>
 
 #include <config.h>
@@ -39,11 +46,14 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
+#include <QPolygonF>
 #include <QSignalSpy>
+#include <QSpinBox>
 #include <QStackedLayout>
 #include <QStatusBar>
 #include <QString>
 #include <QStringList>
+#include <QVBoxLayout>
 #include <QWidget>
 #include <QtTest/QtTest>
 #include <cmath>
@@ -136,6 +146,106 @@ int selectedStageRow(MainWindow& window) {
 
 const char* const kStageActionNames[] = {"actionSwitchFilter1", "actionSwitchFilter2", "actionSwitchFilter3",
                                          "actionSwitchFilter4", "actionSwitchFilter5", "actionSwitchFilter6"};
+
+// Zone editor of an empty picture mask over a white page, as in tst_hidpi_qt.cpp.
+std::unique_ptr<output::PictureZoneEditor> makeZoneEditor(const QImage& page) {
+  QImage maskImage(page.size(), QImage::Format_RGB32);
+  maskImage.fill(Qt::black);
+  return std::make_unique<output::PictureZoneEditor>(
+      page, ImagePixmapUnion(), imageproc::BinaryImage(maskImage), QTransform(), QPolygonF(QRectF(page.rect())),
+      PageId(ImageId(QStringLiteral("page.png"))), std::make_shared<output::Settings>());
+}
+
+QImage zonePage() {
+  QImage page(1200, 900, QImage::Format_RGB32);
+  page.fill(Qt::white);
+  page.setDotsPerMeterX(11811);
+  page.setDotsPerMeterY(11811);
+  return page;
+}
+
+// Adds a rectangular zone (image pixels) the way the creation interaction does, without committing.
+EditableSpline::Ptr addRectZone(output::PictureZoneEditor& editor, const QRectF& imageRect) {
+  QPolygonF polygon;
+  polygon << imageRect.topLeft() << imageRect.topRight() << imageRect.bottomRight() << imageRect.bottomLeft();
+  auto spline = std::make_shared<EditableSpline>(SerializableSpline(polygon));
+  editor.zones().addZone(spline);
+  return spline;
+}
+
+int zoneCount(const output::PictureZoneEditor& editor) {
+  int count = 0;
+  for (const EditableZoneSet::Zone& zone : editor.zones()) {
+    Q_UNUSED(zone);
+    ++count;
+  }
+  return count;
+}
+
+bool hasZoneAt(const output::PictureZoneEditor& editor, const QPointF& imagePoint) {
+  for (const EditableZoneSet::Zone& zone : editor.zones()) {
+    if (zone.spline()->toPolygon().containsPoint(imagePoint, Qt::WindingFill)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Moves the cursor to a point of the viewport (viewport coordinates) and sends the mouse move that the interaction
+// handlers track. The zone menu reads QCursor::pos(), so both are needed.
+void pointAt(QWidget* viewport, const QPoint& localPos) {
+  QCursor::setPos(viewport->mapToGlobal(localPos));
+  QTest::mouseMove(viewport, localPos);
+}
+
+QPoint viewportPointOf(const output::PictureZoneEditor& editor, const QPointF& imagePoint) {
+  return editor.imageToWidget().map(imagePoint).toPoint();
+}
+
+// The zone editor is a scroll area: the focus sits on the editor or on its viewport.
+bool focusIsInEditor(const output::PictureZoneEditor& editor) {
+  const QWidget* const focus = QApplication::focusWidget();
+  return focus != nullptr && (focus == &editor || editor.isAncestorOf(focus));
+}
+
+// A key to the widget that has the keyboard focus: the shortcut override of a focused field is then what Qt asks.
+void keyToFocusWidget(Qt::Key key) {
+  QWidget* const focus = QApplication::focusWidget();
+  if (focus == nullptr) {
+    QFAIL("no widget has the keyboard focus");
+  }
+  QTest::keyClick(focus, key);
+}
+
+// A top-level window with a zone editor and, optionally, a spin box and a line edit below it. The window is declared
+// first so that it is destroyed last.
+struct ZoneWindow {
+  explicit ZoneWindow(const bool withFields) {
+    editor = makeZoneEditor(zonePage());
+    auto* const layout = new QVBoxLayout(&window);
+    layout->addWidget(editor.get(), 1);
+    if (withFields) {
+      spinBox = new QSpinBox(&window);
+      spinBox->setValue(5);
+      lineEdit = new QLineEdit(QStringLiteral("abc"), &window);
+      layout->addWidget(spinBox);
+      layout->addWidget(lineEdit);
+    }
+    window.resize(700, 760);
+    window.show();
+    QTest::qWaitForWindowActive(&window);
+  }
+
+  void focusEditor() { editor->viewport()->setFocus(); }
+
+  QWidget window;
+  std::unique_ptr<output::PictureZoneEditor> editor;
+  QSpinBox* spinBox = nullptr;
+  QLineEdit* lineEdit = nullptr;
+};
+
+const QRectF kZoneA(100, 100, 400, 700);  // left half of the page, image pixels
+const QRectF kZoneB(700, 100, 400, 700);  // right half
 
 }  // namespace
 
@@ -597,4 +707,93 @@ void TestMacQt::testViewMenuContents() {
       "Fix Orientation", "Split Pages", "Deskew", "Select Content",    "Margins",           "Output", "--",
       "Zoom In",         "Zoom Out",    "--",     "Larger Thumbnails", "Smaller Thumbnails"};
   QCOMPARE(visibleEntries(*viewMenu), expected);
+}
+
+void TestMacQt::testZoneRemoveKeys() {
+  ZoneWindow zw(false);
+  output::PictureZoneEditor& editor = *zw.editor;
+  addRectZone(editor, kZoneA);
+  addRectZone(editor, kZoneB);
+  QCOMPARE(zoneCount(editor), 2);
+
+  zw.focusEditor();
+  QTRY_VERIFY(focusIsInEditor(editor));
+
+  // Backspace removes the zone under the pointer and keeps the other one.
+  pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center()));
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(zoneCount(editor), 1);
+  QVERIFY(!hasZoneAt(editor, kZoneA.center()));
+  QVERIFY(hasZoneAt(editor, kZoneB.center()));
+
+  // A second press over the same spot removes nothing more.
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(zoneCount(editor), 1);
+  QVERIFY(hasZoneAt(editor, kZoneB.center()));
+
+  // Forward delete removes a zone as well.
+  addRectZone(editor, kZoneA);
+  QCOMPARE(zoneCount(editor), 2);
+  pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center() + QPointF(20, 20)));
+  keyToFocusWidget(Qt::Key_Delete);
+  QCOMPARE(zoneCount(editor), 1);
+  QVERIFY(hasZoneAt(editor, kZoneB.center()));
+
+  pointAt(editor.viewport(), viewportPointOf(editor, kZoneB.center()));
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(zoneCount(editor), 0);
+
+  // With no zone left the keys do nothing.
+  keyToFocusWidget(Qt::Key_Backspace);
+  keyToFocusWidget(Qt::Key_Delete);
+  QCOMPARE(zoneCount(editor), 0);
+}
+
+void TestMacQt::testZoneKeysIgnoredInTextFields() {
+  ZoneWindow zw(true);
+  output::PictureZoneEditor& editor = *zw.editor;
+  addRectZone(editor, kZoneA);
+  QCOMPARE(zoneCount(editor), 1);
+
+  zw.focusEditor();
+  QTRY_VERIFY(focusIsInEditor(editor));
+  pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center()));
+
+  // A spin box takes both keys for itself.
+  zw.spinBox->setFocus();
+  QTRY_VERIFY(zw.spinBox->isAncestorOf(QApplication::focusWidget()));
+  keyToFocusWidget(Qt::Key_Backspace);
+  keyToFocusWidget(Qt::Key_Delete);
+  QCOMPARE(zoneCount(editor), 1);
+
+  // A line edit edits its text and leaves the zone alone.
+  zw.lineEdit->setFocus();
+  QTRY_VERIFY(QApplication::focusWidget() == zw.lineEdit);
+  zw.lineEdit->setCursorPosition(3);
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(zw.lineEdit->text(), QString("ab"));
+  QCOMPARE(zoneCount(editor), 1);
+  keyToFocusWidget(Qt::Key_Delete);
+  QCOMPARE(zw.lineEdit->text(), QString("ab"));
+  QCOMPARE(zoneCount(editor), 1);
+
+  // Positive control: with the editor focused the same key removes the zone.
+  zw.focusEditor();
+  QTRY_VERIFY(focusIsInEditor(editor));
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(zoneCount(editor), 0);
+}
+
+void TestMacQt::testZoneStatusTips() {
+  ZoneWindow zw(false);
+  output::PictureZoneEditor& editor = *zw.editor;
+
+  QCOMPARE(editor.interactionState().defaultStatusTip(),
+           utf8("Click to start creating a new zone. ⌥⌘-click to copy the latest created zone. Use Z, X and C keys "
+                "to switch zone creation mode."));
+
+  addRectZone(editor, kZoneA);
+  pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center()));
+  QTRY_VERIFY(editor.interactionState().statusTip().contains(utf8("Press ⌫ to delete this zone.")));
+  QVERIFY(editor.interactionState().statusTip().contains(utf8("Hold ⇧ to drag the zone or ⇧⌘ to copy.")));
 }

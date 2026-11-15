@@ -17,22 +17,25 @@ ZoneDefaultInteraction::ZoneDefaultInteraction(ZoneInteractionContext& context)
   m_dragHandler.makeFirstFollower(m_dragWatcher);
 
   m_vertexProximity.setProximityStatusTip(
-      tr("Drag the vertex. Hold Ctrl to make the vertex angle right. Press D to delete the vertex."));
+      tr("Drag the vertex. Hold ⌘ to make the vertex angle right. Press D to delete the vertex."));
   m_segmentProximity.setProximityStatusTip(tr("Click to create a new vertex here."));
   m_zoneAreaProximity.setProximityStatusTip(
-      tr("Right click to edit zone properties. Hold Shift to drag the zone or "
-         "Shift+Ctrl to copy. Press Del to delete this zone."));
+      tr("Right click to edit zone properties. Hold ⇧ to drag the zone or "
+         "⇧⌘ to copy. Press ⌫ to delete this zone."));
   m_zoneAreaDragProximity.setProximityStatusTip(tr("Hold left mouse button to drag the zone."));
   m_zoneAreaDragProximity.setProximityCursor(Qt::DragMoveCursor);
   m_zoneAreaDragCopyProximity.setProximityStatusTip(tr("Hold left mouse button to copy and drag the zone."));
   m_zoneAreaDragCopyProximity.setProximityCursor(Qt::DragCopyCursor);
   m_context.imageView().interactionState().setDefaultStatusTip(
-      tr("Click to start creating a new zone. Ctrl+Alt+Click to copy the latest created zone. Use Z, X and C keys to "
+      tr("Click to start creating a new zone. ⌥⌘-click to copy the latest created zone. Use Z, X and C keys to "
          "switch zone creation mode."));
 
   m_removeZoneShortcut = std::make_unique<QShortcut>(Qt::Key_Delete, &m_context.imageView());
+  m_removeZoneBackspaceShortcut = std::make_unique<QShortcut>(Qt::Key_Backspace, &m_context.imageView());
   m_removeVertexShortcut = std::make_unique<QShortcut>(Qt::Key_D, &m_context.imageView());
   QObject::connect(m_removeZoneShortcut.get(), &QShortcut::activated, &m_context.imageView(),
+                   std::bind(&ZoneDefaultInteraction::removeZoneUnderMouse, this));
+  QObject::connect(m_removeZoneBackspaceShortcut.get(), &QShortcut::activated, &m_context.imageView(),
                    std::bind(&ZoneDefaultInteraction::removeZoneUnderMouse, this));
   QObject::connect(m_removeVertexShortcut.get(), &QShortcut::activated, &m_context.imageView(),
                    std::bind(&ZoneDefaultInteraction::removeVertexUnderMouse, this));

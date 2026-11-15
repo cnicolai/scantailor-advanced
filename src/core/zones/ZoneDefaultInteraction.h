@@ -82,7 +82,10 @@ class ZoneDefaultInteraction : public InteractionHandler {
   QPointF m_screenPointOnSegment;
   EditableSpline::Ptr m_splineUnderMouse;
 
+  // The Mac delete key is Backspace; m_removeZoneShortcut keeps the forward delete key (fn+delete).
+  // A QShortcut holds one key sequence, so two keys need two objects.
   std::unique_ptr<QShortcut> m_removeZoneShortcut;
+  std::unique_ptr<QShortcut> m_removeZoneBackspaceShortcut;
   std::unique_ptr<QShortcut> m_removeVertexShortcut;
 };
 
