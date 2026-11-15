@@ -203,7 +203,7 @@ Plans:
   4. When a batch run finishes, the Mac plays the system beep and no shell command runs
   5. Every open, save and folder dialog, including the relinking dialog, is the native macOS panel
 
-**Plans:** 8/11 plans executed
+**Plans:** 9/11 plans executed
 
 Plans:
 **Wave 1**
@@ -231,7 +231,7 @@ Plans:
 - [x] 05-08-PLAN.md — Mac key names in the Margins help, the main window and the C++ tips, with a permanent scan for PC key names
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 05-09-PLAN.md — System beep instead of the shell command, native relinking panels, both pinned by source checks
+- [x] 05-09-PLAN.md — System beep instead of the shell command, native relinking panels, both pinned by source checks
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [ ] 05-10-PLAN.md — Live menu bar during dialogs (fallback bar only if measured reduced) and native file panels, with a redirected home
@@ -270,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
-| 5. Mac Menus and Shortcuts | 8/11 | In Progress | - |
+| 5. Mac Menus and Shortcuts | 9/11 | In Progress | - |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
 ---

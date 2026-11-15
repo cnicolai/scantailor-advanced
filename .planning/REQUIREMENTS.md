@@ -62,8 +62,8 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 - [x] **MAC-07**: In the zone editor, Backspace or Delete removes a zone, and creating a content box uses a key a MacBook has
 - [x] **MAC-08**: Context menus open with a right-click, a two-finger click and a Control-click
 - [ ] **MAC-09**: The menu bar stays populated while dialogs are open
-- [ ] **MAC-10**: The batch-finished alarm uses the system beep instead of a shell command
-- [ ] **MAC-11**: Native macOS file dialogs are used everywhere, including the relinking dialog
+- [x] **MAC-10**: The batch-finished alarm uses the system beep instead of a shell command
+- [x] **MAC-11**: Native macOS file dialogs are used everywhere, including the relinking dialog
 
 ### Safety
 
@@ -166,8 +166,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAC-07 | Phase 5 | Complete |
 | MAC-08 | Phase 5 | Complete |
 | MAC-09 | Phase 5 | Pending |
-| MAC-10 | Phase 5 | Pending |
-| MAC-11 | Phase 5 | Pending |
+| MAC-10 | Phase 5 | Complete |
+| MAC-11 | Phase 5 | Complete |
 | SAFE-01 | Phase 6 | Pending |
 | SAFE-02 | Phase 6 | Pending |
 | SAFE-03 | Phase 6 | Pending |
