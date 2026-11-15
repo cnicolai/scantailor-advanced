@@ -42,7 +42,7 @@ ImageView::ImageView(const QImage& image,
   setMouseTracking(true);
 
   interactionState().setDefaultStatusTip(
-      tr("Use the context menu to enable / disable the content box. Hold Shift to drag a box. Use double-click "
+      tr("Use the context menu to enable / disable the content box. Hold ⇧ to drag a box. Use double-click "
          "on content to automatically adjust the content area."));
 
   const QString contentRectDragTip(tr("Drag lines or corners to resize the content box."));
@@ -149,8 +149,10 @@ ImageView::ImageView(const QImage& image,
 
   QAction* create = m_noContentMenu->addAction(tr("Create Content Box"));
   QAction* remove = m_haveContentMenu->addAction(tr("Remove Content Box"));
-  create->setShortcut(QKeySequence("Ins"));
-  remove->setShortcut(QKeySequence("Delete"));
+  // B and the Mac delete key come first, so the context menu shows them; Insert and forward delete stay as hidden
+  // second keys.
+  create->setShortcuts({QKeySequence(Qt::Key_B), QKeySequence(Qt::Key_Insert)});
+  remove->setShortcuts({QKeySequence(Qt::Key_Backspace), QKeySequence(Qt::Key_Delete)});
   addAction(create);
   addAction(remove);
   connect(create, SIGNAL(triggered(bool)), this, SLOT(createContentBox()));

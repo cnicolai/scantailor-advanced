@@ -9,9 +9,12 @@
 #include <BinaryImage.h>
 #include <ColorSchemeFactory.h>
 #include <ColorSchemeManager.h>
+#include <ContentMask.h>
+#include <Dpi.h>
 #include <IconProvider.h>
 #include <ImageId.h>
 #include <ImagePixmapUnion.h>
+#include <ImageTransformation.h>
 #include <InteractionState.h>
 #include <PageId.h>
 #include <PageRange.h>
@@ -26,6 +29,7 @@
 #include <filters/output/PictureZoneEditor.h>
 #include <filters/output/Settings.h>
 #include <filters/output/TabbedImageView.h>
+#include <filters/select_content/ImageView.h>
 
 #include <config.h>
 
@@ -202,10 +206,10 @@ QPoint viewportPointOf(const output::PictureZoneEditor& editor, const QPointF& i
   return editor.imageToWidget().map(imagePoint).toPoint();
 }
 
-// The zone editor is a scroll area: the focus sits on the editor or on its viewport.
-bool focusIsInEditor(const output::PictureZoneEditor& editor) {
+// The views are scroll areas: the focus sits on the view or on its viewport.
+bool focusIsIn(const QWidget& view) {
   const QWidget* const focus = QApplication::focusWidget();
-  return focus != nullptr && (focus == &editor || editor.isAncestorOf(focus));
+  return focus != nullptr && (focus == &view || view.isAncestorOf(focus));
 }
 
 // A key to the widget that has the keyboard focus: the shortcut override of a focused field is then what Qt asks.
@@ -246,6 +250,65 @@ struct ZoneWindow {
 
 const QRectF kZoneA(100, 100, 400, 700);  // left half of the page, image pixels
 const QRectF kZoneB(700, 100, 400, 700);  // right half
+
+// A top-level window with a Select Content view and a spin box below it. The window is declared first so that it is
+// destroyed last.
+struct ContentWindow {
+  explicit ContentWindow(const QRectF& contentRect) {
+    QImage page(800, 600, QImage::Format_RGB32);
+    page.fill(Qt::white);
+    view = std::make_unique<select_content::ImageView>(page, page, ContentMask(),
+                                                       ImageTransformation(QRectF(page.rect()), Dpi(300, 300)),
+                                                       contentRect, QRectF(), false);
+    auto* const layout = new QVBoxLayout(&window);
+    layout->addWidget(view.get(), 1);
+    spinBox = new QSpinBox(&window);
+    spinBox->setValue(5);
+    layout->addWidget(spinBox);
+    window.resize(700, 600);
+    window.show();
+    QTest::qWaitForWindowActive(&window);
+  }
+
+  void focusView() { view->viewport()->setFocus(); }
+
+  QWidget window;
+  std::unique_ptr<select_content::ImageView> view;
+  QSpinBox* spinBox = nullptr;
+};
+
+// The visible QMenu that is a child of the view, if any.
+QMenu* visibleMenuOf(QWidget& view) {
+  for (QMenu* const menu : view.findChildren<QMenu*>()) {
+    if (menu->isVisible()) {
+      return menu;
+    }
+  }
+  return nullptr;
+}
+
+// A right-button click delivered through the window, as the platform does it: QWidgetWindow turns the press into the
+// QContextMenuEvent that the views handle. QTest::mouseClick(widget, ...) would skip that step.
+void rightClickThroughWindow(QWidget& window, QWidget* child, const QPoint& localPos) {
+  QTest::mouseClick(window.windowHandle(), Qt::RightButton, Qt::NoModifier, child->mapTo(&window, localPos));
+}
+
+QStringList actionTexts(const QMenu& menu) {
+  QStringList texts;
+  for (const QAction* const action : menu.actions()) {
+    texts << action->text();
+  }
+  return texts;
+}
+
+QAction* actionWithText(const QWidget& view, const QString& text) {
+  for (QAction* const action : view.actions()) {
+    if (action->text() == text) {
+      return action;
+    }
+  }
+  return nullptr;
+}
 
 }  // namespace
 
@@ -717,7 +780,7 @@ void TestMacQt::testZoneRemoveKeys() {
   QCOMPARE(zoneCount(editor), 2);
 
   zw.focusEditor();
-  QTRY_VERIFY(focusIsInEditor(editor));
+  QTRY_VERIFY(focusIsIn(editor));
 
   // Backspace removes the zone under the pointer and keeps the other one.
   pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center()));
@@ -756,7 +819,7 @@ void TestMacQt::testZoneKeysIgnoredInTextFields() {
   QCOMPARE(zoneCount(editor), 1);
 
   zw.focusEditor();
-  QTRY_VERIFY(focusIsInEditor(editor));
+  QTRY_VERIFY(focusIsIn(editor));
   pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center()));
 
   // A spin box takes both keys for itself.
@@ -779,7 +842,7 @@ void TestMacQt::testZoneKeysIgnoredInTextFields() {
 
   // Positive control: with the editor focused the same key removes the zone.
   zw.focusEditor();
-  QTRY_VERIFY(focusIsInEditor(editor));
+  QTRY_VERIFY(focusIsIn(editor));
   keyToFocusWidget(Qt::Key_Backspace);
   QCOMPARE(zoneCount(editor), 0);
 }
@@ -796,4 +859,122 @@ void TestMacQt::testZoneStatusTips() {
   pointAt(editor.viewport(), viewportPointOf(editor, kZoneA.center()));
   QTRY_VERIFY(editor.interactionState().statusTip().contains(utf8("Press ⌫ to delete this zone.")));
   QVERIFY(editor.interactionState().statusTip().contains(utf8("Hold ⇧ to drag the zone or ⇧⌘ to copy.")));
+}
+
+void TestMacQt::testContentBoxKeys() {
+  ContentWindow cw{QRectF()};
+  select_content::ImageView& view = *cw.view;
+  QSignalSpy spy(&view, &select_content::ImageView::manualContentRectSet);
+
+  cw.focusView();
+  QTRY_VERIFY(focusIsIn(view));
+
+  // B creates the box once; a second B changes nothing.
+  keyToFocusWidget(Qt::Key_B);
+  QCOMPARE(spy.count(), 1);
+  QVERIFY(!spy.last().at(0).toRectF().isEmpty());
+  keyToFocusWidget(Qt::Key_B);
+  QCOMPARE(spy.count(), 1);
+
+  // Backspace removes it; a second one changes nothing.
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(spy.count(), 2);
+  QVERIFY(spy.last().at(0).toRectF().isEmpty());
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(spy.count(), 2);
+
+  // The PC keys stay as second keys.
+  keyToFocusWidget(Qt::Key_Insert);
+  QCOMPARE(spy.count(), 3);
+  keyToFocusWidget(Qt::Key_Delete);
+  QCOMPARE(spy.count(), 4);
+
+  // While a drag has the interaction captured, none of the keys acts.
+  {
+    InteractionState::Captor captor;
+    view.interactionState().capture(captor);
+    keyToFocusWidget(Qt::Key_B);
+    QCOMPARE(spy.count(), 4);
+    keyToFocusWidget(Qt::Key_Insert);
+    QCOMPARE(spy.count(), 4);
+    captor.release();
+  }
+  keyToFocusWidget(Qt::Key_B);
+  QCOMPARE(spy.count(), 5);
+  {
+    InteractionState::Captor captor;
+    view.interactionState().capture(captor);
+    keyToFocusWidget(Qt::Key_Backspace);
+    keyToFocusWidget(Qt::Key_Delete);
+    QCOMPARE(spy.count(), 5);
+    captor.release();
+  }
+
+  // A spin box with the focus keeps B, Backspace and Delete for itself.
+  cw.spinBox->setFocus();
+  QTRY_VERIFY(focusIsIn(*cw.spinBox));
+  keyToFocusWidget(Qt::Key_B);
+  keyToFocusWidget(Qt::Key_Backspace);
+  keyToFocusWidget(Qt::Key_Delete);
+  QCOMPARE(spy.count(), 5);
+
+  // Positive control: with the view focused again Backspace removes the box.
+  cw.focusView();
+  QTRY_VERIFY(focusIsIn(view));
+  keyToFocusWidget(Qt::Key_Backspace);
+  QCOMPARE(spy.count(), 6);
+}
+
+void TestMacQt::testContentMenuShowsKeys() {
+  ContentWindow cw{QRectF()};
+
+  const QAction* const create = actionWithText(*cw.view, QStringLiteral("Create Content Box"));
+  QVERIFY(create != nullptr);
+  QCOMPARE(create->shortcuts().size(), 2);
+  QCOMPARE(create->shortcuts().at(0), QKeySequence(Qt::Key_B));
+  QCOMPARE(create->shortcuts().at(0).toString(QKeySequence::NativeText), QString("B"));
+  QCOMPARE(create->shortcuts().at(1), QKeySequence(Qt::Key_Insert));
+
+  const QAction* const remove = actionWithText(*cw.view, QStringLiteral("Remove Content Box"));
+  QVERIFY(remove != nullptr);
+  QCOMPARE(remove->shortcuts().size(), 2);
+  QCOMPARE(remove->shortcuts().at(0), QKeySequence(Qt::Key_Backspace));
+  QCOMPARE(remove->shortcuts().at(0).toString(QKeySequence::NativeText), utf8("⌫"));
+  QCOMPARE(remove->shortcuts().at(1), QKeySequence(Qt::Key_Delete));
+}
+
+void TestMacQt::testRightClickOpensZoneMenu() {
+  {
+    ZoneWindow zw(false);
+    output::PictureZoneEditor& editor = *zw.editor;
+    addRectZone(editor, kZoneA);
+    QCOMPARE(zoneCount(editor), 1);
+
+    const QPoint centre = viewportPointOf(editor, kZoneA.center());
+    pointAt(editor.viewport(), centre);
+    rightClickThroughWindow(zw.window, editor.viewport(), centre);
+
+    QTRY_VERIFY(visibleMenuOf(editor) != nullptr);
+    QMenu* const menu = visibleMenuOf(editor);
+    const QStringList texts = actionTexts(*menu);
+    QVERIFY(texts.contains(QStringLiteral("Properties")));
+    QVERIFY(texts.contains(QStringLiteral("Delete")));
+    menu->hide();
+    // The interaction restores the default one after a deferred check.
+    QTest::qWait(300);
+    QCOMPARE(zoneCount(editor), 1);
+  }
+
+  {
+    ContentWindow cw{QRectF(150, 100, 500, 400)};
+    select_content::ImageView& view = *cw.view;
+    const QPoint centre = view.rect().center();
+    pointAt(view.viewport(), centre);
+    rightClickThroughWindow(cw.window, view.viewport(), centre);
+
+    QTRY_VERIFY(visibleMenuOf(view) != nullptr);
+    QMenu* const menu = visibleMenuOf(view);
+    QVERIFY(actionTexts(*menu).contains(QStringLiteral("Remove Content Box")));
+    menu->hide();
+  }
 }

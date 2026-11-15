@@ -32,6 +32,9 @@ class TestMacQt : public QObject {
   void testZoneRemoveKeys();
   void testZoneKeysIgnoredInTextFields();
   void testZoneStatusTips();
+  void testContentBoxKeys();
+  void testContentMenuShowsKeys();
+  void testRightClickOpensZoneMenu();
 };
 
 #endif
