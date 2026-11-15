@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Mac Menus and Shortcuts
 status: executing
-stopped_at: Completed 05-09-PLAN.md
-last_updated: "2026-11-15T11:10:40.175Z"
+stopped_at: Completed 05-10-PLAN.md
+last_updated: "2026-11-15T11:23:08.342Z"
 last_activity: 2026-11-15
 last_activity_desc: Phase 05 execution started
-state_head: 226da90febfeca0e7e2350ffb235abd5543760de
+state_head: d1ce3bfb64027c4a5cfbe88593fea373768a1062
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 49
-  completed_plans: 47
+  completed_plans: 48
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-25)
 ## Current Position
 
 Phase: 05 (Mac Menus and Shortcuts) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-11-15 — Phase 05 execution started
 
@@ -107,6 +107,7 @@ Progress: [███████░░░] 67%
 | Phase 05 P07 | not measured | 2 tasks | 10 files |
 | Phase 05 P08 | not measured | 2 tasks | 8 files |
 | Phase 05 P09 | not measured | 2 tasks | 4 files |
+| Phase 05 P10 | not measured | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -205,6 +206,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-07: apply-dialog hint rewritten to Use ⌘-click / ⇧-click, one line per .ui file, nine dialogs in two gated commits
 - [Phase 05]: 05-08: cppStringLiterals merges adjacent literals and skips #include lines; the scan test checks its scanners on synthetic input first (non-vacuous: 30 .ui and 500 C++ files minimum)
 - [Phase 05]: 05-09: MainWindow.cpp must not name the old alarm setting key; the stored value stays in the settings file and is not read
+- [Phase 05]: No fallback menu bar: all seven dialog rows (Settings, About, Fix DPI, Relinking, Default Parameters, message box, native Open Project panel) kept the application menu and File | View | Tools, so MainWindow is unchanged
+- [Phase 05]: mac_check dialogs and panels run only with HOME and CFFIXED_USER_HOME naming <output-dir>/home, checked in-process by homeRedirected; all five reachable file panels are NSOpenPanel and return an empty path when cancelled
 
 ### Pending Todos
 
@@ -223,6 +226,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-15T11:10:39.828Z
-Stopped at: Completed 05-09-PLAN.md
+Last session: 2026-11-15T11:23:08.063Z
+Stopped at: Completed 05-10-PLAN.md
 Resume file: None
