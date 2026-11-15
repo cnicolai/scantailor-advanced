@@ -7,10 +7,12 @@
 // src/app/main.cpp sets it up. The sections keys and zone press the window keys of the real MainWindow and the zone and
 // content-box keys, and read the native View menu. The section context right-clicks and Control-clicks a zone, clicks
 // the first menu item, dismisses the menu with Escape and measures the order of triggered() and aboutToHide.
-// usage: mac_check <output-dir> [--section menubar|layout|keys|zone|context|all, comma-separated | --section identity]
+// usage: mac_check <output-dir> [--section menubar|layout|keys|zone|context|dialogs|panels|all, comma-separated |
+// --section identity]
 // The output directory must lie below the checkout's build/ directory. QSettings and temporary files are kept inside
-// it, so a run never touches the user's real settings. The section identity runs alone and needs HOME and
-// CFFIXED_USER_HOME set to <output-dir>/home.
+// it, so a run never touches the user's real settings. The section identity runs alone; it and the sections dialogs and
+// panels (native file panels, profile listing) need HOME and CFFIXED_USER_HOME set to <output-dir>/home and refuse
+// otherwise. The sections dialogs and panels also measure the menu bar during dialogs and prove the file panels native.
 // Exit codes: 0 pass, 1 fail, 2 usage, path or home not redirected, 3 not Cocoa.
 // All input is synthesised inside this process and sent to its own windows; nothing is physically pressed and no other
 // application receives an event.
@@ -46,10 +48,12 @@
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QCursor>
+#include <QDialog>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QEvent>
 #include <QFile>
+#include <QFileDialog>
 #include <QFrame>
 #include <QGuiApplication>
 #include <QImage>
@@ -59,7 +63,9 @@
 #include <QList>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QMouseEvent>
+#include <QPointer>
 #include <QPolygonF>
 #include <QSettings>
 #include <QSpinBox>
@@ -77,17 +83,22 @@
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <vector>
 
 #include "CocoaProbe.h"
+#include "FixDpiDialog.h"
 #include "MainWindow.h"
+#include "ProjectFilesDialog.h"
+#include "RelinkingDialog.h"
 
 namespace {
 
 const char* const kUsage
-    = "usage: mac_check <output-dir> [--section menubar|layout|keys|zone|context|all, comma-separated | --section "
-      "identity]\n";
+    = "usage: mac_check <output-dir> [--section menubar|layout|keys|zone|context|dialogs|panels|all, comma-separated | "
+      "--section identity]\n"
+      "identity, dialogs and panels need HOME and CFFIXED_USER_HOME set to <output-dir>/home\n";
 
 // Collects the "key: value" result lines, echoes them to stdout and writes them to summary.txt.
 class Summary {
@@ -1473,6 +1484,385 @@ bool runContextSection(Summary& summary) {
   return pass;
 }
 
+// Sections dialogs and panels -----------------------------------------------------------------------------------
+
+// True only when HOME and CFFIXED_USER_HOME both name <out>/home and the home directory as Cocoa, Qt and the standard
+// paths see it lies below the checkout's build/ directory. The two sections open native file panels and list the
+// profile folder, which must never reach the user's folders (user rule, D-12).
+bool homeRedirected(const QString& out) {
+  const QString expectedHome = QDir::cleanPath(out + "/home");
+  const QString root = QDir::cleanPath(QString::fromUtf8(MAC_CHECK_ROOT));
+  const QString fixedHome = QDir::cleanPath(QString::fromLocal8Bit(qgetenv("CFFIXED_USER_HOME")));
+  const QString envHome = QDir::cleanPath(QString::fromLocal8Bit(qgetenv("HOME")));
+  return QDir(expectedHome).exists() && envHome == expectedHome && fixedHome == expectedHome
+         && isBelow(cocoaprobe::homeDirectory(), root) && isBelow(QDir::homePath(), root)
+         && isBelow(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), root);
+}
+
+// The folders the two sections use, below the output directory, and the QSettings keys the panels start from.
+void prepareDialogFolders(const QString& out) {
+  QDir().mkpath(out + "/panels/input");
+  QDir().mkpath(out + "/panels/output");
+  QDir().mkpath(out + "/relink/old");
+  QSettings settings;
+  settings.setValue("project/lastDir", out + "/panels");
+  settings.setValue("lastInputDir", out + "/panels/input");
+  settings.sync();
+}
+
+// What the native menu bar shows at one moment.
+struct MenuBarReading {
+  QString topLevel;  // titles after the application menu, joined by " | "
+  bool appMenu = false;
+  bool newItemFound = false;
+  bool newItemEnabled = false;
+  bool populated = false;
+};
+
+MenuBarReading readMenuBar() {
+  const std::vector<cocoaprobe::MenuInfo> menus = cocoaprobe::mainMenu();
+  MenuBarReading reading;
+  QStringList titles;
+  for (size_t i = 1; i < menus.size(); ++i) {
+    titles << menus[i].title;
+    for (const cocoaprobe::MenuItemInfo& item : menus[i].items) {
+      if (item.title.startsWith("New Project")) {
+        reading.newItemFound = true;
+        reading.newItemEnabled = item.enabled;
+      }
+    }
+  }
+  reading.topLevel = titles.join(" | ");
+  reading.appMenu = !menus.empty() && !menus[0].items.empty();
+  reading.populated = reading.appMenu && titles.contains("File") && titles.contains("View") && titles.contains("Tools");
+  return reading;
+}
+
+void addMenuBarLines(Summary& summary, const QString& row, const MenuBarReading& reading) {
+  const QString prefix = "dialogs_" + row;
+  summary.add(prefix + "_top_level", orNone(reading.topLevel));
+  summary.add(prefix + "_app_menu", yesNo(reading.appMenu));
+  summary.add(prefix + "_new_item_enabled", reading.newItemFound ? yesNo(reading.newItemEnabled) : QString("none"));
+  summary.add(prefix + "_populated", yesNo(reading.populated));
+}
+
+// Shared by the open_panel row: the block scheduled before the native panel opens fills it in.
+struct OpenPanelProbe {
+  bool done = false;  // the call that opened the panel has returned
+  bool sawPanel = false;
+  bool populated = false;
+  int cmdNFired = 0;
+};
+
+bool runDialogsSection(Summary& summary, const QString& out) {
+  if (!homeRedirected(out)) {
+    summary.add("dialogs_reason", "home not redirected");
+    summary.add("dialogs_verdict", "FAIL");
+    return false;
+  }
+  prepareDialogFolders(out);
+
+  MainWindow window;
+  window.resize(1280, 800);
+  const bool appActive = showAndActivate(window);
+  summary.add("dialogs_app_active", yesNo(appActive));
+
+  // New Project would open the project-creation dialog: its production slot is cut off and only counted.
+  QAction* const newAction = window.findChild<QAction*>("actionNewProject");
+  int newCount = 0;
+  const bool newSlotCut
+      = newAction != nullptr && QObject::disconnect(newAction, SIGNAL(triggered(bool)), &window, SLOT(newProject()));
+  if (newAction != nullptr) {
+    QObject::connect(newAction, &QAction::triggered, [&newCount](bool) { ++newCount; });
+  }
+  summary.add("dialogs_new_project_slot_cut", yesNo(newSlotCut));
+  int nKeyCode = 0;
+  const bool haveN = cocoaprobe::keyCodeFor(QChar('n'), false, &nKeyCode);
+  summary.add("dialogs_cmd_n_key_code", haveN ? QString::number(nKeyCode) : QString("none"));
+
+  bool allShown = true;
+  bool allPopulated = true;
+
+  // One dialog row: the dialog is already requested; wait until it is visible, read the bar, send Cmd-N, close it.
+  auto measureRow = [&](const QString& row, const QPointer<QDialog>& dialog) {
+    const bool shown
+        = !dialog.isNull()
+          && waitFor([&dialog] { return !dialog.isNull() && dialog->isVisible() && dialog->windowHandle(); }, 5000);
+    pump(500);
+    summary.add("dialogs_" + row + "_shown", yesNo(shown));
+    allShown = shown && allShown;
+    if (!shown) {
+      allPopulated = false;
+      return;
+    }
+    const MenuBarReading reading = readMenuBar();
+    addMenuBarLines(summary, row, reading);
+    allPopulated = reading.populated && allPopulated;
+    const int before = newCount;
+    cocoaprobe::sendKey(dialog->windowHandle(), nKeyCode, cocoaprobe::Command);
+    pump(300);
+    summary.add("dialogs_" + row + "_cmd_n_fired", QString::number(newCount - before));
+    dialog->close();
+    pump(300);
+  };
+
+  // A dialog the main window creates on its own: the visible direct child dialog after the action fired.
+  auto triggerRow = [&](const QString& row, const QString& actionName) {
+    QAction* const action = window.findChild<QAction*>(actionName);
+    if (action == nullptr) {
+      summary.add("dialogs_" + row + "_shown", "no");
+      allShown = false;
+      allPopulated = false;
+      return;
+    }
+    action->trigger();
+    QPointer<QDialog> found;
+    waitFor(
+        [&] {
+          for (QDialog* const child : window.findChildren<QDialog*>(Qt::FindDirectChildrenOnly)) {
+            if (child->isVisible()) {
+              found = child;
+              return true;
+            }
+          }
+          return false;
+        },
+        5000);
+    measureRow(row, found);
+  };
+
+  triggerRow("settings", "actionSettings");
+  triggerRow("about", "actionAbout");
+
+  {
+    FixDpiDialog dialog(std::vector<ImageFileInfo>(), &window);
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.show();
+    measureRow("fix_dpi", QPointer<QDialog>(&dialog));
+  }
+  {
+    RelinkingDialog dialog(out + "/relink/project.ScanTailor", &window);
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.show();
+    measureRow("relinking", QPointer<QDialog>(&dialog));
+  }
+
+  triggerRow("default_params", "actionDefaults");
+
+  {
+    QMessageBox box(QMessageBox::Information, "Menu bar check", "Application-modal message box of the live Mac check.",
+                    QMessageBox::Ok, &window);
+    box.setWindowModality(Qt::ApplicationModal);
+    box.show();
+    measureRow("message_box", QPointer<QDialog>(&box));
+  }
+
+  // The native Open Project panel: a block scheduled before the call runs inside the panel's modal session, reads the
+  // bar, sends Cmd-N to the panel and cancels it. A second block rescues the call if no native panel ever appeared.
+  {
+    const auto probe = std::make_shared<OpenPanelProbe>();
+    cocoaprobe::runLater(800, [probe, &summary, &newCount, nKeyCode]() {
+      if (probe->done) {
+        return;
+      }
+      probe->sawPanel = cocoaprobe::modalWindowIsFilePanel();
+      const MenuBarReading reading = readMenuBar();
+      addMenuBarLines(summary, "open_panel", reading);
+      probe->populated = reading.populated;
+      const int before = newCount;
+      cocoaprobe::sendKeyToModalWindow(nKeyCode, cocoaprobe::Command);
+      probe->cmdNFired = newCount - before;
+      cocoaprobe::cancelModalPanel();
+    });
+    cocoaprobe::runLater(4000, [probe]() {
+      if (probe->done) {
+        return;
+      }
+      cocoaprobe::cancelModalPanel();
+      if (QWidget* const modal = QApplication::activeModalWidget()) {
+        modal->close();
+      }
+    });
+    QMetaObject::invokeMethod(&window, "openProject", Qt::DirectConnection);
+    probe->done = true;
+    pump(300);
+    summary.add("dialogs_open_panel_shown", yesNo(probe->sawPanel));
+    summary.add("dialogs_open_panel_cmd_n_fired", QString::number(probe->cmdNFired));
+    allShown = probe->sawPanel && allShown;
+    allPopulated = probe->populated && allPopulated;
+  }
+
+  const bool pass = appActive && allShown && allPopulated;
+  summary.add("dialogs_verdict", pass ? "PASS" : "FAIL");
+  return pass;
+}
+
+// What one native panel row observed. The shared state outlives the call so the block that runs inside the panel's
+// modal session and the code after the call see the same object.
+struct PanelObservation {
+  bool done = false;  // the call has returned
+  bool probed = false;
+  bool filePanel = false;
+  QString className;
+  QString directory;
+  QString title;
+  bool underOut = false;
+  bool dialogFound = false;
+  bool finishedSeen = false;
+  int finishedResult = -1;
+  bool selectedSeen = false;
+  QString selectedPath;
+};
+
+// The three measured clauses of one panel row.
+struct PanelResult {
+  bool native = false;
+  bool underOut = false;
+  bool cancelledEmpty = false;
+};
+
+// Opens one panel through `call`, inspects it from a block that runs inside the modal session, attaches to the
+// QFileDialog object the static function created, cancels the panel and records the row. `owner` is the widget passed
+// as parent to the static function. A panel that never appears within 3000 ms is closed so the call returns.
+PanelResult runPanelRow(Summary& summary,
+                        const QString& out,
+                        const QString& row,
+                        QWidget& owner,
+                        const std::function<void()>& call) {
+  const auto obs = std::make_shared<PanelObservation>();
+  QPointer<QWidget> ownerPointer(&owner);
+  const auto step = std::make_shared<std::function<void(int)>>();
+  *step = [obs, step, ownerPointer, out](int elapsed) {
+    if (obs->done || obs->probed) {
+      return;
+    }
+    if (cocoaprobe::modalWindowIsFilePanel()) {
+      obs->probed = true;
+      obs->filePanel = true;
+      obs->className = cocoaprobe::modalWindowClass();
+      obs->directory = cocoaprobe::modalPanelDirectory();
+      obs->title = cocoaprobe::modalPanelTitle();
+      obs->underOut = isBelow(obs->directory, out);
+      QFileDialog* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget());
+      if (dialog == nullptr && !ownerPointer.isNull()) {
+        dialog = ownerPointer->findChild<QFileDialog*>();
+      }
+      if (dialog != nullptr) {
+        obs->dialogFound = true;
+        QObject::connect(dialog, &QFileDialog::finished, [obs](int result) {
+          obs->finishedSeen = true;
+          obs->finishedResult = result;
+        });
+        QObject::connect(dialog, &QFileDialog::filesSelected, [obs](const QStringList& files) {
+          obs->selectedSeen = true;
+          obs->selectedPath = files.isEmpty() ? QString() : files.first();
+        });
+      }
+      cocoaprobe::cancelModalPanel();
+      return;
+    }
+    if (elapsed >= 3000) {
+      obs->probed = true;
+      obs->className = cocoaprobe::modalWindowClass();
+      if (QWidget* const modal = QApplication::activeModalWidget()) {
+        modal->close();
+      }
+      return;
+    }
+    cocoaprobe::runLater(200, [step, elapsed]() { (*step)(elapsed + 200); });
+  };
+  cocoaprobe::runLater(800, [step]() { (*step)(800); });
+
+  call();
+  obs->done = true;
+  pump(300);
+
+  const QString prefix = "panels_" + row;
+  summary.add(prefix + "_class", orNone(obs->className));
+  summary.add(prefix + "_native", yesNo(obs->filePanel));
+  summary.add(prefix + "_directory", orNone(shown(obs->directory, out)));
+  summary.add(prefix + "_directory_under_out", yesNo(obs->underOut));
+  summary.add(prefix + "_title", orNone(shown(obs->title, out)));
+  QString cancelResult = "unobserved";
+  if (obs->dialogFound && obs->selectedSeen) {
+    cancelResult = "selected " + shown(obs->selectedPath, out);
+  } else if (obs->dialogFound && obs->finishedSeen && obs->finishedResult == QDialog::Rejected) {
+    cancelResult = "empty";
+  }
+  summary.add(prefix + "_cancel_result", cancelResult);
+  PanelResult result;
+  result.native = obs->filePanel;
+  result.underOut = obs->underOut;
+  result.cancelledEmpty = cancelResult == "empty";
+  return result;
+}
+
+bool runPanelsSection(Summary& summary, const QString& out) {
+  if (!homeRedirected(out)) {
+    summary.add("panels_reason", "home not redirected");
+    summary.add("panels_verdict", "FAIL");
+    return false;
+  }
+  prepareDialogFolders(out);
+
+  MainWindow window;
+  window.resize(1280, 800);
+  const bool appActive = showAndActivate(window);
+  summary.add("panels_app_active", yesNo(appActive));
+
+  bool allNative = true;
+  bool allUnderOut = true;
+  bool allEmpty = true;
+  bool allUnchanged = true;
+  auto collect = [&](const PanelResult& result) {
+    allNative = result.native && allNative;
+    allUnderOut = result.underOut && allUnderOut;
+    allEmpty = result.cancelledEmpty && allEmpty;
+  };
+
+  // The relinking dialog is shared by the two relinking rows; commitChanges (the OK button's slot) commits the
+  // model's uncommitted paths into the relinker and only hides the dialog, so it can be called after each row.
+  const RelinkablePath orig(out + "/relink/old/page.png", RelinkablePath::File);
+  RelinkingDialog relinking(out + "/relink/project.ScanTailor", &window);
+  relinking.pathCollector()(orig);
+
+  auto relinkRow = [&](const QString& row, const QString& prefixPath, const int type) {
+    collect(runPanelRow(summary, out, row, relinking, [&relinking, &prefixPath, type]() {
+      QMetaObject::invokeMethod(&relinking, "pathButtonClicked", Qt::DirectConnection, Q_ARG(QString, prefixPath),
+                                Q_ARG(QString, QString()), Q_ARG(int, type));
+    }));
+    QMetaObject::invokeMethod(&relinking, "commitChanges", Qt::DirectConnection);
+    pump(200);
+    const bool unchanged = relinking.relinker()->substitutionPathFor(orig) == orig.normalizedPath();
+    summary.add("panels_" + row + "_substitution_unchanged", yesNo(unchanged));
+    allUnchanged = unchanged && allUnchanged;
+  };
+  relinkRow("relink_file", out + "/relink/old/page.png", RelinkablePath::File);
+  relinkRow("relink_folder", out + "/relink/old", RelinkablePath::Dir);
+
+  collect(runPanelRow(summary, out, "open_project", window,
+                      [&window]() { QMetaObject::invokeMethod(&window, "openProject", Qt::DirectConnection); }));
+
+  {
+    ProjectFilesDialog dialog(&window);
+    collect(runPanelRow(summary, out, "input_folder", dialog,
+                        [&dialog]() { QMetaObject::invokeMethod(&dialog, "inpDirBrowse", Qt::DirectConnection); }));
+    if (QLineEdit* const outLine = dialog.findChild<QLineEdit*>("outDirLine")) {
+      outLine->setText(out + "/panels/output");
+    }
+    collect(runPanelRow(summary, out, "output_folder", dialog,
+                        [&dialog]() { QMetaObject::invokeMethod(&dialog, "outDirBrowse", Qt::DirectConnection); }));
+  }
+
+  summary.add("panels_not_opened",
+              "save_project_as, out_of_memory_save, files_to_insert (need a loaded project; plain QFileDialog calls "
+              "without options, checked by testNoDontUseNativeDialog)");
+
+  const bool pass = appActive && allNative && allUnderOut && allEmpty && allUnchanged;
+  summary.add("panels_verdict", pass ? "PASS" : "FAIL");
+  return pass;
+}
+
 // Section identity ----------------------------------------------------------------------------------------------
 
 // Repeats the order of src/app/main.cpp (application object, then the two names, then the INI format and a
@@ -1559,14 +1949,15 @@ int main(int argc, char* argv[]) {
   }
 
   // The list of section names: known names only, "all" expands to every name except identity, identity runs alone.
-  const QStringList knownSections = {"menubar", "layout", "keys", "zone", "context", "identity", "all"};
+  const QStringList knownSections
+      = {"menubar", "layout", "keys", "zone", "context", "dialogs", "panels", "identity", "all"};
   const QStringList requested = sectionArg.split(',');
   QStringList sections;
   for (const QString& name : requested) {
     if (!knownSections.contains(name)) {
       badArguments = true;
     } else if (name == "all") {
-      sections << "menubar" << "layout" << "zone" << "context" << "keys";
+      sections << "menubar" << "layout" << "zone" << "context" << "dialogs" << "panels" << "keys";
     } else {
       sections << name;
     }
@@ -1640,9 +2031,7 @@ int main(int argc, char* argv[]) {
   summary.add("section", sectionArg);
   summary.add("keyboard_layout", orNone(cocoaprobe::keyboardLayoutId()));
   summary.add("home_directory", shown(cocoaprobe::homeDirectory(), out));
-  const bool redirected = isBelow(cocoaprobe::homeDirectory(), root) && isBelow(QDir::homePath(), root)
-                          && isBelow(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), root);
-  summary.add("home_redirected", yesNo(redirected));
+  summary.add("home_redirected", yesNo(homeRedirected(out)));
   summary.add("frontmost_app", orNone(cocoaprobe::frontmostAppName()));
 
   bool pass = true;
@@ -1658,6 +2047,12 @@ int main(int argc, char* argv[]) {
   }
   if (sections.contains("context")) {
     pass = runContextSection(summary) && pass;
+  }
+  if (sections.contains("dialogs")) {
+    pass = runDialogsSection(summary, out) && pass;
+  }
+  if (sections.contains("panels")) {
+    pass = runPanelsSection(summary, out) && pass;
   }
   if (sections.contains("keys")) {
     pass = runKeysSection(summary) && pass;

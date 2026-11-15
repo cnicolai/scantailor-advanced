@@ -66,6 +66,10 @@ bool activate(QWindow* window);
 /// keyDown then keyUp for the window's NSWindow through [NSApp sendEvent:]; false if the window has no NSWindow.
 bool sendKey(QWindow* window, int keyCode, unsigned modifiers);
 
+/// Like sendKey, addressed to [NSApp modalWindow] (a native file panel or another application-modal window); false if
+/// there is none.
+bool sendKeyToModalWindow(int keyCode, unsigned modifiers);
+
 /// Mouse events at the window-relative logical position through [NSApp sendEvent:]: Move is one mouse-moved event,
 /// a click a down and up pair of the left or right button.
 bool sendMouse(QWindow* window, const QPointF& logicalPos, MouseAction action, unsigned modifiers);
@@ -88,6 +92,21 @@ QString frontmostAppName();
 
 /// NSHomeDirectory().
 QString homeDirectory();
+
+/// NSStringFromClass of [NSApp modalWindow], empty if there is none.
+QString modalWindowClass();
+
+/// [NSApp.modalWindow isKindOfClass:[NSSavePanel class]]: true for a native open or save panel.
+bool modalWindowIsFilePanel();
+
+/// The directoryURL path of the modal file panel, empty if the modal window is not a panel.
+QString modalPanelDirectory();
+
+/// The title of the modal file panel and, if it is not empty, its message, joined by " / "; empty if not a panel.
+QString modalPanelTitle();
+
+/// [(NSSavePanel*)NSApp.modalWindow cancel:nil]; false if the modal window is not a panel.
+bool cancelModalPanel();
 
 /// Runs fn after ms milliseconds in the default, modal-panel and event-tracking run loop modes, so it also runs while a
 /// modal panel or a menu is tracking.

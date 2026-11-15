@@ -182,8 +182,10 @@ bool activate(QWindow* window) {
   return [NSApp isActive] && [nsWindow isKeyWindow];
 }
 
-bool sendKey(QWindow* window, int keyCode, unsigned modifiers) {
-  NSWindow* nsWindow = nsWindowOf(window);
+namespace {
+
+// keyDown then keyUp addressed to an NSWindow of this process through [NSApp sendEvent:].
+bool sendKeyToNSWindow(NSWindow* nsWindow, int keyCode, unsigned modifiers) {
   if (nsWindow == nil) {
     return false;
   }
@@ -215,6 +217,22 @@ bool sendKey(QWindow* window, int keyCode, unsigned modifiers) {
     [NSApp sendEvent:event];
   }
   return true;
+}
+
+// The modal window when it is a native open or save panel, else nil.
+NSSavePanel* modalFilePanel() {
+  NSWindow* const modal = [NSApp modalWindow];
+  return [modal isKindOfClass:[NSSavePanel class]] ? static_cast<NSSavePanel*>(modal) : nil;
+}
+
+}  // namespace
+
+bool sendKey(QWindow* window, int keyCode, unsigned modifiers) {
+  return sendKeyToNSWindow(nsWindowOf(window), keyCode, modifiers);
+}
+
+bool sendKeyToModalWindow(int keyCode, unsigned modifiers) {
+  return sendKeyToNSWindow([NSApp modalWindow], keyCode, modifiers);
 }
 
 bool sendMouse(QWindow* window, const QPointF& logicalPos, MouseAction action, unsigned modifiers) {
@@ -319,6 +337,42 @@ QString frontmostAppName() {
 
 QString homeDirectory() {
   return toQString(NSHomeDirectory());
+}
+
+QString modalWindowClass() {
+  NSWindow* const modal = [NSApp modalWindow];
+  return modal != nil ? toQString(NSStringFromClass([modal class])) : QString();
+}
+
+bool modalWindowIsFilePanel() {
+  return modalFilePanel() != nil;
+}
+
+QString modalPanelDirectory() {
+  NSSavePanel* const panel = modalFilePanel();
+  return panel != nil ? toQString([[panel directoryURL] path]) : QString();
+}
+
+QString modalPanelTitle() {
+  NSSavePanel* const panel = modalFilePanel();
+  if (panel == nil) {
+    return QString();
+  }
+  QString text = toQString([panel title]);
+  const QString message = toQString([panel message]);
+  if (!message.isEmpty()) {
+    text += (text.isEmpty() ? "" : " / ") + message;
+  }
+  return text;
+}
+
+bool cancelModalPanel() {
+  NSSavePanel* const panel = modalFilePanel();
+  if (panel == nil) {
+    return false;
+  }
+  [panel cancel:nil];
+  return true;
 }
 
 void runLater(int ms, std::function<void()> fn) {
