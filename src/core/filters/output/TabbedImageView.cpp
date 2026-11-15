@@ -34,6 +34,10 @@ void TabbedImageView::addTab(QWidget* widget, const QString& label, ImageViewTab
   if (auto* despeckleView = dynamic_cast<DespeckleView*>(widget)) {
     connect(despeckleView, &DespeckleView::imageViewCreated,
             [this](ImageViewBase*) { copyViewZoomAndPos(m_prevImageViewTabIndex, currentIndex()); });
+    // The stack changes its current page when the indicator and the image view replace each other. The signal is
+    // queued, because the old image view is still a child of the stack until the caller deletes it.
+    connect(despeckleView, &QStackedWidget::currentChanged, this, &TabbedImageView::primaryViewChanged,
+            Qt::QueuedConnection);
   }
 }
 
@@ -63,6 +67,8 @@ void TabbedImageView::tabChangedSlot(const int idx) {
   if (Utils::castOrFindChild<ImageViewBase*>(widget(idx)) != nullptr) {
     m_prevImageViewTabIndex = idx;
   }
+
+  emit primaryViewChanged();
 }
 
 void TabbedImageView::setImageRectMap(std::unique_ptr<TabImageRectMap> tabImageRectMap) {

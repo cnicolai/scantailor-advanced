@@ -25,6 +25,8 @@
 #include <SerializableSpline.h>
 #include <StageSequence.h>
 #include <StyledIconPack.h>
+#include <filters/output/DespeckleView.h>
+#include <filters/output/DespeckleVisualization.h>
 #include <filters/output/ImageViewTab.h>
 #include <filters/output/PictureZoneEditor.h>
 #include <filters/output/Settings.h>
@@ -905,6 +907,60 @@ void TestMacQt::testZoomDisabledWithoutView() {
   QVERIFY(!zoomIn->isEnabled());
   QVERIFY(!zoomOut->isEnabled());
   delete view;
+}
+
+void TestMacQt::testZoomFollowsOutputTabs() {
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+  emptyImageFrame(*window);
+  QStackedLayout* const layout = imageFrameLayout(*window);
+  QVERIFY(layout != nullptr);
+  QAction* const zoomIn = findAction(*window, "actionZoomIn");
+  QAction* const zoomOut = findAction(*window, "actionZoomOut");
+  QVERIFY(zoomIn != nullptr);
+  QVERIFY(zoomOut != nullptr);
+
+  // Tab 0 has an image view, tab 1 has none (a processing indicator), tab 2 is a despeckle tab with an image view.
+  auto* const tabs = new output::TabbedImageView;
+  tabs->addTab(new BasicImageView(greyImage(200, 150)), "Output", output::TAB_OUTPUT);
+  tabs->addTab(new QWidget, "Picture Zones", output::TAB_PICTURE_ZONES);
+  const output::DespeckleState state(greyImage(200, 150), imageproc::BinaryImage(), 1.0, Dpi(300, 300));
+  auto* const despeckle = new output::DespeckleView(state, state.visualize(), false);
+  QCOMPARE(despeckle->count(), 2);
+  tabs->addTab(despeckle, "Despeckling", output::TAB_DESPECKLING);
+  layout->addWidget(tabs);
+  layout->setCurrentWidget(tabs);
+  QTRY_VERIFY(tabs->isVisible());
+  QVERIFY(zoomIn->isEnabled());
+  QVERIFY(zoomOut->isEnabled());
+
+  // A tab without an image view disables both actions; going back enables them again.
+  tabs->setCurrentIndex(1);
+  QVERIFY(!zoomIn->isEnabled());
+  QVERIFY(!zoomOut->isEnabled());
+  tabs->setCurrentIndex(2);
+  QVERIFY(zoomIn->isEnabled());
+  QVERIFY(zoomOut->isEnabled());
+  tabs->setCurrentIndex(0);
+  QVERIFY(zoomIn->isEnabled());
+
+  // The despeckle tab loses its image view while it is current, as when it starts despeckling again.
+  tabs->setCurrentIndex(2);
+  QWidget* const imageView = despeckle->widget(1);
+  despeckle->removeWidget(imageView);
+  delete imageView;
+  QTRY_VERIFY(!zoomIn->isEnabled());
+  QVERIFY(!zoomOut->isEnabled());
+
+  // It gets an image view back: the actions follow without any layout change.
+  despeckle->setCurrentIndex(despeckle->addWidget(new BasicImageView(greyImage(200, 150))));
+  QTRY_VERIFY(zoomIn->isEnabled());
+  QVERIFY(zoomOut->isEnabled());
+
+  // Removing the tab widget drops the connection and disables the actions.
+  layout->removeWidget(tabs);
+  QVERIFY(!zoomIn->isEnabled());
+  delete tabs;
+  QVERIFY(!zoomIn->isEnabled());
 }
 
 void TestMacQt::testThumbnailKeys() {

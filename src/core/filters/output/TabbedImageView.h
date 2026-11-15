@@ -36,6 +36,12 @@ class TabbedImageView : public QTabWidget {
 
   void tabChanged(ImageViewTab tab);
 
+  /**
+   * Emitted when the image view that currentWidget() resolves to may have changed: on a tab change and when a
+   * DespeckleView tab swaps its processing indicator and its image view.
+   */
+  void primaryViewChanged();
+
  private slots:
 
   void tabChangedSlot(int idx);

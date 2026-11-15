@@ -1649,6 +1649,14 @@ ImageViewBase* MainWindow::currentPageView() const {
 }
 
 void MainWindow::updateZoomActions() {
+  // The view of the Output stage changes with its tabs without any layout signal, so follow the tab widget. The
+  // connection dies with the tab widget; the unique flag keeps repeated calls from stacking it.
+  if (m_imageFrameLayout->count() > 0) {
+    if (auto* const tabs = Utils::castOrFindChild<output::TabbedImageView*>(m_imageFrameLayout->widget(0))) {
+      connect(tabs, &output::TabbedImageView::primaryViewChanged, this, &MainWindow::updateZoomActions,
+              Qt::UniqueConnection);
+    }
+  }
   const bool hasView = currentPageView() != nullptr;
   actionZoomIn->setEnabled(hasView);
   actionZoomOut->setEnabled(hasView);
