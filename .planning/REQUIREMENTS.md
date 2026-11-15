@@ -58,9 +58,9 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 - [ ] **MAC-03**: Cmd+Shift+S saves the project under a new name
 - [ ] **MAC-04**: Cmd+= and Cmd+- zoom the page view
 - [ ] **MAC-05**: Existing shortcuts work with Cmd: New, Open, Save, Close, Quit, and Cmd+1… to switch stages
-- [ ] **MAC-06**: Tooltips, status tips and help text show Mac key names (⌘, ⌥) instead of "Ctrl"/"Alt"
-- [ ] **MAC-07**: In the zone editor, Backspace or Delete removes a zone, and creating a content box uses a key a MacBook has
-- [ ] **MAC-08**: Context menus open with a right-click, a two-finger click and a Control-click
+- [x] **MAC-06**: Tooltips, status tips and help text show Mac key names (⌘, ⌥) instead of "Ctrl"/"Alt"
+- [x] **MAC-07**: In the zone editor, Backspace or Delete removes a zone, and creating a content box uses a key a MacBook has
+- [x] **MAC-08**: Context menus open with a right-click, a two-finger click and a Control-click
 - [ ] **MAC-09**: The menu bar stays populated while dialogs are open
 - [ ] **MAC-10**: The batch-finished alarm uses the system beep instead of a shell command
 - [ ] **MAC-11**: Native macOS file dialogs are used everywhere, including the relinking dialog
@@ -162,9 +162,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAC-03 | Phase 5 | Pending |
 | MAC-04 | Phase 5 | Pending |
 | MAC-05 | Phase 5 | Pending |
-| MAC-06 | Phase 5 | Pending |
-| MAC-07 | Phase 5 | Pending |
-| MAC-08 | Phase 5 | Pending |
+| MAC-06 | Phase 5 | Complete |
+| MAC-07 | Phase 5 | Complete |
+| MAC-08 | Phase 5 | Complete |
 | MAC-09 | Phase 5 | Pending |
 | MAC-10 | Phase 5 | Pending |
 | MAC-11 | Phase 5 | Pending |
