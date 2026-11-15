@@ -1,24 +1,27 @@
 ---
-status: partial
+status: complete
 phase: 05-mac-menus-and-shortcuts
 source: [05-VERIFICATION.md]
 started: 2026-11-15T13:30:00Z
-updated: 2026-11-15T18:26:57.102Z
+updated: 2026-11-15T18:40:26.066Z
 ---
 
 ## Current Test
 
-[testing paused — 2 items outstanding (tests 1 and 2 need the user at the trackpad and listening; this run covered only what Claude can check)]
+[testing complete]
 
 ## Tests
 
 ### 1. Two-finger trackpad click on a zone (see behavior_unverified_items)
 expected: Zone context menu opens
-result: [pending]
+result: pass
+checked_by: user, MacBook trackpad, release build at HEAD 59940b4f (2026-11-15)
+evidence: Picture Zones tab of the Output stage; a two-finger click opened one menu, Escape dismissed it, the first item removed the zone.
 
 ### 2. Batch run with 'Beep when finished' ticked
 expected: System beep audible
-result: [pending]
+result: skipped
+reason: "User does not need the beep: \"I could not care less whether it beeps or not\". The source check in 05-VERIFICATION.md (QApplication::beep() after QApplication::alert(), no shell command) stands; the sound itself was not heard."
 
 ### 3. Look at the nine apply dialogs (multi-page hint) and the Margins help in the running app
 expected: The shortened hints with the Mac key glyphs and the 7 pt bold glyphs of the Margins help are readable and not clipped
@@ -44,10 +47,10 @@ note: |
 ## Summary
 
 total: 3
-passed: 1
+passed: 2
 issues: 0
-pending: 2
-skipped: 0
+pending: 0
+skipped: 1
 blocked: 0
 
 ## Gaps
