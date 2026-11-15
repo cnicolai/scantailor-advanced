@@ -1414,3 +1414,47 @@ void TestMacQt::testBatchAlarmUsesBeep() {
   QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
   QVERIFY2(hits.isEmpty(), qPrintable("shell command paths in the app:\n" + hits.join('\n')));
 }
+
+void TestMacQt::testNoDontUseNativeDialog() {
+  // Options that force Qt's own file dialog, and the menu-bar and key rules of D-00b. The control proves the search
+  // finds them.
+  const QStringList forbidden{"DontUseNativeDialog", "AA_DontUseNativeDialogs", "AA_DontUseNativeMenuBar",
+                              "setNativeMenuBar(false)", "AA_MacDontSwapCtrlAndMeta"};
+  const auto firstForbidden = [&forbidden](const QString& text) {
+    for (const QString& word : forbidden) {
+      if (text.contains(word)) {
+        return word;
+      }
+    }
+    return QString();
+  };
+  QCOMPARE(firstForbidden(QStringLiteral("getExistingDirectory(this, t, d, QFileDialog::DontUseNativeDialog)")),
+           QStringLiteral("DontUseNativeDialog"));
+  QCOMPARE(firstForbidden(QStringLiteral("setAttribute(Qt::AA_DontUseNativeMenuBar);")),
+           QStringLiteral("AA_DontUseNativeMenuBar"));
+  QCOMPARE(firstForbidden(QStringLiteral("getOpenFileName(this, t, d)")), QString());
+
+  const QDir root(sourceRoot());
+  const QString relinking = readUtf8(root.filePath("src/app/RelinkingDialog.cpp"));
+  QVERIFY(relinking.contains(QStringLiteral("getOpenFileName(")));
+  QVERIFY(relinking.contains(QStringLiteral("getExistingDirectory(")));
+
+  QStringList hits;
+  int fileCount = 0;
+  for (const QString& suffix : {QStringLiteral(".cpp"), QStringLiteral(".h"), QStringLiteral(".mm")}) {
+    for (const QString& relative : scanScopeFiles(suffix)) {
+      const QString source = readUtf8(root.filePath(relative));
+      if (source.isEmpty()) {
+        hits.append(relative + ": unreadable");
+        continue;
+      }
+      ++fileCount;
+      const QString word = firstForbidden(source);
+      if (!word.isEmpty()) {
+        hits.append(relative + ": " + word);
+      }
+    }
+  }
+  QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
+  QVERIFY2(hits.isEmpty(), qPrintable("forced non-native dialogs or menu-bar overrides:\n" + hits.join('\n')));
+}

@@ -39,6 +39,7 @@ class TestMacQt : public QObject {
   void testNoPcKeyNames();
   void testRewrittenStrings();
   void testBatchAlarmUsesBeep();
+  void testNoDontUseNativeDialog();
 };
 
 #endif

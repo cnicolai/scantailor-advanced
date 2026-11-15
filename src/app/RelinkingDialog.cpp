@@ -64,19 +64,16 @@ void RelinkingDialog::pathButtonClicked(const QString& prefixPath, const QString
 
   if (type == RelinkablePath::File) {
     const QDir dir(QFileInfo(prefixPath).dir());
-    replacementPath = QFileDialog::getOpenFileName(
-        this, tr("Substitution File for %1").arg(QDir::toNativeSeparators(prefixPath)),
-        dir.exists() ? dir.path() : m_projectFileDir, QString(), nullptr, QFileDialog::DontUseNativeDialog);
+    replacementPath
+        = QFileDialog::getOpenFileName(this, tr("Substitution File for %1").arg(QDir::toNativeSeparators(prefixPath)),
+                                       dir.exists() ? dir.path() : m_projectFileDir);
   } else {
     const QDir dir(prefixPath);
     replacementPath = QFileDialog::getExistingDirectory(
         this, tr("Substitution Directory for %1").arg(QDir::toNativeSeparators(prefixPath)),
-        dir.exists() ? prefixPath : m_projectFileDir, QFileDialog::DontUseNativeDialog);
+        dir.exists() ? prefixPath : m_projectFileDir);
   }
-  // So what's wrong with native dialogs? The one for directory selection won't show files
-  // at all (if you ask it to, the non-native dialog will appear), which is inconvenient
-  // in this situation. So, if one of them has to be non-native, the other was made
-  // non-native as well, for consistency reasons.
+  // Native macOS panels; the folder panel greys out files, which suits choosing a replacement folder.
   replacementPath = RelinkablePath::normalize(replacementPath);
 
   if (replacementPath.isEmpty()) {
