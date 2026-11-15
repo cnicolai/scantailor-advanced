@@ -41,6 +41,9 @@
 #include <QAction>
 #include <QApplication>
 #include <QCursor>
+#include <QDir>
+#include <QDirIterator>
+#include <QFile>
 #include <QFrame>
 #include <QGuiApplication>
 #include <QImage>
@@ -50,7 +53,9 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
+#include <QPair>
 #include <QPolygonF>
+#include <QRegularExpression>
 #include <QSignalSpy>
 #include <QSpinBox>
 #include <QStackedLayout>
@@ -59,6 +64,7 @@
 #include <QStringList>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QXmlStreamReader>
 #include <QtTest/QtTest>
 #include <cmath>
 #include <memory>
@@ -308,6 +314,198 @@ QAction* actionWithText(const QWidget& view, const QString& text) {
     }
   }
   return nullptr;
+}
+
+// Source scans (key names in user-visible text). The tree is read from SOURCE_ROOT, set by CMake.
+
+using LineText = QPair<int, QString>;
+
+QString readUtf8(const QString& path) {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    return QString();
+  }
+  return QString::fromUtf8(file.readAll());
+}
+
+QString sourceRoot() {
+  return QString::fromUtf8(SOURCE_ROOT);
+}
+
+// Files below SOURCE_ROOT/src that end in the suffix, as sorted paths relative to SOURCE_ROOT. Test code, the test
+// support library and the three harnesses are not shipped text and stay out.
+QStringList scanScopeFiles(const QString& suffix) {
+  static const QStringList excludedPrefixes{"src/qt_tests/",        "src/pipeline_tests/",   "src/test_support/",
+                                            "src/app/ui_snapshot/", "src/app/retina_check/", "src/app/mac_check/"};
+  const QDir root(sourceRoot());
+  QStringList files;
+  QDirIterator it(root.filePath("src"), QStringList{"*" + suffix}, QDir::Files, QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    const QString relative = root.relativeFilePath(it.next());
+    bool excluded = relative.split('/').mid(0, relative.count('/')).contains("tests");
+    for (const QString& prefix : excludedPrefixes) {
+      excluded = excluded || relative.startsWith(prefix);
+    }
+    if (!excluded) {
+      files.append(relative);
+    }
+  }
+  files.sort();
+  return files;
+}
+
+// Line and text of each <string> element of a .ui file that is translatable (no notr="true"). An empty <string/>
+// gives an empty text. Rich text comes back unescaped. A parse error is reported through the out parameter.
+QList<LineText> uiStringsFromXml(const QString& xmlText, QString* error) {
+  QList<LineText> strings;
+  QXmlStreamReader xml(xmlText);
+  while (!xml.atEnd()) {
+    if (xml.readNext() != QXmlStreamReader::StartElement || xml.name() != QLatin1String("string")) {
+      continue;
+    }
+    const bool untranslated = xml.attributes().value(QLatin1String("notr")) == QLatin1String("true");
+    const int line = static_cast<int>(xml.lineNumber());
+    const QString text = xml.readElementText();
+    if (!untranslated) {
+      strings.append(LineText(line, text));
+    }
+  }
+  if (xml.hasError() && error != nullptr) {
+    *error = xml.errorString();
+  }
+  return strings;
+}
+
+QList<LineText> uiStrings(const QString& path, QString* error = nullptr) {
+  return uiStringsFromXml(readUtf8(path), error);
+}
+
+// Line and text of each string literal of C++ code outside comments. Adjacent literals form one string, as in the
+// compiler; escaped quotes, character literals, digit separators, raw strings and #include lines are handled.
+QList<LineText> cppLiteralsFromText(const QString& text) {
+  QList<LineText> literals;
+  const int size = text.size();
+  int line = 1;
+  int pos = 0;
+  bool lineStart = true;
+  bool pending = false;
+  int pendingLine = 0;
+  int pendingEnd = 0;
+  QString pendingText;
+
+  const auto flush = [&]() {
+    if (pending) {
+      literals.append(LineText(pendingLine, pendingText));
+      pending = false;
+    }
+  };
+  const auto addLiteral = [&](int startLine, int start, int end, const QString& content) {
+    if (pending && text.mid(pendingEnd, start - pendingEnd).trimmed().isEmpty()) {
+      pendingText += content;
+    } else {
+      flush();
+      pending = true;
+      pendingLine = startLine;
+      pendingText = content;
+    }
+    pendingEnd = end;
+  };
+
+  while (pos < size) {
+    const QChar c = text.at(pos);
+    if (c == '\n') {
+      ++line;
+      ++pos;
+      lineStart = true;
+    } else if (c.isSpace()) {
+      ++pos;
+    } else if (c == '/' && pos + 1 < size && text.at(pos + 1) == '/') {
+      while (pos < size && text.at(pos) != '\n') {
+        ++pos;
+      }
+    } else if (c == '/' && pos + 1 < size && text.at(pos + 1) == '*') {
+      const int end = text.indexOf(QLatin1String("*/"), pos + 2);
+      const int stop = end < 0 ? size : end + 2;
+      line += text.mid(pos, stop - pos).count('\n');
+      pos = stop;
+      lineStart = false;
+    } else if (c == '#' && lineStart && text.mid(pos + 1, 20).trimmed().startsWith(QLatin1String("include"))) {
+      while (pos < size && text.at(pos) != '\n') {
+        ++pos;
+      }
+    } else if (c == '\'') {
+      lineStart = false;
+      if (pos > 0 && text.at(pos - 1).isDigit()) {
+        ++pos;  // digit separator
+        continue;
+      }
+      int p = pos + 1;
+      while (p < size && text.at(p) != '\'' && text.at(p) != '\n') {
+        p += (text.at(p) == '\\') ? 2 : 1;
+      }
+      pos = (p < size && text.at(p) == '\'') ? p + 1 : p;
+    } else if (c == '"') {
+      lineStart = false;
+      const int startLine = line;
+      const int start = pos;
+      const bool raw
+          = pos > 0 && text.at(pos - 1) == 'R'
+            && (pos < 2 || !text.at(pos - 2).isLetterOrNumber() || QString("Lu8U").contains(text.at(pos - 2)));
+      QString content;
+      if (raw) {
+        const int open = text.indexOf('(', pos + 1);
+        const QString closing = ")" + text.mid(pos + 1, open - pos - 1) + "\"";
+        const int end = open < 0 ? -1 : text.indexOf(closing, open + 1);
+        const int stop = end < 0 ? size : end + closing.size();
+        content = end < 0 ? QString() : text.mid(open + 1, end - open - 1);
+        line += text.mid(pos, stop - pos).count('\n');
+        pos = stop;
+      } else {
+        int p = pos + 1;
+        while (p < size && text.at(p) != '"' && text.at(p) != '\n') {
+          if (text.at(p) == '\\' && p + 1 < size) {
+            const QChar next = text.at(p + 1);
+            if (next == '\n') {
+              ++line;
+            } else if (next == 'n') {
+              content += '\n';
+            } else if (next == 't') {
+              content += '\t';
+            } else {
+              content += next;
+            }
+            p += 2;
+          } else {
+            content += text.at(p);
+            ++p;
+          }
+        }
+        pos = (p < size && text.at(p) == '"') ? p + 1 : p;
+      }
+      addLiteral(startLine, start, pos, content);
+    } else {
+      lineStart = false;
+      ++pos;
+    }
+  }
+  flush();
+  return literals;
+}
+
+QList<LineText> cppStringLiterals(const QString& path) {
+  return cppLiteralsFromText(readUtf8(path));
+}
+
+// Words that name keys of a PC keyboard; the text must name the Mac keys instead.
+const QRegularExpression& pcKeyWords() {
+  static const QRegularExpression pattern(
+      QStringLiteral("\\b(Ctrl|Alt|Control|Cmd|Command|Option|Del|Ins|LMB|Meta)\\b"));
+  return pattern;
+}
+
+QString elided(const QString& text) {
+  const QString oneLine = QString(text).replace('\n', ' ');
+  return oneLine.size() > 120 ? oneLine.left(120) + utf8("…") : oneLine;
 }
 
 }  // namespace
@@ -995,4 +1193,166 @@ void TestMacQt::testRightClickOpensZoneMenu() {
     QVERIFY(actionTexts(*menu).contains(QStringLiteral("Remove Content Box")));
     menu->hide();
   }
+}
+
+void TestMacQt::testNoPcKeyNames() {
+  // The scanners first, on synthetic input, so that the scan below cannot pass by reading wrongly.
+  QVERIFY(pcKeyWords().match(QStringLiteral("Press Ctrl+C")).hasMatch());
+  QVERIFY(pcKeyWords().match(QStringLiteral("Hold Alt")).hasMatch());
+  QVERIFY(!pcKeyWords().match(QStringLiteral("Controller, Delete, Altitude and Insert")).hasMatch());
+  QVERIFY(!pcKeyWords().match(QStringLiteral("ctrl alt")).hasMatch());
+
+  {
+    QString error;
+    const QList<LineText> strings
+        = uiStringsFromXml(QStringLiteral("<ui>\n<widget>\n<property name=\"a\"><string>Hold Ctrl</string></property>\n"
+                                          "<property name=\"b\"><string notr=\"true\">Ctrl+S</string></property>\n"
+                                          "<property name=\"c\"><string/></property>\n"
+                                          "<property name=\"d\"><string></string></property>\n</widget>\n</ui>\n"),
+                           &error);
+    QVERIFY2(error.isEmpty(), qPrintable(error));
+    QCOMPARE(strings.size(), 3);
+    QCOMPARE(strings[0], LineText(3, QStringLiteral("Hold Ctrl")));
+    QCOMPARE(strings[1].second, QString());  // an empty string is clean
+    QCOMPARE(strings[2].second, QString());
+    QVERIFY(!pcKeyWords().match(strings[1].second).hasMatch());
+  }
+
+  {
+    // The delimiter is not one that clang-format treats as C++ code, which would reindent the sample.
+    const QList<LineText> literals = cppLiteralsFromText(QString::fromUtf8(R"TXT(// tr("Ctrl in a comment")
+/* "Alt in a block comment" */
+auto a = tr("Hold Ctrl " "or \"Alt\"");
+char quote = '"';
+int n = 1'000;
+auto b = "Meta";
+#include "Cmd.h"
+auto c = R"x(Del "raw")x";
+)TXT"));
+    QCOMPARE(literals.size(), 3);
+    QCOMPARE(literals[0], LineText(3, QStringLiteral("Hold Ctrl or \"Alt\"")));
+    QCOMPARE(literals[1], LineText(6, QStringLiteral("Meta")));
+    QCOMPARE(literals[2], LineText(8, QStringLiteral("Del \"raw\"")));
+  }
+
+  // The scan itself.
+  const QDir root(sourceRoot());
+  QStringList hits;
+  int uiFileCount = 0;
+  int cppFileCount = 0;
+
+  for (const QString& relative : scanScopeFiles(".ui")) {
+    const QString text = readUtf8(root.filePath(relative));
+    if (text.isEmpty()) {
+      hits.append(relative + ": unreadable");
+      continue;
+    }
+    ++uiFileCount;
+    QString error;
+    for (const LineText& entry : uiStringsFromXml(text, &error)) {
+      if (pcKeyWords().match(entry.second).hasMatch()) {
+        hits.append(QStringLiteral("%1:%2: %3").arg(relative).arg(entry.first).arg(elided(entry.second)));
+      }
+    }
+    if (!error.isEmpty()) {
+      hits.append(relative + ": " + error);
+    }
+  }
+
+  for (const QString& suffix : {QStringLiteral(".cpp"), QStringLiteral(".h")}) {
+    for (const QString& relative : scanScopeFiles(suffix)) {
+      const QString text = readUtf8(root.filePath(relative));
+      if (text.isEmpty()) {
+        hits.append(relative + ": unreadable");
+        continue;
+      }
+      ++cppFileCount;
+      for (const LineText& entry : cppLiteralsFromText(text)) {
+        if (pcKeyWords().match(entry.second).hasMatch()) {
+          hits.append(QStringLiteral("%1:%2: %3").arg(relative).arg(entry.first).arg(elided(entry.second)));
+        }
+      }
+    }
+  }
+
+  QVERIFY2(uiFileCount >= 30, qPrintable(QStringLiteral("only %1 .ui files read").arg(uiFileCount)));
+  QVERIFY2(cppFileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(cppFileCount)));
+  QVERIFY2(hits.isEmpty(), qPrintable("PC key names in user-visible text:\n" + hits.join('\n')));
+}
+
+void TestMacQt::testRewrittenStrings() {
+  const QString hint = utf8("Use ⌘-click / ⇧-click to select multiple pages.");
+  const QString oldHint = QStringLiteral("Use Ctrl+Click / Shift+Click to select multiple pages.");
+  // UI-SPEC E13: the new hint is shorter than the old one, so it fits the same label.
+  QVERIFY(hint.size() < oldHint.size());
+
+  const QList<QPair<QString, QString>> expected = {
+      {"src/core/filters/fix_orientation/ApplyDialog.ui", hint},
+      {"src/core/filters/page_split/SplitModeDialog.ui", hint},
+      {"src/core/filters/deskew/ApplyDialog.ui", hint},
+      {"src/core/filters/select_content/ApplyDialog.ui", hint},
+      {"src/core/filters/page_layout/ApplyDialog.ui", hint},
+      {"src/core/filters/page_layout/ApplyMarginsDialog.ui", hint},
+      {"src/core/filters/output/ApplyColorsDialog.ui", hint},
+      {"src/core/filters/output/ChangeDewarpingDialog.ui", hint},
+      {"src/core/filters/output/ChangeDpiDialog.ui", hint},
+      {"src/app/MainWindow.ui", utf8("Larger thumbnails.  (⌥⌘+)")},
+      {"src/app/MainWindow.ui", utf8("Smaller thumbnails.  (⌥⌘-)")},
+      {"src/app/MainWindow.ui", utf8("Go To Page…  (⌘G)")},
+      {"src/app/MainWindow.ui",
+       utf8("Use Home, End, PgUp/Q, PgDown/W (fn with the arrow keys on a MacBook) to navigate between pages or "
+            "⇧PgUp/Q and ⇧PgDown/W to navigate between selected ones. ⌥-wheel scales thumbnails.")},
+      {"src/core/filters/output/TabbedImageView.cpp", utf8("Use ⌥⌘1 to ⌥⌘5 to switch the tabs.")},
+      {"src/core/filters/deskew/ImageView.cpp", utf8("Use ⌘-wheel to rotate or ⇧⌘-wheel for finer rotation.")},
+      {"src/core/filters/select_content/ImageView.cpp",
+       utf8("Use the context menu to enable / disable the content box. Hold ⇧ to drag a box. Use double-click on "
+            "content to automatically adjust the content area.")},
+      {"src/core/zones/ZoneDefaultInteraction.cpp",
+       utf8("Drag the vertex. Hold ⌘ to make the vertex angle right. Press D to delete the vertex.")},
+      {"src/core/zones/ZoneDefaultInteraction.cpp",
+       utf8("Right click to edit zone properties. Hold ⇧ to drag the zone or ⇧⌘ to copy. Press ⌫ to delete this "
+            "zone.")},
+      {"src/core/zones/ZoneDefaultInteraction.cpp",
+       utf8("Click to start creating a new zone. ⌥⌘-click to copy the latest created zone. Use Z, X and C keys to "
+            "switch zone creation mode.")},
+      {"src/core/interaction/InteractiveXSpline.cpp",
+       utf8("This point can be dragged. Hold ⌘ or ⇧ to drag along axes.")},
+      {"src/core/interaction/DragHandler.cpp", utf8("Unrestricted dragging is possible by holding down the ⇧ key.")},
+  };
+
+  const QDir root(sourceRoot());
+  QStringList missing;
+  for (const auto& entry : expected) {
+    // Tooltips and status tips stay on one line (UI-SPEC E10).
+    QVERIFY2(!entry.second.contains('\n'), qPrintable(entry.second));
+
+    const QString path = root.filePath(entry.first);
+    const QList<LineText> strings = entry.first.endsWith(".ui") ? uiStrings(path) : cppStringLiterals(path);
+    bool found = false;
+    for (const LineText& candidate : strings) {
+      found = found || candidate.second == entry.second;
+    }
+    if (!found) {
+      missing.append(entry.first + ": " + elided(entry.second));
+    }
+  }
+  QVERIFY2(missing.isEmpty(), qPrintable("rewritten strings not found:\n" + missing.join('\n')));
+
+  // The Margins help: rich text, compared unescaped, with the 7pt bold spans kept.
+  QString helpText;
+  for (const LineText& candidate : uiStrings(root.filePath("src/core/filters/page_layout/OptionsWidget.ui"))) {
+    if (candidate.second.contains(utf8("‣ ⌥⌘-drag"))) {
+      helpText = candidate.second;
+    }
+  }
+  QVERIFY(!helpText.isEmpty());
+  const QString boldOpen = QStringLiteral("<span style=\" font-size:7pt; font-weight:600;\">");
+  const QString plainOpen = QStringLiteral("<span style=\" font-size:7pt;\">");
+  QVERIFY(helpText.contains(boldOpen + utf8("‣ ⌥⌘-drag</span>") + plainOpen + " - drag the guide under the cursor."));
+  QVERIFY(helpText.contains(boldOpen + utf8("‣ ⇧/⌘-drag</span>")));
+  QCOMPARE(helpText.count(boldOpen + utf8("⇧</span>")), 2);
+  QCOMPARE(helpText.count(boldOpen + utf8("⌘</span>")), 2);
+  QCOMPARE(helpText.count(boldOpen + utf8("⇧⌘</span>")), 2);
+  QVERIFY(helpText.contains(boldOpen + utf8("‣ Double-click</span>")));
+  QVERIFY(helpText.contains(QStringLiteral("font-size:8.25pt")));
 }

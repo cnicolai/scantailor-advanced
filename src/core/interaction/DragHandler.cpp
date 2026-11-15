@@ -19,7 +19,7 @@ DragHandler::DragHandler(ImageViewBase& imageView,
 }
 
 void DragHandler::init() {
-  m_interaction.setInteractionStatusTip(tr("Unrestricted dragging is possible by holding down the Shift key."));
+  m_interaction.setInteractionStatusTip(tr("Unrestricted dragging is possible by holding down the ⇧ key."));
 }
 
 bool DragHandler::isActive() const {

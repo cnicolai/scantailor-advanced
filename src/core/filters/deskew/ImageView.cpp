@@ -30,7 +30,7 @@ ImageView::ImageView(const QImage& image, const QImage& downscaledImage, const I
       m_xform(xform) {
   setMouseTracking(true);
 
-  interactionState().setDefaultStatusTip(tr("Use Ctrl+Wheel to rotate or Ctrl+Shift+Wheel for finer rotation."));
+  interactionState().setDefaultStatusTip(tr("Use ⌘-wheel to rotate or ⇧⌘-wheel for finer rotation."));
 
   const QString rotationTip(tr("Drag this handle to rotate the image."));
   const QString obliqueTip(tr("Drag this handle to adjust oblique (shear)."));

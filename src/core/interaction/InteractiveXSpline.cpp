@@ -55,7 +55,7 @@ void InteractiveXSpline::setSpline(const XSpline& spline) {
           {Qt::NoModifier, Qt::ShiftModifier, Qt::ControlModifier, Qt::ShiftModifier | Qt::ControlModifier});
       // Endpoints can't be deleted.
       newControlPoints[i].handler.setProximityStatusTip(
-          tr("This point can be dragged. Hold Ctrl or Shift to drag along axes."));
+          tr("This point can be dragged. Hold ⌘ or ⇧ to drag along axes."));
     } else {
       newControlPoints[i].handler.setProximityStatusTip(tr("Drag this point or delete it by pressing D key."));
     }
