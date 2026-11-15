@@ -1294,13 +1294,12 @@ bool runContextSection(Summary& summary) {
   };
 
   int retries = 0;
-  // One trigger on the zone; with clickDelete the first click on the Delete item follows.
-  auto runTrigger = [&](const cocoaprobe::MouseAction action, const unsigned modifiers, const bool clickDelete) {
-    TriggerResult result;
+  int failedCursorOff = 0;  // attempts without a menu while QCursor::pos() was away from the target
+  int failedCursorOn = 0;   // attempts without a menu although QCursor::pos() was on the target
+  // Triggers on the zone until a menu shows, at most twice: when no menu appears nothing has changed (the default
+  // interaction stays), so the trigger can be repeated; failed attempts and retries are counted and reported.
+  auto openMenu = [&](const cocoaprobe::MouseAction action, const unsigned modifiers, TriggerResult& result) {
     result.tracked = prepare();
-    const int before = zoneCount(editor);
-    // One retry when no menu appears: nothing has changed then (the default interaction stays), so the trigger can be
-    // repeated; retries are counted and reported.
     for (int attempt = 0; attempt < 2 && !result.menuShown; ++attempt) {
       if (attempt > 0) {
         ++retries;
@@ -1311,7 +1310,16 @@ bool runContextSection(Summary& summary) {
       cocoaprobe::sendMouse(handle, zoneWindowPos(), action, modifiers);
       result.menuShown = waitFor([&editor] { return visibleZoneMenu(editor) != nullptr; }, 2000);
       result.events = counter.count();
+      if (!result.menuShown) {
+        ((QCursor::pos() - targetGlobal).manhattanLength() <= 1 ? failedCursorOn : failedCursorOff) += 1;
+      }
     }
+  };
+  // One trigger on the zone; with clickDelete the first click on the Delete item follows.
+  auto runTrigger = [&](const cocoaprobe::MouseAction action, const unsigned modifiers, const bool clickDelete) {
+    TriggerResult result;
+    openMenu(action, modifiers, result);
+    const int before = zoneCount(editor);
     QMenu* const menu = visibleZoneMenu(editor);
     result.qtMenu = menu != nullptr;
     result.nativeMenuObject = menu == nullptr && anyZoneMenuObject(editor);
@@ -1371,11 +1379,10 @@ bool runContextSection(Summary& summary) {
   bool dismissRestored = false;
   QString dismissVia = "none";
   {
-    const bool tracked = prepare();
+    TriggerResult opened;
+    openMenu(cocoaprobe::MouseAction::RightClick, 0, opened);
     const int before = zoneCount(editor);
-    cocoaprobe::sendMouse(handle, zoneWindowPos(), cocoaprobe::MouseAction::RightClick, 0);
-    const bool shown = waitFor([&editor] { return visibleZoneMenu(editor) != nullptr; }, 2000);
-    summary.add("context_dismiss_menu_shown", yesNo(tracked && shown));
+    summary.add("context_dismiss_menu_shown", yesNo(opened.tracked && opened.menuShown));
     QMenu* const menu = visibleZoneMenu(editor);
     if (menu != nullptr) {
       if (menu->windowHandle() != nullptr) {
@@ -1422,6 +1429,8 @@ bool runContextSection(Summary& summary) {
   summary.add("context_cursor_lagged", QString::number(cursorLagged));
   summary.add("context_cursor_unconfirmed", QString::number(cursorUnconfirmed));
   summary.add("context_retries", QString::number(retries));
+  summary.add("context_failed_attempts_cursor_off_target", QString::number(failedCursorOff));
+  summary.add("context_failed_attempts_cursor_on_target", QString::number(failedCursorOn));
 
   const bool removeDeferral = qtMenu && before == orderRuns;
   summary.add("context_delay_decision", removeDeferral ? "remove" : "keep");
