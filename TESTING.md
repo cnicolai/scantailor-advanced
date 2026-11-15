@@ -24,7 +24,7 @@ A single suite runs with ctest's regular filter, for example `ctest --preset mac
 | `math_tests` | Automatic differentiation (Hessians), linear and quadratic functions, matrix calculations, sides of a line, lines clipped by a rectangle, squared-distance approximation |
 | `imageproc_tests` | Binary images, binarization, morphology, raster operations, scaling, shear, transforms, rotation, connected components and their eraser, seed fill, distance maps, skew finder, line finder, histograms, polygon rasterizer, DPI |
 | `core_tests` | Image and page identifiers, page ranges and sequence, margins, units, natural file-name ordering, deskew parameters, content span finder, oblique finder, select-content application |
-| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`), and the Retina tests (`TestHiDpiQt`): page view, thumbnails, zone mask and stage-list animation built at the device pixel ratio, moves between the 1x and the 2x screen, icon geometry and colour-picker sampling |
+| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`), and the Retina tests (`TestHiDpiQt`): page view, thumbnails, zone mask and stage-list animation built at the device pixel ratio, moves between the 1x and the 2x screen, icon geometry and colour-picker sampling, and the Mac tests (`TestMacQt`): the application menu roles, the File, View and Tools menus, every window key (stages, Output tabs, zoom, thumbnails, Settings, Save As), the zone and content-box keys and their protection in text fields, the right-click menus, the scan that keeps PC key names (Ctrl, Alt and the like) out of user-visible text, and the source checks for the batch beep and the native file dialogs |
 | `pipeline_tests` | The headless pipeline on generated pages: flat documents, book spreads, mixed pages, dewarping, project round trips, a smoke run, and the test support itself (generator determinism, image comparison, truth metrics, the golden store, the comparator self-test) |
 | `dewarping_tests` | Text line tracer, distortion model, cylindrical dewarper |
 
@@ -104,6 +104,8 @@ build/macos-release/ui_snapshot build/scratch/ui --assert-no-language
 
 With `--assert-no-language` it exits non-zero when the Settings dialog still has a language control.
 
+The GUI sources are compiled once into the static library `app_gui`, which the app, `ui_snapshot`, `qt_tests` and `mac_check` link.
+
 ## Live Retina check
 
 `retina_check` measures the Retina rendering on the real display. It is built with the tests but is not a ctest suite, because ctest runs offscreen. It runs on the Cocoa platform, so the display must be awake and the session unlocked.
@@ -119,6 +121,25 @@ build/macos-release/retina_check build/scratch/retina/all --section all -ApplePe
 * Exit codes: 0 pass, 1 fail, 2 usage error or output path outside `build/`, 3 platform is not Cocoa.
 
 The `qt_tests` cannot show how Cocoa behaves on a real display, and the live check cannot move a window between a 1x and a 2x display, so the two complement each other. The records of the Phase 4 runs are in `.planning/phases/04-retina-rendering/records/`.
+
+## Live Mac check
+
+`mac_check` checks the Mac menus, keys, context menus, dialogs and file panels on the real display. It is built with the tests but is not a ctest suite, because ctest runs offscreen. It runs on the Cocoa platform, so the display must be awake and the session unlocked, and it uses the current keyboard layout (the Phase 5 records were made with the German layout).
+
+```sh
+build/macos-release/mac_check build/scratch/mac/input --section menubar,layout,keys,zone,context -ApplePersistenceIgnoreState YES
+
+D=build/scratch/mac/panels; mkdir -p "$D/home"; env HOME="$PWD/$D/home" CFFIXED_USER_HOME="$PWD/$D/home" build/macos-release/mac_check "$D" --section dialogs,panels -ApplePersistenceIgnoreState YES
+```
+
+* `--section` is `menubar`, `layout`, `keys`, `zone`, `context`, `dialogs`, `panels` or `identity`. It takes a comma-separated list or `all`. `all` leaves out `identity`, the storage-identity check of plan 05-02, which runs alone and only with the redirected home.
+* The output directory must lie below `build/`. The tool keeps its settings, temporary files and `summary.txt` there, so it never reads or writes the settings of the installed application.
+* `dialogs` and `panels` refuse to run unless `HOME` and `CFFIXED_USER_HOME` both name `<output-dir>/home`, because the file panels and the profile list would otherwise reach the home folder: without it the section opens nothing and ends with `home not redirected` and a FAIL verdict (`identity` exits 2 instead). The second command above sets both.
+* All input is synthesised inside the tool's own process and sent to its own windows, so no Accessibility or screen-recording permission is needed. The mouse pointer does move during the run, and dialogs and file panels open and close for a few minutes; leave the mouse and keyboard alone while it runs.
+* Results go to `summary.txt` in the output directory as `key: value` lines, with a verdict per section and a final `verdict: PASS` or `verdict: FAIL`.
+* Exit codes: 0 pass, 1 fail, 2 usage error or output path outside `build/` (also `identity` without the redirected home), 3 platform is not Cocoa.
+
+`qt_tests` (`TestMacQt`) cannot show what the native menu bar and the file panels do on Cocoa, and the live check does not run in ctest or in the Debug gate, so the two complement each other. The records of the Phase 5 runs are in `.planning/phases/05-mac-menus-and-shortcuts/records/`.
 
 ## Formatting
 
