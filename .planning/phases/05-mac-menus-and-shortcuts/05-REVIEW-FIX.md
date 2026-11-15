@@ -50,7 +50,7 @@ Scope was Critical and Warning (`critical_warning`). There were no Critical find
 
 **Files modified:** `src/app/mac_check/main.cpp`
 **Commit:** 13519fcf
-**Status:** fixed: requires human verification (the harness was built but, by instruction, not run live)
+**Status:** fixed (confirmed by a live `mac_check` keys run on 2026-11-15, see Verification)
 **Applied fix:**
 - In the watch loop of `runKeysSection`, after the two existing disconnects of each production slot, a wildcard `QObject::disconnect(action, &QAction::triggered, nullptr, nullptr)` is made. It returns true only if some receiver was still connected. This is the public-API way to count receivers (`QObject::receivers` and `isSignalConnected` are protected).
 - On a hit the section records `keys_slot_still_connected_<objectName>=yes`, skips `counts.watch()` and `setEnabled(true)` for that action, and after the loop writes `keys_reason` and `keys_verdict=FAIL` and returns false. The check therefore comes before the counter's connection (the `watch` call is the last statement in the loop body) and before any key is sent. The first key is sent only after the loop.
@@ -61,9 +61,13 @@ Scope was Critical and Warning (`critical_warning`). There were no Critical find
 - `xcrun clang-format --dry-run -Werror src/app/mac_check/main.cpp`: clean.
 - `cmake --build --preset macos-release` (builds the `mac_check` target): built. `ctest --preset macos-release`: 7 of 7 passed (same suites and counts as above).
 - `cmake --build --preset macos-debug` and `ctest --preset macos-debug` (run after both commits): 7 of 7 passed, TestMacQt 28/28.
-- `mac_check` and `retina_check` were not run (they move the pointer and take focus), and the app was not launched. A human should run `mac_check --sections keys` once to confirm the verdict still reads PASS with the new check.
+- The fixer agent did not run `mac_check` or `retina_check` (they move the pointer and take focus) and did not launch the app.
+- Live check after the fix, with the user's go-ahead: `build/macos-release/mac_check <dir> --section keys -ApplePersistenceIgnoreState YES`, Release build containing 13519fcf, German layout, three runs on 2026-11-15:
+  - Run 1, not valid: the Mac was locked (`frontmost_app: loginwindow`, `keys_app_active: no`), so almost no key reached the app.
+  - Run 2, disturbed: `keys_verdict: FAIL`, but only the keys Qt handles itself failed (stage letters E, N, V, K, P, ⇧⌘S, ⌥⌘1 to ⌥⌘5, ⌘= and ⌥⌘=). Every menu key passed. The run log shows a one-pixel `MouseMoved` event just before the first failing key, followed by `KitDefined subtype=22` events, which matches the window losing keyboard focus during the run. No `keys_slot_still_connected_*` line was recorded.
+  - Run 3, hands-off (`build/scratch/mac/wr02-keys3/summary.txt`): exit code 0, `keys_verdict: PASS`, `verdict: PASS`. No `keys_slot_still_connected_*` line was recorded, so the new check found every production slot disconnected, and no file panel opened. Every `keys_*` line is identical to the last passing record before the fix (`build/scratch/mac/closing-input/summary.txt`).
 
 ## Notes
 
 - The work was done in the main checkout, not in an isolated worktree, because the build presets and `build/` directories live there and a worktree has none. All edits and commits went onto the current branch. The `.planning/state.json` change that was already uncommitted was left alone and unstaged.
-- Each fix is one commit. REVIEW-FIX.md is not committed.
+- Each fix is one commit. The fixer left REVIEW-FIX.md uncommitted. The orchestrator committed it (99134849) and later added the live-check record above.
