@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Golden Baselines** - Synthetic-image test suite and golden baselines recorded from the unmodified code before anything is removed (completed 2026-10-24)
 - [x] **Phase 3: Qt 6 and macOS Only** - Qt 5, Windows, Linux, packaging, CI and translations removed, with baselines unchanged; README documents the Mac build (completed 2026-10-24)
 - [x] **Phase 4: Retina Rendering** - Page view, thumbnails, overlays and colour picker are sharp and correct on Retina displays (completed 2026-10-25)
-- [ ] **Phase 5: Mac Menus and Shortcuts** - Standard application menu, Cmd shortcuts, Mac key names, native dialogs and Mac-friendly input
+- [x] **Phase 5: Mac Menus and Shortcuts** - Standard application menu, Cmd shortcuts, Mac key names, native dialogs and Mac-friendly input (completed 2026-11-15)
 - [ ] **Phase 6: Hardening and Cleanup** - Safety defects fixed, OpenGL viewer removed, oversized files split and dead code removed, with baselines unchanged
 
 ## Phase Details
@@ -203,7 +203,7 @@ Plans:
   4. When a batch run finishes, the Mac plays the system beep and no shell command runs
   5. Every open, save and folder dialog, including the relinking dialog, is the native macOS panel
 
-**Plans:** 11/11 plans executed
+**Plans:** 11/11 plans complete
 
 Plans:
 **Wave 1**
@@ -270,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Golden Baselines | 14/14 | Complete    | 2026-10-24 |
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
-| 5. Mac Menus and Shortcuts | 11/11 | In Progress | - |
+| 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
 | 6. Hardening and Cleanup | 0/TBD | Not started | - |
 
 ---

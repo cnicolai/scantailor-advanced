@@ -26,7 +26,7 @@
     {
       "number": "5",
       "name": "Mac Menus and Shortcuts",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "6",
@@ -36,8 +36,8 @@
   ],
   "next": {
     "command": "/gsd-progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 5 of 6 · executing"
+    "label": "Advance to the next step (plan phase 6)",
+    "reason": "Phase 6 of 6 — needs a plan"
   },
-  "updated_at": "2026-11-14T22:12:11.349Z"
+  "updated_at": "2026-11-15T18:51:23.889Z"
 }

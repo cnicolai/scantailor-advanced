@@ -30,11 +30,11 @@ The app builds from source and works reliably for daily scanning work on a curre
 - ✓ All GitHub Actions CI disabled — Phase 3 (`.github/` deleted)
 - ✓ README documents the macOS build and test commands — Phase 3 (proven by a fresh clone that ran only README lines)
 - ✓ Page views, thumbnails and icons render sharply on Retina (HiDPI) displays — Phase 4 (DPR 2 measured on the Studio Display without an `Info.plist`; page view pixel-exact against a device-resolution reference at fit/100%/200%; thumbnails, zone mask, badges, handles, stage animation and colour picker checked live; output files and goldens unchanged)
+- ✓ Mac-conventional shortcuts and menus (Cmd-based shortcuts, standard app menu, native menu bar) — Phase 5 (application menu named ScanTailor Advanced with About, Preferences and Quit; Cmd shortcuts, Cmd+1..6 stages, Option-Command Output tabs and thumbnail keys measured on a German layout; Mac key glyphs in the UI text; Delete/Backspace on zones; right-click, Control-click and two-finger click menus; native file panels including relinking; menu bar kept during dialogs; batch-finished alarm is the system beep. Verified 8/8, the beep source-verified only)
 
 ### Active
 
 - [ ] Builds on current macOS (Apple Silicon, arm64) with Homebrew dependencies and runs from the build directory
-- [ ] Mac-conventional shortcuts and menus (Cmd-based shortcuts, standard app menu, native menu bar)
 - [ ] Known-debt cleanup that makes later feature work safe (e.g. disabled tests, dead `#if 0` blocks, oversized files where touched)
 
 ### Out of Scope
@@ -58,8 +58,9 @@ The app builds from source and works reliably for daily scanning work on a curre
 - The user tried a macOS build a long time ago and it did not work; current state is unknown.
 - Test gaps flagged in CONCERNS.md: output stage (`OutputGenerator.cpp`, 2814 lines) has no tests; `TestBinarize.cpp` is disabled with `#if 0`; dewarping has no tests; project-file XML round-trip with special characters is untested.
 - Fragile areas: output generation, deskew overlay geometry (recent upstream change d710384), hand-written threading/wait code, mixed raw/smart-pointer ownership.
-- Oversized files: `OutputGenerator.cpp`, `MainWindow.cpp` (2245), `ThumbnailSequence.cpp` (1712), `ContentBoxFinder.cpp` (1331).
-- Security notes worth fixing while there: `std::system` on a settings string for the batch-finished alarm; unbounded TIFF dimensions before allocation.
+- Since Phase 5 the app carries an embedded `Info.plist` section (`CFBundleName` only) and `build/macos-release/mac_check` is the live Cocoa check for menus, keys, zones, context menus, dialogs and file panels. Its sections move the pointer and take focus, so they run only when the user says go. `TestMacQt` in `qt_tests` covers the menus and shortcuts offscreen. Six info findings of the Phase 5 review are open (`phases/05-mac-menus-and-shortcuts/05-REVIEW-DISPOSITION.md`). At the Filters dock's minimum width the Margins options panel is cut on the right (older layout limit, noted in `05-UAT.md`).
+- Oversized files: `OutputGenerator.cpp` (2814), `MainWindow.cpp` (2319 after Phase 5), `ThumbnailSequence.cpp` (1712), `ContentBoxFinder.cpp` (1331).
+- Security notes worth fixing while there: unbounded TIFF dimensions before allocation. (The `std::system` call on a settings string for the batch-finished alarm was removed in Phase 5.)
 
 ## Constraints
 
@@ -87,6 +88,10 @@ The app builds from source and works reliably for daily scanning work on a curre
 | One buffer rule for Retina: build view buffers at the device pixel ratio via a small `hidpi` helper module, never touch output generation | Keeps the change view-only and testable; output files must not change | ✓ Good — Phase 4: no diff under `imageproc`, `dewarping`, `Task.cpp` or `OutputGenerator.cpp`; goldens byte-identical |
 | Prove Retina offscreen (two simulated screens) plus a committed live harness, not by launching the app | Automated tests need no display; the app itself would touch `~/.config` and `~/Library` | ✓ Good — Phase 4: 24 `TestHiDpiQt` tests in `ctest`; `retina_check` measured every element on the Studio Display |
 | Thumbnail Quality is multiplied by the DPR; default raised to 250; files keyed by effective width | Sharp thumbnails without rewriting stored settings or deleting old cache files | ✓ Good — Phase 4: `q500` files on Retina, old `q200` files left in place |
+| Name the application menu through an embedded `Info.plist` section, not a bundle | Running from the build directory stays the rule; a plist next to the executable would fake a bundle | ✓ Good — Phase 5: menu reads ScanTailor Advanced; settings and profile paths measured unchanged |
+| Option-Command for the Output tabs and thumbnail keys | Measured on the user's German layout: Option-Command digits and plus/minus fire once each | ✓ Good — Phase 5: live keys run PASS |
+| Batch-finished alarm is `QApplication::beep()`; the old alarm command setting is no longer read | Removes the `std::system` call on a settings string | ✓ Good — Phase 5: test-pinned; the user waived hearing the sound |
+| Live Cocoa checks (`mac_check`) run only on the user's go | They move the pointer and take focus while the user works | ✓ Good — Phase 5: offscreen tests carry the automated gate |
 
 ## Evolution
 
@@ -106,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-25 after Phase 4*
+*Last updated: 2026-11-15 after Phase 5*

@@ -1,19 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: 05
-current_phase_name: Mac Menus and Shortcuts
-status: verifying
-stopped_at: Completed 05-11-PLAN.md
-last_updated: "2026-11-15T11:40:27.868Z"
+current_phase: 6
+current_phase_name: Hardening and Cleanup
+status: planning
+stopped_at: Phase 05 complete, ready to plan Phase 6
+last_updated: "2026-11-15T18:51:23.867Z"
 last_activity: 2026-11-15
-last_activity_desc: Phase 05 execution started
-state_head: 4854b5e4bc688a8fa48a31fa1c2cc4bd7b20d88a
+last_activity_desc: Phase 05 complete, transitioned to Phase 6
+state_head: 19400efb3373130746f7652f576faec501328e58
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 49
   completed_plans: 49
+  percent: 83
 milestone_name: macOS
 ---
 
@@ -21,24 +22,24 @@ milestone_name: macOS
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-25)
+See: .planning/PROJECT.md (updated 2026-11-15)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 05 — Mac Menus and Shortcuts
+**Current focus:** Phase 6 — Hardening and Cleanup
 
 ## Current Position
 
-Phase: 05 (Mac Menus and Shortcuts) — EXECUTING
-Plan: 11 of 11
-Status: Phase complete — ready for verification
-Last activity: 2026-11-15 — Phase 05 execution started
+Phase: 6 — Hardening and Cleanup
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-15 — Phase 05 complete, transitioned to Phase 6
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 38
+- Total plans completed: 49
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -50,6 +51,7 @@ Progress: [███████░░░] 67%
 | 02 | 14 | - | - |
 | 03 | 9 | - | - |
 | 04 | 8 | - | - |
+| 05 | 11 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -210,6 +212,7 @@ Recent decisions affecting current work:
 - [Phase 05]: No fallback menu bar: all seven dialog rows (Settings, About, Fix DPI, Relinking, Default Parameters, message box, native Open Project panel) kept the application menu and File | View | Tools, so MainWindow is unchanged
 - [Phase 05]: mac_check dialogs and panels run only with HOME and CFFIXED_USER_HOME naming <output-dir>/home, checked in-process by homeRedirected; all five reachable file panels are NSOpenPanel and return an empty path when cancelled
 - [Phase 05]: Phase 5 closed on evidence: both mac_check invocations PASS at the final HEAD, Release and Debug ctest 7 of 7, qt_tests clean under ASan/UBSan for Phase 5 files (one older BinaryImage.cpp:1044 report recorded, not fixed); two residuals stay unverified (two-finger click, beep)
+- [Phase 05]: Phase 5 complete 2026-11-15: re-verified passed 8/8 after review fixes WR-01 and WR-02; UAT confirmed the two-finger click on the trackpad; the beep is a source-verified override because the user skipped the listening check
 
 ### Pending Todos
 
@@ -224,10 +227,12 @@ None yet.
 - Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
 - [Phase 4] Code review left WR-01 open and worth fixing soon: `ThumbnailPixmapCache::removeLoadedItemsLocked()` sets `m_endOfLoadedItems` to `end()` instead of `begin()`; display moves now reach this old bug (possible dangling iterator). One-line fix plus a test, e.g. `/gsd-code-review 4 --fix`. WR-02 (stale other-ratio thumbnail after reprocessing) and WR-03 (benign) are open too (`04-REVIEW-DISPOSITION.md`).
 - [Phase 4] A real drag between a 1x and a 2x display is unverified (one display attached; criterion 4 rests on the offscreen two-screen simulation). Thumbnails depend on the `DevicePixelRatioChange` event alone. Re-check procedure: `phases/04-retina-rendering/records/closing-check.md`.
-- Phase 5: Backspace works for deleting zones and the content box under Qt 6.12 on Cocoa (answered live in 05-05, records/zone.md).
+- [Phase 5] Six info findings of the code review are open (IN-01 to IN-06 in `05-REVIEW-DISPOSITION.md`); none touches a must-have.
+- [Phase 5] At the Filters dock's minimum width (274 pt) the Margins options panel (minimum 316 pt) is cut on the right. Older layout limit, not a Phase 5 change; noted in `05-UAT.md` test 3.
+- Live `mac_check` and `retina_check` runs move the pointer and take focus: Phase 6 plans that include one must stop at a checkpoint until the user says go.
 
 ## Session Continuity
 
-Last session: 2026-11-15T11:40:27.627Z
-Stopped at: Completed 05-11-PLAN.md
+Last session: 2026-11-15T18:55:00.000Z
+Stopped at: Phase 05 complete, ready to plan Phase 6
 Resume file: None
