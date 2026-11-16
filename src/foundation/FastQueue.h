@@ -4,7 +4,6 @@
 #ifndef SCANTAILOR_FOUNDATION_FASTQUEUE_H_
 #define SCANTAILOR_FOUNDATION_FASTQUEUE_H_
 
-#include <boost/foreach.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/type_traits/alignment_of.hpp>
 #include <cassert>
