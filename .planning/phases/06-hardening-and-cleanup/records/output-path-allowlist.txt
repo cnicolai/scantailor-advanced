@@ -1,0 +1,12 @@
+src/dewarping/Curve.cpp
+src/dewarping/CylindricalSurfaceDewarper.cpp
+src/dewarping/DetectVertContentBounds.cpp
+src/dewarping/DistortionModelBuilder.cpp
+src/dewarping/TextLineRefiner.cpp
+src/dewarping/TextLineTracer.cpp
+src/dewarping/TopBottomEdgeTracer.cpp
+src/dewarping/TowardsLineTracer.cpp
+src/imageproc/PolygonRasterizer.cpp
+src/imageproc/RastLineFinder.cpp
+src/imageproc/SavGolFilter.cpp
+src/imageproc/tests/TestRastLineFinder.cpp
