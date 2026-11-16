@@ -14,6 +14,8 @@ class TestUxQt : public QObject {
   void testLineEditAcceptsInput();
   void testCollapsibleGroupBoxStateAndSignal();
   void testErrorWidgetCreation();
+  void testOversizedImageShowsTooLargeInPageView_data();
+  void testOversizedImageShowsTooLargeInPageView();
 };
 
 #endif

@@ -46,6 +46,7 @@ set(common_sources
     ProjectPages.cpp ProjectPages.h
     FilterData.cpp FilterData.h
     ImageMetadataLoader.cpp ImageMetadataLoader.h
+    ImageSizeLimit.cpp ImageSizeLimit.h
     TiffReader.cpp TiffReader.h
     TiffWriter.cpp TiffWriter.h
     PngMetadataLoader.cpp PngMetadataLoader.h

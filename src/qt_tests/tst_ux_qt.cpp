@@ -4,14 +4,35 @@
 #include "tst_ux_qt.h"
 
 #include <CollapsibleGroupBox.h>
+#include <Dpi.h>
 #include <ErrorWidget.h>
+#include <FilterOptionsWidget.h>
+#include <FilterResult.h>
+#include <FilterUiInterface.h>
+#include <ForgedImages.h>
+#include <ImageId.h>
+#include <ImageInfo.h>
+#include <ImageMetadata.h>
+#include <LoadFileTask.h>
+#include <PageId.h>
+#include <PageInfo.h>
+#include <ProjectPages.h>
+#include <ThumbnailPixmapCache.h>
+#include <filters/fix_orientation/Task.h>
 
 #include <QCheckBox>
+#include <QDir>
+#include <QElapsedTimer>
+#include <QFile>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSignalSpy>
+#include <QTemporaryDir>
 #include <QWidget>
 #include <QtTest/QtTest>
+#include <memory>
+#include <vector>
 
 void TestUxQt::testButtonClickEmitsSignal() {
   QPushButton button("Click me");
@@ -74,4 +95,107 @@ void TestUxQt::testCollapsibleGroupBoxStateAndSignal() {
 void TestUxQt::testErrorWidgetCreation() {
   ErrorWidget widget("Error de prueba", Qt::PlainText);
   QVERIFY(widget.findChildren<QWidget*>().size() >= 1);
+}
+
+namespace {
+
+// Records what a filter result puts on screen, in place of the main window.
+class RecordingUi : public FilterUiInterface {
+ public:
+  void setOptionsWidget(FilterOptionsWidget* widget, const Ownership ownership) override {
+    if (ownership == TRANSFER_OWNERSHIP) {
+      m_optionsWidget.reset(widget);
+    }
+  }
+
+  void setImageWidget(QWidget* widget, const Ownership ownership, DebugImages*, bool) override {
+    m_imageWidget = widget;
+    if (ownership == TRANSFER_OWNERSHIP) {
+      m_ownedImageWidget.reset(widget);
+    }
+  }
+
+  void invalidateThumbnail(const PageId&) override {}
+
+  void invalidateAllThumbnails() override {}
+
+  std::shared_ptr<AbstractCommand<void>> relinkingDialogRequester() override {
+    class NoOp : public AbstractCommand<void> {
+     public:
+      void operator()() override {}
+    };
+    return std::make_shared<NoOp>();
+  }
+
+  QWidget* imageWidget() const { return m_imageWidget; }
+
+ private:
+  QWidget* m_imageWidget = nullptr;
+  std::unique_ptr<QWidget> m_ownedImageWidget;
+  std::unique_ptr<FilterOptionsWidget> m_optionsWidget;
+};
+
+}  // namespace
+
+void TestUxQt::testOversizedImageShowsTooLargeInPageView_data() {
+  QTest::addColumn<QByteArray>("bytes");
+  QTest::addColumn<QString>("fileName");
+  QTest::addColumn<bool>("tooLarge");
+  QTest::addColumn<QString>("sizeText");
+
+  // A header that claims 100000 x 100000 px in a file of a few hundred bytes.
+  QTest::newRow("tiff") << test_support::forgedTiff({{100000, 100000, 1, 1, false}}) << QString("oversized.tif") << true
+                        << QString::fromUtf8("100000 \u00d7 100000 px");
+  QTest::newRow("garbage") << QByteArray("not an image") << QString("garbage.tif") << false << QString();
+}
+
+void TestUxQt::testOversizedImageShowsTooLargeInPageView() {
+  QFETCH(QByteArray, bytes);
+  QFETCH(QString, fileName);
+  QFETCH(bool, tooLarge);
+  QFETCH(QString, sizeText);
+
+  QVERIFY(!bytes.isEmpty());
+  QTemporaryDir dir;
+  QVERIFY(dir.isValid());
+  QVERIFY(dir.path().startsWith(QString::fromUtf8(TEST_TMP_ROOT)));
+  const QString filePath = dir.filePath(fileName);
+  {
+    QFile file(filePath);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    QCOMPARE(file.write(bytes), qint64(bytes.size()));
+  }
+
+  const ImageId imageId(filePath);
+  const PageId pageId(imageId, PageId::SINGLE_PAGE);
+  const ImageMetadata metadata(QSize(100000, 100000), Dpi(300, 300));
+  const std::vector<ImageInfo> images{ImageInfo(imageId, metadata, 1, false, false)};
+  const auto pages = std::make_shared<ProjectPages>(images, Qt::LeftToRight);
+  const auto thumbnails = std::make_shared<ThumbnailPixmapCache>(dir.filePath("thumbs"), QSize(100, 100), 5, 3);
+  const auto nextTask = std::make_shared<fix_orientation::Task>(pageId, nullptr, nullptr, nullptr, nullptr, false);
+
+  LoadFileTask task(BackgroundTask::INTERACTIVE, PageInfo(pageId, metadata, 1, false, false), thumbnails, pages,
+                    nextTask);
+  QElapsedTimer timer;
+  timer.start();
+  const FilterResultPtr result = task();
+  QVERIFY2(timer.elapsed() < 2000, "refusing the file must not allocate the claimed size");
+  QVERIFY(result);
+
+  RecordingUi ui;
+  result->updateUI(&ui);
+  QVERIFY(ui.imageWidget());
+  const QLabel* label = ui.imageWidget()->findChild<QLabel*>("textLabel");
+  QVERIFY(label);
+  const QString text = label->text();
+
+  if (tooLarge) {
+    QVERIFY2(text.contains("too large to load"), qPrintable(text));
+    QVERIFY2(text.contains(sizeText), qPrintable(text));
+    QVERIFY2(text.contains("65535 px per side"), qPrintable(text));
+    QVERIFY2(!text.contains("could not be loaded"), qPrintable(text));
+  } else {
+    QVERIFY2(text.contains("could not be loaded"), qPrintable(text));
+    QVERIFY2(!text.contains("too large"), qPrintable(text));
+  }
 }

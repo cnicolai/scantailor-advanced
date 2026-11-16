@@ -14,6 +14,7 @@
 
 #include "Dpm.h"
 #include "ImageMetadata.h"
+#include "ImageSizeLimit.h"
 #include "NonCopyable.h"
 
 class TiffReader::TiffHeader {
@@ -268,6 +269,13 @@ QImage TiffReader::readImage(QIODevice& device, const int pageNum) {
   const TiffInfo info(tif, header);
 
   const ImageMetadata metadata(currentPageMetadata(tif));
+
+  // Header values are checked before any pixel buffer exists. A null image, not std::bad_alloc, is the failure
+  // contract here, so the out-of-memory handler does not fire for a forged header. Negative sides are header
+  // values of 2^31 or more.
+  if (metadata.size().width() <= 0 || metadata.size().height() <= 0 || ImageSizeLimit::exceeds(metadata.size())) {
+    return QImage();
+  }
 
   QImage image;
 

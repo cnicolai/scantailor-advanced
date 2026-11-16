@@ -17,7 +17,7 @@ list(
 add_executable(qt_tests ${sources})
 target_link_libraries(
     qt_tests
-    PRIVATE app_gui core dewarping foundation Qt6::Test Qt6::Core Qt6::Gui Qt6::Widgets)
+    PRIVATE app_gui core dewarping foundation test_support Qt6::Test Qt6::Core Qt6::Gui Qt6::Widgets)
 target_include_directories(qt_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_SOURCE_DIR}/src")
 # Settings files and temporary files of the tests live in the build tree, as for pipeline_tests.
 # SOURCE_ROOT: the Phase 5 scans (key names, dialog parent flags) read the source tree.

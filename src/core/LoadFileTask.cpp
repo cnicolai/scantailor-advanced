@@ -17,6 +17,7 @@
 #include "FilterOptionsWidget.h"
 #include "FilterUiInterface.h"
 #include "ImageLoader.h"
+#include "ImageSizeLimit.h"
 #include "ProjectPages.h"
 #include "ThumbnailPixmapCache.h"
 #include "filters/fix_orientation/Task.h"
@@ -26,7 +27,7 @@ using namespace imageproc;
 class LoadFileTask::ErrorResult : public FilterResult {
   Q_DECLARE_TR_FUNCTIONS(LoadFileTask)
  public:
-  explicit ErrorResult(const QString& filePath);
+  ErrorResult(const QString& filePath, bool tooLarge, const QSize& claimedSize);
 
   void updateUI(FilterUiInterface* ui) override;
 
@@ -35,6 +36,8 @@ class LoadFileTask::ErrorResult : public FilterResult {
  private:
   QString m_filePath;
   bool m_fileExists;
+  bool m_tooLarge;
+  QSize m_claimedSize;
 };
 
 
@@ -61,7 +64,10 @@ FilterResultPtr LoadFileTask::operator()() {
     throwIfCancelled();
 
     if (image.isNull()) {
-      return std::make_shared<ErrorResult>(m_imageId.filePath());
+      // A header re-read tells a refused oversized image from an unreadable file.
+      QSize claimedSize;
+      const bool tooLarge = ImageSizeLimit::claimedSizeIfTooLarge(m_imageId, &claimedSize);
+      return std::make_shared<ErrorResult>(m_imageId.filePath(), tooLarge, claimedSize);
     } else {
       convertToSupportedFormat(image);
       updateImageSizeIfChanged(image);
@@ -108,8 +114,11 @@ void LoadFileTask::convertToSupportedFormat(QImage& image) const {
 
 /*======================= LoadFileTask::ErrorResult ======================*/
 
-LoadFileTask::ErrorResult::ErrorResult(const QString& filePath)
-    : m_filePath(QDir::toNativeSeparators(filePath)), m_fileExists(QFile::exists(filePath)) {}
+LoadFileTask::ErrorResult::ErrorResult(const QString& filePath, const bool tooLarge, const QSize& claimedSize)
+    : m_filePath(QDir::toNativeSeparators(filePath)),
+      m_fileExists(QFile::exists(filePath)),
+      m_tooLarge(tooLarge),
+      m_claimedSize(claimedSize) {}
 
 void LoadFileTask::ErrorResult::updateUI(FilterUiInterface* ui) {
   class ErrWidget : public ErrorWidget {
@@ -128,7 +137,11 @@ void LoadFileTask::ErrorResult::updateUI(FilterUiInterface* ui) {
 
   QString errMsg;
   Qt::TextFormat fmt = Qt::AutoText;
-  if (m_fileExists) {
+  if (m_tooLarge) {
+    errMsg = tr("The following file is too large to load:\n%1\n\nIts image size is %2. The limit is %3.")
+                 .arg(m_filePath, ImageSizeLimit::sizeText(m_claimedSize), ImageSizeLimit::limitText());
+    fmt = Qt::PlainText;
+  } else if (m_fileExists) {
     errMsg = tr("The following file could not be loaded:\n%1").arg(m_filePath);
     fmt = Qt::PlainText;
   } else {
