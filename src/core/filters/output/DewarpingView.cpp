@@ -230,17 +230,7 @@ void DewarpingView::paintXSpline(QPainter& painter,
   painter.save();
   painter.setBrush(Qt::NoBrush);
 
-#if 0  // No point in drawing the curve itself - we already draw the grid.
-        painter.setWorldTransform(imageToVirtual() * virtualToWidget());
-
-        QPen curvePen(Qt::blue);
-        curvePen.setWidthF(1.5);
-        curvePen.setCosmetic(true);
-        painter.setPen(curvePen);
-
-        const std::vector<QPointF> polyline(spline.toPolyline());
-        painter.drawPolyline(&polyline[0], polyline.size());
-#endif
+  // The curve itself is not drawn, because the grid already shows it.
   // Drawing cosmetic points in transformed coordinates seems unreliable,
   // so let's draw them in widget coordinates.
   painter.setWorldMatrixEnabled(false);

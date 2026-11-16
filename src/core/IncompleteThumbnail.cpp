@@ -22,12 +22,7 @@ void IncompleteThumbnail::drawQuestionMark(QPainter& painter, const QRectF& boun
   // Because painting happens only from the main thread, we don't
   // need to care about concurrent access.
   if (m_sCachedPath.isEmpty()) {
-#if 0
-        QFont font(painter.font());
-        font.setWeight(QFont::DemiBold);
-        font.setStyleStrategy(QFont::ForceOutline);
-        m_sCachedPath.addText(0, 0, font, text);
-#else
+    // Outline of a question mark, precomputed; the alternative was addText() with a DemiBold outline font.
     m_sCachedPath.moveTo(QPointF(4.42188, -2.40625));
     m_sCachedPath.cubicTo(QPointF(4.42188, -3.20312), QPointF(4.51562, -3.32812), QPointF(5.23438, -3.84375));
     m_sCachedPath.cubicTo(QPointF(6.34375, -4.625), QPointF(6.67188, -5.15625), QPointF(6.67188, -6.17188));
@@ -46,7 +41,6 @@ void IncompleteThumbnail::drawQuestionMark(QPainter& painter, const QRectF& boun
     m_sCachedPath.lineTo(QPointF(2.8125, 0.0));
     m_sCachedPath.lineTo(QPointF(4.625, 0.0));
     m_sCachedPath.lineTo(QPointF(4.625, -1.75));
-#endif  // if 0
   }
 
   const QRectF textRect(m_sCachedPath.boundingRect());

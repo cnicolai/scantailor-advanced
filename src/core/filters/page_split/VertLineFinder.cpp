@@ -52,12 +52,6 @@ std::vector<QLineF> VertLineFinder::findLines(const QImage& image,
     *outToDownscaled = xform.transformBack() * xform100dpi.transform();
   }
 
-#if 0
-        GrayImage preprocessed(removeDarkVertBorders(gray100));
-        if (dbg) {
-            dbg->add(preprocessed, "preprocessed");
-        }
-#else
   // It looks like preprocessing causes more problems than it solves.
   // It can reduce the visibility of a folding line to a level where
   // it can't be detected, while it can't always fulfill its purpose of
@@ -65,21 +59,11 @@ std::vector<QLineF> VertLineFinder::findLines(const QImage& image,
   // of dealing with them were developed, which makes preprocessing
   // obsolete.
   GrayImage preprocessed(gray100);
-#endif
 
-#if 0
-        GrayImage hGradient(morphGradientDetectDarkSide(preprocessed, QSize(11, 1)));
-        GrayImage vGradient(morphGradientDetectDarkSide(preprocessed, QSize(1, 11)));
-        if (dbg) {
-            dbg->add(hGradient, "hGradient");
-            dbg->add(vGradient, "vGradient");
-        }
-#else
   // These are not gradients, but their difference is the same as for
   // the two gradients above.  This branch is an optimization.
   GrayImage hGradient(erodeGray(preprocessed, QSize(11, 1), 0x00));
   GrayImage vGradient(erodeGray(preprocessed, QSize(1, 11), 0x00));
-#endif
 
   if (!dbg) {
     // We'll need it later if debugging is on.

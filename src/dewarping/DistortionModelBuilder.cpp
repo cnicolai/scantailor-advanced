@@ -478,18 +478,6 @@ catch (const std::runtime_error&) {
   // Probably CylindricalSurfaceDewarper didn't like something.
 }
 
-#if 0
-    double DistortionModelBuilder::RansacAlgo::calcReferenceHeight(const CylindricalSurfaceDewarper& dewarper,
-                                                                   const QPointF& loc) {
-    // TODO: ideally, we would use the counterpart of CylindricalSurfaceDewarper::mapGeneratrix(),
-    // that would map it the other way, and which doesn't currently exist.
-
-        const QPointF pt1(dewarper.mapToDewarpedSpace(loc + QPointF(0.0, -10)));
-        const QPointF pt2(dewarper.mapToDewarpedSpace(loc + QPointF(0.0, 10)));
-        return std::fabs(pt1.y() - pt2.y());
-    }
-#endif
-
 QImage DistortionModelBuilder::visualizeTrimmedPolylines(const QImage& background,
                                                          const std::vector<TracedCurve>& curves) const {
   QImage canvas(background.convertToFormat(QImage::Format_RGB32));

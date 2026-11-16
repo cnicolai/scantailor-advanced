@@ -139,13 +139,6 @@ bool Curve::splineHasLoops(const XSpline& spline) {
     if (Vec2d(cp2 - cp1).dot(mainDirection) < 0) {
       return true;
     }
-#if 0
-            const double t1 = spline.controlPointIndexToT(i - 1);
-            const double t2 = spline.controlPointIndexToT(i);
-            if (Vec2d(spline.pointAt(t2) - spline.pointAt(t1)).dot(mainDirection)) < 0) {
-                    return true;
-                }
-#endif
   }
   return false;
 }

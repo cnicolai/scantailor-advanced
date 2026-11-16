@@ -131,19 +131,6 @@ QImage savGolFilterGrayToGray(const QImage& src, const QSize& windowSize, const 
     kOrigin.ry() += 1;
   }
   // Central area.
-#if 0
-            // Simple but slow implementation.
-                    kernel.recalcForOrigin(kCenter);
-                    srcLine = srcData - kLeft;
-                    dstLine = dstData + dstBpl * kTop;
-                    for (int y = kTop; y < height - kBottom; ++y) {
-                        for (int x = kLeft; x < width - kRight; ++x) {
-                            kernel.convolve(dstLine + x, srcLine + x, srcBpl);
-                        }
-                        srcLine += srcBpl;
-                        dstLine += dstBpl;
-                    }
-#else
   // Take advantage of Savitzky-Golay filter being separable.
   const SavGolKernel horKernel(QSize(windowSize.width(), 1), QPoint(kCenter.x(), 0), horDegree, 0);
   const SavGolKernel vertKernel(QSize(1, windowSize.height()), QPoint(0, kCenter.y()), 0, vertDegree);
@@ -188,7 +175,6 @@ QImage savGolFilterGrayToGray(const QImage& src, const QSize& windowSize, const 
     tempLine += tempStride;
     dstLine += dstBpl;
   }
-#endif  // if 0
 
   // Left area between two corners.
   kOrigin.setX(0);

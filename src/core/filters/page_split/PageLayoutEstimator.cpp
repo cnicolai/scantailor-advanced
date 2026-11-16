@@ -657,25 +657,13 @@ PageLayout PageLayoutEstimator::processContentSpansTwoPages(const LayoutType lay
     using GapInfo = std::pair<int, int>;
 
     std::vector<GapInfo> gaps(spans.size() - 1);
-#if 0
-            int sum = 0;
-            for (unsigned i = 0; i < gaps.size(); ++i) {
-                sum += spans[i].width();
-                gaps[i].first = sum;
-            }
-            sum = 0;
-            for (int i = gaps.size() - 1; i >= 0; --i) {
-                sum += spans[i + 1].width();
-                gaps[i].second = sum;
-            }
-#else
+    // Content width before and after each gap, measured from the outermost spans.
     const int contentBegin = spans.front().begin();
     const int contentEnd = spans.back().end();
     for (unsigned i = 0; i < gaps.size(); ++i) {
       gaps[i].first = spans[i].end() - contentBegin;
       gaps[i].second = contentEnd - spans[i + 1].begin();
     }
-#endif
 
     int bestGap = 0;
     double bestRatio = 0;
