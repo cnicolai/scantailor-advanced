@@ -256,7 +256,62 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: TBD
+**Plans**: 16 plans
+
+Plans:
+**Wave 1**
+- [ ] 06-01-PLAN.md — Conventions, gate log and output-path allowlist; dead #if 0 blocks removed, proven by preprocessor equivalence (CLEAN-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 06-02-PLAN.md — Unused Boost foreach includes removed from foundation, math and core (CLEAN-04, first half)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 06-03-PLAN.md — Unused Boost foreach includes removed from imageproc, dewarping and app (CLEAN-04, second half)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 06-04-PLAN.md — ImageSizeLimit (fewer than 2^29 px so RGB32 byte counts fit in int, at most 65535 px per side): forged TIFF refused before allocation, "too large" in the page view, exclusive TIFF boundaries incl. an RGB header at exactly 2^29 px, multi-page rule and no-allocation proof (SAFE-01)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 06-05-PLAN.md — Same limit for PNG and JPEG, Qt reader limit raised once, JPEG metadata stops before decompression, PNG metadata reports every claimed size (SAFE-01)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 06-06-PLAN.md — Oversized files marked in the project file dialog and the insert flow, thumbnails refuse, sanitizer run, int-arithmetic audit, SAFE-01 record with the ceiling choice against D-01's 1 GP example (SAFE-01)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 06-07-PLAN.md — Control characters in names escaped only when needed, unusual-name matrix, backslash per D-10, FIXME resolved (SAFE-02)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 06-08-PLAN.md — Worker threads capped by RAM and the largest page through one cap function (batchMemoryCap) at batch start; cap arithmetic incl. the D-08 page pinned (SAFE-03)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 06-09-PLAN.md — Slider tooltip with the memory limit, shared setting reader, opt-in peak and batch memory probes on the real batch path (SAFE-03)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 06-10-PLAN.md — OpenGL viewer option removed from Settings, settings API, viewer and colour picker; picker tests unchanged (STRIP-07)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+- [ ] 06-11-PLAN.md — OpenGLSupport and the Qt OpenGL modules out of the build; scan test, otool proof, STRIP-07 record (STRIP-07)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+- [ ] 06-12-PLAN.md — One shared Save Project As flow for the main window and the out-of-memory dialog (CLEAN-05)
+
+**Wave 13** *(blocked on Wave 12 completion)*
+- [ ] 06-13-PLAN.md — OutputGenerator split, first step: digest probe and move check, Processor class, shared helpers and no-dewarping path moved, proven by chunk multiset and output digests (CLEAN-01)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+- [ ] 06-14-PLAN.md — OutputGenerator split, second step: dewarping and binarization paths moved, whole split proven by chunk multiset and output digests, CLEAN-01 record (CLEAN-01)
+
+**Wave 15** *(blocked on Wave 14 completion)*
+- [ ] 06-15-PLAN.md — MainWindow.cpp split into same-class translation units (batch, actions, project, pages), beep scan follows the move (CLEAN-02)
+
+**Wave 16** *(blocked on Wave 15 completion)*
+- [ ] 06-16-PLAN.md — TESTING.md probes, automated closing checks and sanitizers, then on the user's go the D-08 batch through the worker pool with the real cap and the live mac_check, closing record
+
+**Cross-cutting constraints:** <!-- gsd:generated -->
+- The commit passes gate.sh: Release and Debug report 100% tests passed out of 7, goldens unchanged against a796c2ae; the build-command diff is empty (include changes alter dependency files, not commands) or the gate-log row explains every line (D-00a)
+- Every commit of this plan passes gate.sh with Release and Debug 100% tests passed out of 7 and goldens unchanged (D-00a)
+- A stored settings/enable_opengl value is neither read, deleted nor rewritten (D-00c)
+
 **UI hint**: no
 
 ## Progress

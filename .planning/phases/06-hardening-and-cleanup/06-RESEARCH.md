@@ -288,7 +288,7 @@ This is a removal/refactor phase for OpenGL (STRIP-07) and a move-only phase for
 Measured on the unmodified `TiffReader` (Release, scratch program): 13 KB file claiming 40000x40000 RGB returns a non-null 6.1 GB image after 2.5 s; 10 KB mono file claiming 100000x100000 returns a 1.2 GB image; 60000x60000 8-bit grey returns 3.5 GB. So the reader neither crashes nor errors; it allocates, touches the memory and hands back a fabricated image. See "SAFE-01" for the table.
 
 ### Pitfall 4: `int` pixel arithmetic caps the usable ceiling below 2^31
-`const int pixelCount = image.width() * image.height();` `[VERIFIED: src/imageproc/Posterizer.cpp:221]`, `const int numDataPoints = src.width() * src.height();` `[VERIFIED: src/imageproc/PolynomialSurface.cpp:34]`, `const int lhsArea = lhs.width() * lhs.height();` `[VERIFIED: src/imageproc/MaxWhitespaceFinder.cpp:16]`. Any pixel ceiling at or above 2^31 would make these overflow; 2^30 is the largest safe power of two and 2^29 keeps RGB32 byte counts below 2^31 as well.
+`const int pixelCount = image.width() * image.height();` `[VERIFIED: src/imageproc/Posterizer.cpp:221]`, `const int numDataPoints = src.width() * src.height();` `[VERIFIED: src/imageproc/PolynomialSurface.cpp:34]`, `const int lhsArea = lhs.width() * lhs.height();` `[VERIFIED: src/imageproc/MaxWhitespaceFinder.cpp:16]`. Any pixel ceiling at or above 2^31 would make these overflow; 2^30 is the largest safe power of two and 2^29 keeps RGB32 byte counts below 2^31 as well. [Corrected at plan revision 2: only if the limit is exclusive; exactly 2^29 px take 2^31 bytes as RGB32, one more than INT_MAX, so plan 06-04 accepts fewer than 2^29 px (kMaxPixels = 536870911).]
 
 ### Pitfall 5: `TestMacQt::testBatchAlarmUsesBeep` reads `src/app/MainWindow.cpp` by path
 It requires `m_batchQueue->allProcessed()` followed by `QApplication::alert(this);`, `m_checkBeepWhenFinished()` and `QApplication::beep();` in that file and forbids shell-command words there `[VERIFIED: src/qt_tests/tst_mac_qt.cpp:1433-1452]`. Moving `filterResult` to another file makes the test fail (`start >= 0` check). The CLEAN-02 commit that moves it must change the test to read the new file (or all `src/app/MainWindow*.cpp`), keeping the control strings.
@@ -373,7 +373,7 @@ The three differences between the two callers are only what happens after succes
 | Reference page that must load | 1200 dpi A3: 14031 x 19843 = 278,417,133 px (about 278 MP); RGB32 = 1.11 GB | `[VERIFIED: scratch: mono 1200 dpi A3 was 14031x19843, sizeInBytes 34,844,308 mono]`; RGB32 bytes = 4 x px |
 | **Total pixel ceiling** | **536,870,912 (2^29)**, 1.93x the reference page | choice |
 | **Per-side ceiling** | **65,535**, 3.3x the longest reference side (19,843) | matches D-01 example; JPEG's own maximum is 65,500 `[CITED: libjpeg JPEG_MAX_DIMENSION; the forged 65500 header parsed in scratch]` |
-| Why not 1 gigapixel | `int` pixel-count arithmetic exists in `imageproc` (Pitfall 4); 2^29 also keeps an RGB32 image under 2^31 bytes, so any `int` byte count in the unaudited code cannot overflow `[ASSUMED: byte-count sites not audited; pixel-count sites verified]` | If the user prefers D-01's 1 GP example, the largest defensible value is 2^30 = 1,073,741,824 (still below 2^31) and the Qt limit becomes 4096 MB |
+| Why not 1 gigapixel | `int` pixel-count arithmetic exists in `imageproc` (Pitfall 4); 2^29 also keeps an RGB32 image under 2^31 bytes, so any `int` byte count in the unaudited code cannot overflow `[ASSUMED: byte-count sites not audited; pixel-count sites verified]` [corrected at plan revision 2: true only for fewer than 2^29 px; plan 06-04 makes the limit exclusive and plan 06-06 audits the byte-count sites] | If the user prefers D-01's 1 GP example, the largest defensible value is 2^30 = 1,073,741,824 (still below 2^31) and the Qt limit becomes 4096 MB |
 | Qt limit to set | `QImageReader::setAllocationLimit(2048)` (4 x 2^29 B = 2048 MB; Qt accepts exactly 256 MB = 4 x 2^26 B, as measured at 8192x8192) | measured |
 | Rejected examples | 1200 dpi A2 (about 557 MP) and 600 dpi A0 (about 558 MP): above the ceiling by design | arithmetic |
 
@@ -508,6 +508,7 @@ Budget = **50% of `hw.memsize`** (the rest is left to the OS, the GUI, the thumb
 - Unit tests (`core_tests`, new `TestMemoryBudget.cpp`): table above as test vectors, minimum 1, `physicalBytes <= 0`, slider smaller than the cap, ideal smaller than the cap; and a `WorkerThreadPool`/`QThreadPool` check that `maxThreadCount` equals `min(ideal, slider, cap)` after `setMemoryCap` (needs a `maxThreadCount()` accessor or a `static effectiveThreads()`).
 - Headless run (checkpoint, user's go): no committed code needed. Launch K copies of a scratch runner in parallel (one process per page task, K = the computed cap for a **simulated** small machine, e.g. pretend 16 GiB and 73.6 MP pages: cap 2, about 4.4 GB real), sample `vm.swapusage` (`sysctl vm.swapusage`) before, during (every few seconds) and after, and record each process's peak footprint. This Mac currently reports `vm.swapusage: total = 0,00M  used = 0,00M  free = 0,00M`. Do not run the uncapped comparison (10 x 2.2 GB of 73.6 MP pages is 22 GB on a machine whose free memory was about 1.5 GB at research time). The simulated machine keeps the run small enough not to disturb the user's session; D-08 still requires the go.
 - Optional UAT (user): Activity Monitor on real scans.
+- Superseded at plan revision (2026-11-16): the simulated-machine run above does not exercise `startBatchProcessing`'s cap on this 64 GiB Mac. The D-08 run (plan 06-16) instead drives ten 12000 x 13800 synthetic pages through a real `WorkerThreadPool` with `setMemoryCap(MemoryBudget::batchMemoryCap(sequence))` from the real `hw.memsize` (expected cap 5 of 10 threads), using the batch probe of plan 06-09; the uncapped comparison stays forbidden.
 
 ## STRIP-07 detail
 
@@ -732,17 +733,21 @@ Free memory at research time was low (about 1.5 GB free pages, 64 GiB installed)
 | A7 | The headless pipeline (not the app binary) is representative of the app's task memory | SAFE-03 | Medium: same as A4 |
 | A8 | `jpeg_start_decompress` is only needed to detect unsupported compression, so skipping it for oversized files loses nothing | Pitfall 2 | Low: oversized files are refused anyway |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which output-DPI rule feeds the estimator?**
+1. **Which output-DPI rule feeds the estimator? (RESOLVED)**
    - Known: peak follows max(source, output) pixels; default output DPI is 600; per-page output DPI sits in `output::Settings` (private in `output::Filter`).
    - Unclear: whether to add an accessor and use the true per-page value, or use the conservative fixed rule `max(srcPx, srcPx x (600/srcDpi)^2)`.
    - Recommendation: the fixed rule (no new accessor, no coupling); revisit if a user sets a higher output DPI.
-2. **Fix or mark the control-character names (SAFE-02)?**
+   - **RESOLVED:** the fixed rule is taken (`MemoryBudget::pagePixelEstimate`, plan 06-08, decision "Estimator rule"); its limit for output DPI above 600 is recorded in `records/safe-03.md` (plan 06-09) and listed for the user in `records/closing-check.md` (plan 06-16).
+2. **Fix or mark the control-character names (SAFE-02)? (RESOLVED)**
    - Known: only U+0001-U+001F (minus tab/LF/CR) fail; APFS allows them; QDom cannot write them.
    - Recommendation: implement the flagged escape (about 40 lines + tests); fallback is `XFAIL_CHECK` + writer refuses.
-3. **Ceiling 2^29 or 2^30?** D-01 left the exact number to research; 2^29 recommended. If the user wants D-01's 1 GP example literally, use 2^30 and `setAllocationLimit(4096)`; nothing else changes.
-4. **Do any consumers rely on `ImageMetadataLoader::LOADED` for oversized files?** Only `ProjectFilesDialog` and `MainWindow::showInsertFileDialog` call it; both will check pages themselves.
+   - **RESOLVED:** fix, not mark: the flagged escape is implemented in plan 06-07 (decision "Fix, not mark"), with the `XFAIL_CHECK` fallback only if the escape cannot keep ordinary files byte-identical; the outcome is recorded in `records/safe-02.md`.
+3. **Ceiling 2^29 or 2^30? (RESOLVED)** D-01 left the exact number to research; 2^29 recommended. If the user wants D-01's 1 GP example literally, use 2^30 and `setAllocationLimit(4096)`; nothing else changes.
+   - **RESOLVED (corrected at plan revision 2):** fewer than 2^29 px, written as `kMaxPixels = 2^29 - 1 = 536870911` (with 65535 px per side and `setAllocationLimit(2048)`), is accepted in plan 06-04 (decision "Ceiling"): D-01's 1 GP was an example of the intended size and left the exact number to research. An inclusive 2^29 would not keep RGB32 byte counts below 2^31: exactly 2^29 px take 2^31 bytes, one more than INT_MAX; with the exclusive limit the largest accepted RGB32 image takes at most 2147483644 bytes (`static_assert`), and assumption A2 is closed by the int-arithmetic audit of plan 06-06. 536870911 is still 1.93 times the 1200 dpi A3 reference page. Plan 06-06 records the choice against D-01's 1 GP example (2^30 = 1073741824 px, Qt limit 4096 MB; its RGB32 byte counts would reach 2^32 - 4) in `records/safe-01.md`. The ceiling stays one reversible constant.
+4. **Do any consumers rely on `ImageMetadataLoader::LOADED` for oversized files? (RESOLVED)** Only `ProjectFilesDialog` and `MainWindow::showInsertFileDialog` call it; both will check pages themselves.
+   - **RESOLVED:** both callers check every page with `ImageSizeLimit::oversizedPagesText` after a `LOADED` status in plan 06-06 (commits `s06-project-files` and `s07-insert-thumbs`); `ImageSizeLimit::claimedSizeIfTooLarge` (plan 06-04) is the only other caller.
 
 ## Sources
 
