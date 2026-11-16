@@ -256,7 +256,7 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: 2/16 plans executed
+**Plans**: 3/16 plans executed
 
 Plans:
 **Wave 1**
@@ -266,7 +266,7 @@ Plans:
 - [x] 06-02-PLAN.md — Unused Boost foreach includes removed from foundation, math and core (CLEAN-04, first half)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 06-03-PLAN.md — Unused Boost foreach includes removed from imageproc, dewarping and app (CLEAN-04, second half)
+- [x] 06-03-PLAN.md — Unused Boost foreach includes removed from imageproc, dewarping and app (CLEAN-04, second half)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 06-04-PLAN.md — ImageSizeLimit (fewer than 2^29 px so RGB32 byte counts fit in int, at most 65535 px per side): forged TIFF refused before allocation, "too large" in the page view, exclusive TIFF boundaries incl. an RGB header at exactly 2^29 px, multi-page rule and no-allocation proof (SAFE-01)
@@ -326,7 +326,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
-| 6. Hardening and Cleanup | 2/16 | In Progress | - |
+| 6. Hardening and Cleanup | 3/16 | In Progress | - |
 
 ---
 *Roadmap created: 2026-10-18*
