@@ -16,7 +16,6 @@
 #include <QStyleOptionGraphicsItem>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QMessageBox>
-#include <boost/foreach.hpp>
 #include <boost/function.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
