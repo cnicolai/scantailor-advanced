@@ -256,11 +256,11 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: 16 plans
+**Plans**: 1/16 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 06-01-PLAN.md — Conventions, gate log and output-path allowlist; dead #if 0 blocks removed, proven by preprocessor equivalence (CLEAN-03)
+- [x] 06-01-PLAN.md — Conventions, gate log and output-path allowlist; dead #if 0 blocks removed, proven by preprocessor equivalence (CLEAN-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 06-02-PLAN.md — Unused Boost foreach includes removed from foundation, math and core (CLEAN-04, first half)
@@ -326,7 +326,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
-| 6. Hardening and Cleanup | 0/TBD | Not started | - |
+| 6. Hardening and Cleanup | 1/16 | In Progress | - |
 
 ---
 *Roadmap created: 2026-10-18*

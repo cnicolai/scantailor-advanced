@@ -31,7 +31,7 @@
     {
       "number": "6",
       "name": "Hardening and Cleanup",
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
   "next": {
@@ -39,5 +39,5 @@
     "label": "Advance to the next step",
     "reason": "Phase 6 of 6 · executing"
   },
-  "updated_at": "2026-11-16T22:14:42.054Z"
+  "updated_at": "2026-11-16T22:23:46.109Z"
 }
