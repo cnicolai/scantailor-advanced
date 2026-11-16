@@ -5,3 +5,4 @@ Each Phase 6 commit that changes a path outside `.planning/` and `.claude/` is g
 | Label | Commit | Subject | Release ctest | Debug ctest | Goldens | Command diff (release / debug) | Expected diff met |
 |-------|--------|---------|---------------|-------------|---------|--------------------------------|-------------------|
 | s01-if0 | dc138113 | refactor(06-01): remove the dead #if 0 blocks | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only: seven .cpp files; the build commands do not change) |
+| s02a-foreach | 9d65d428 | refactor(06-02): remove the unused Boost foreach includes from foundation, math and core | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only: 13 include lines deleted; 13 includes removed, no direct include needed) |
