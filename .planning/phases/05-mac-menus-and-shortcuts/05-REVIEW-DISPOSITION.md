@@ -17,15 +17,15 @@ findings:
     title: "`TestMacQt::testRightClickOpensZoneMenu` has a dead wait and a stale comment"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: skipped
     title: "`mac_check` verdicts ignore the US-layout alias keys it measures"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: skipped
     title: "Verdicts hard-require the German layout, TESTING.md says \"current keyboard layout\""
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: skipped
     title: "`mac_check` open-panel row waits a fixed 800 ms instead of polling"
   - id: IN-05
     severity: info
@@ -35,7 +35,7 @@ findings:
     severity: info
     disposition: open
     title: "Test brittleness and duplication"
-open: 6
+open: 3
 total: 8
 recorded: 2026-11-15T17:18:11.673Z
 ---
@@ -47,9 +47,9 @@ recorded: 2026-11-15T17:18:11.673Z
 | WR-01 | warning | fixed | 05-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 05-REVIEW-FIX.md |
 | IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| IN-02 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
+| IN-03 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
+| IN-04 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
 | IN-05 | info | open | - |
 | IN-06 | info | open | - |
 

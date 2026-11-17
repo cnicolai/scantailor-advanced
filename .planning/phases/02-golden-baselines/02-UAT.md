@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: resolved
 phase: 02-golden-baselines
 source: [02-VERIFICATION.md]
 started: 2026-10-23T22:45:00Z
@@ -36,7 +36,7 @@ note: "User delegated the triage. Decision: fix CR-01 and WR-01 to WR-05 now (te
 
 total: 3
 passed: 2
-issues: 1
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -45,7 +45,8 @@ blocked: 0
 
 - gap_id: G-02-3
   truth: "The Phase 2 test code has no open critical or warning review finding: the page generator never writes outside its raster at any dpi it accepts (CR-01), golden-update mode is restored when a self-test fails (WR-01), a failed manifest write fails every later golden of the suite (WR-02), the round trip asserts the page-split layout value itself (WR-03), the spread-page cache hands out stable references (WR-04), and text goldens are checked to parse back before they are written (WR-05)"
-  status: failed
+  status: resolved
+  resolved_by: "gap closure plans 02-12 to 02-14; 02-VERIFICATION.md re-verification passed 9/9"
   reason: "User delegated the triage ('you decide'); decision: fix CR-01 and WR-01 to WR-05 in this phase, defer IN-01 to IN-07"
   severity: major
   test: 3

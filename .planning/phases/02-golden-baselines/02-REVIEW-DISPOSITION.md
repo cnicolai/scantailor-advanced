@@ -53,7 +53,7 @@ findings:
     title: "`ExpectedFailure.h` is included but unused"
   - id: IN-07
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "The test sources need Qt 6.5 and Boost headers, but the build still advertises a Qt 5 fallback"
 open: 0
 total: 13
@@ -76,7 +76,7 @@ recorded: 2026-10-24T15:40:32.710Z
 | WR-05 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
 | IN-05 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) (not in the current review) |
 | IN-06 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) (not in the current review) |
-| IN-07 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) (not in the current review) |
+| IN-07 | info | fixed | fixed by 03-02 (c63a74c2): CMake requires Qt 6.5 only, no Qt 5 fallback is advertised |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.

@@ -263,12 +263,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 2] `02-UAT.md` still lists gap G-02-3 as `diagnosed`; the re-verification (02-VERIFICATION.md, passed 9/9) confirms it closed. `/gsd-verify-work 02` reconciles the UAT entry.
 - [Phase 2] Four info findings of the re-review are deferred (IN-01 to IN-04 in `02-REVIEW-DISPOSITION.md`). IN-01 matters if a later phase adds a scan resolution: the generator refuses 400 and 450 dpi for SPREAD, MIXED and CURVED, not only 150 and 225 (`dpiSupported`).
 - [Phase 3] Code review WR-01 (`ui_snapshot` recompiling the GUI sources) was fixed by plan 05-01: the GUI sources compile once into the `app_gui` static library. The seven info findings of that review are still open and are closed in Phase 06.1 (finding ledger in `06.1-01-PLAN.md`); WR-02 is deferred.
 - [Phase 3] Existing build directories still hold stale untracked `.qm`, `.desktop` and CPack files from before the strip; nothing produces them any more. `cmake --fresh --preset <name>` or deleting `build/<preset>` clears them.
 - Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
-- [Phase 4] Code review left WR-01 open and worth fixing soon: `ThumbnailPixmapCache::removeLoadedItemsLocked()` sets `m_endOfLoadedItems` to `end()` instead of `begin()`; display moves now reach this old bug (possible dangling iterator). One-line fix plus a test, e.g. `/gsd-code-review 4 --fix`. WR-02 (stale other-ratio thumbnail after reprocessing) and WR-03 (benign) are open too (`04-REVIEW-DISPOSITION.md`).
+- [Phase 4] Review warnings WR-01 to WR-03 were fixed after the review (`04-REVIEW-FIX.md`), so the dangling-iterator risk in `ThumbnailPixmapCache::removeLoadedItemsLocked()` is gone.
 - [Phase 4] A real drag between a 1x and a 2x display is unverified (one display attached; criterion 4 rests on the offscreen two-screen simulation). Thumbnails depend on the `DevicePixelRatioChange` event alone. Re-check procedure: `phases/04-retina-rendering/records/closing-check.md`.
 - [Phase 5] Six info findings of the code review are open (IN-01 to IN-06 in `05-REVIEW-DISPOSITION.md`); none touches a must-have.
 - [Phase 5] At the Filters dock's minimum width (274 pt) the Margins options panel (minimum 316 pt) is cut on the right. Older layout limit, not a Phase 5 change; noted in `05-UAT.md` test 3.

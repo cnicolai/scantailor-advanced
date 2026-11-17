@@ -21,7 +21,7 @@ findings:
     title: "Boost handling still relies on FindBoost-only variables under CMP0167 NEW"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`cmake_minimum_required(3.25)` leaves stale docs and non-macOS CI"
   - id: IN-02
     severity: info
@@ -35,7 +35,7 @@ findings:
     severity: info
     disposition: open
     title: "Comments cite decision IDs that are not resolvable in the source tree"
-open: 8
+open: 7
 total: 8
 recorded: 2026-10-23T13:34:20.385Z
 ---
@@ -48,7 +48,7 @@ recorded: 2026-10-23T13:34:20.385Z
 | WR-02 | warning | open | - |
 | WR-03 | warning | open | - |
 | WR-04 | warning | open | - |
-| IN-01 | info | open | - |
+| IN-01 | info | fixed | fixed by 03-03 (462f22cd) and 03-07 (cf4da61c): no .github directory and no non-macOS CI any more; the docs say CMake 3.25+ |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |

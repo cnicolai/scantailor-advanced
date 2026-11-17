@@ -33,13 +33,13 @@ findings:
     title: "`ui_snapshot` argument parsing accepts unknown options as the output directory"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: skipped
     title: "`qt_compile` in the golden manifest is now the configure-time Qt version, and a miswired definition reads as \"unknown\""
   - id: IN-07
     severity: info
     disposition: open
     title: "Windows-DLL leftovers outside the strip's reach, plus stale ignore rules"
-open: 7
+open: 6
 total: 9
 recorded: 2026-10-24T21:54:44.269Z
 ---
@@ -55,7 +55,7 @@ recorded: 2026-10-24T21:54:44.269Z
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |
 | IN-05 | info | open | - |
-| IN-06 | info | open | - |
+| IN-06 | info | skipped | skipped: any fix changes the golden manifest, which D-00a forbids (D-02); TESTING.md documents qt_compile as the configure-time Qt version |
 | IN-07 | info | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
