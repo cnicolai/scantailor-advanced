@@ -1,8 +1,8 @@
 ---
 phase: 06-hardening-and-cleanup
-verified: 2026-11-17T15:00:00Z
-status: human_needed
-score: 4/5 must-haves verified
+verified: 2026-11-17T16:00:00Z
+status: passed
+score: 5/5 must-haves verified
 covered_files:
   - ".planning/phases/06-hardening-and-cleanup/06-01-PLAN.md"
   - ".planning/phases/06-hardening-and-cleanup/06-01-SUMMARY.md"
@@ -38,44 +38,68 @@ covered_files:
   - ".planning/phases/06-hardening-and-cleanup/06-16-SUMMARY.md"
   - "CMakeLists.txt"
   - "src/app/MainWindow.cpp"
+  - "src/app/MainWindow.h"
   - "src/app/MainWindowBatch.cpp"
   - "src/app/MainWindowProject.cpp"
   - "src/app/ProjectSaveFlow.cpp"
+  - "src/app/SystemLoadWidget.cpp"
+  - "src/core/ImageLoader.cpp"
+  - "src/core/ImageLoader.h"
   - "src/core/ImageSizeLimit.cpp"
+  - "src/core/JpegMetadataLoader.cpp"
+  - "src/core/LoadFileTask.cpp"
   - "src/core/MemoryBudget.cpp"
+  - "src/core/MemoryBudget.h"
   - "src/core/ProjectReader.cpp"
   - "src/core/ProjectWriter.cpp"
+  - "src/core/ThumbnailPixmapCache.cpp"
+  - "src/core/TiffReader.cpp"
   - "src/core/WorkerThreadPool.cpp"
+  - "src/core/filters/output/Filter.cpp"
+  - "src/core/filters/output/Filter.h"
   - "src/core/filters/output/OutputGenerator.cpp"
   - "src/core/filters/output/OutputGeneratorBinarize.cpp"
   - "src/core/filters/output/OutputGeneratorDewarp.cpp"
   - "src/core/filters/output/OutputGeneratorNoDewarp.cpp"
+  - "src/core/tests/TestImageSizeLimit.cpp"
+  - "src/core/tests/TestMemoryBudget.cpp"
   - "src/foundation/XmlMarshaller.cpp"
   - "src/foundation/XmlUnmarshaller.cpp"
-covered_digest: "v4:sha256:8c9854a52abff3f03a36b2251e11610fba1fe87f3090341964eae63da6ce3587"
-behavior_unverified: 1
-behavior_unverified_items:
-  - truth: "Batch-processing a project of large scans runs with a worker-thread count capped by RAM and Activity Monitor shows no growth in swap (ROADMAP SC 3)"
-    test: "In the built app, open a project of several large real scans, start batch processing, and watch Activity Monitor > Memory > Swap Used before and during the run"
-    expected: "Swap Used does not grow; the thread-count slider tooltip says 'limited to n by memory' when the cap binds"
-    why_human: "The cap arithmetic, pool behaviour and tooltip are tested, and the D-08 run measured swap 0 through WorkerThreadPool with synthetic 165.6 MP pages and a stand-in for the MainWindow shell. The real MainWindow::startBatchProcessing ordering (cap set before the first submitTask) is only verified by reading the code, and no real scans were used; the app binary is never launched by Claude."
-human_verification:
-  - test: "Real-scan batch run with Activity Monitor open (optional check named in records/closing-check.md 'For the user')"
-    expected: "Swap Used does not grow during the batch; tooltip shows the memory limit for pages above about 85 MP"
-    why_human: "Needs the app launched on real scans; Claude must not launch the app (D-00e)"
+  - "src/pipeline_tests/TestProjectRoundTrip.cpp"
+  - "src/qt_tests/tst_mac_qt.cpp"
+  - "src/qt_tests/tst_ux_qt.cpp"
+  - "src/test_support/ForgedImages.cpp"
+covered_digest: "v4:sha256:0dddfdd0cd0da9ce83d5b6edaec3fd5a1337c356ef02b626b7354651fc28c10b"
+behavior_unverified: 0
+overrides_applied: 0
+re_verification:
+  previous_status: human_needed
+  previous_score: 4/5
+  gaps_closed:
+    - "SC 3 behaviour on the real MainWindow batch path (previously PRESENT_BEHAVIOR_UNVERIFIED): 06-UAT.md test 1 observed the memory cap live in the app (tooltip '10/10, limited to 2 by memory')"
+  gaps_remaining: []
+  regressions: []
 advisory:
-  - finding: "Three XXX comments appear as added lines in the Phase 6 diff (MainWindowPages.cpp:146 and two morphology pattern strings 'XXX' in OutputGeneratorBinarize.cpp)"
+  - finding: "Three XXX markers appear as added lines in the Phase 6 diff (MainWindowPages.cpp:146 and two morphology pattern strings in OutputGeneratorBinarize.cpp)"
     category: other
-    reason: "All three are pre-existing upstream text moved verbatim by the pure-move splits; none is new debt. The one real FIXME (XmlUnmarshaller) was resolved. Strict reading of the debt-marker gate would flag MainWindowPages.cpp:146 (an upstream 'not supported right now' note), so it is reported, not blocking."
-    evidence_status: "git diff e5319cd9 shows the same lines in MainWindow.cpp / OutputGenerator.cpp at the base"
+    reason: "All three are pre-existing upstream text moved verbatim by the pure-move splits (same lines at base e5319cd9 in MainWindow.cpp:1942 and OutputGenerator.cpp:2225/2295). No new debt; the one real FIXME (XmlUnmarshaller) was resolved."
+    evidence_status: "git show e5319cd9 shows the same lines"
+  - finding: "The reset of the memory cap after a batch stops or a project is switched (WR-02) is verified by code reading only"
+    category: other
+    reason: "stopBatchProcessing and switchToNewProject call setMemoryCap(kNoCap) (MainWindowBatch.cpp:193, MainWindowProject.cpp:99). No test drives MainWindow through a batch stop, and the batch panel with the slider is replaced when the batch ends, so the UI cannot show it (06-UAT.md test 1 note). It is not a ROADMAP success criterion and no plan must-have asserts it; the worst case of a stale cap is fewer threads, never more memory."
+    evidence_status: "code read; pool and widget cap-lifting covered by testWorkerPoolHonoursMemoryCap and testSystemLoadToolTipShowsMemoryLimit"
+  - finding: "Open Info items IN-01 to IN-06 of the code review (06-REVIEW-DISPOSITION.md)"
+    category: other
+    reason: "Info severity, recorded and open; IN-04 (ImageLoader::load(const ImageId&) now unused and an unlimited reader) and IN-06 (startBatchProcessing with an empty sequence) are the only ones with a code consequence, neither on a success-criterion path."
+    evidence_status: "none provided; not blocking"
 ---
 
 # Phase 6: Hardening and Cleanup Verification Report
 
 **Phase Goal:** Known safety defects are fixed, the OpenGL viewer is gone and the riskiest oversized files are split, so later feature work is safe. Output stays unchanged.
 **Verified:** 2026-11-17
-**Status:** human_needed
-**Re-verification:** No, initial verification
+**Status:** passed
+**Re-verification:** Yes. The earlier report (human_needed, 4/5) predates the review fixes WR-01 to WR-07 (`5e1fd627` to `af81849b`, `5bf8fe1e`) and the UAT. Every truth was re-checked against the current tree, not carried over.
 
 ## Goal Achievement
 
@@ -83,82 +107,98 @@ advisory:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | A TIFF with absurd header dimensions shows an error instead of a huge allocation or crash, and a test covers it | VERIFIED | `ImageSizeLimit::exceeds` is called in `TiffReader.cpp:276`, `ImageLoader.cpp:61`, `JpegMetadataLoader.cpp:214`, `LoadFileTask.cpp:69`. `CoreImageSizeLimitTestSuite` exists and passes fresh (`core_tests --run_test=CoreImageSizeLimitTestSuite`: no errors). `TestUxQt::testOversizedImageShowsTooLargeInPageView` passes for tiff, png, png-wide, jpeg, garbage. Static_asserts pin the int-overflow reasoning. |
-| 2 | Names with `&`, `<`, `"`, non-ASCII save and reload intact; round-trip test passes without expected failures | VERIFIED | `ProjectWriter.cpp:88,122,137` write through `XmlMarshaller::setEscapedAttribute`; `ProjectReader.cpp:29,107,140` read through `XmlUnmarshaller::escapedAttribute`. The `-FIXME` in XmlUnmarshaller is gone. `TestProjectRoundTrip.cpp` has 0 `XFAIL_CHECK`. `ProjectRoundTrip*` suites and `FoundationXmlEscapeTestSuite` (7 cases) pass fresh. Control-character, unusual-name and backslash cases exist. |
-| 3 | Batch run uses a worker-thread count capped by RAM; no swap growth | PRESENT_BEHAVIOR_UNVERIFIED | Wired: `MainWindowBatch.cpp:147-149` computes `MemoryBudget::batchMemoryCap(sequence)` and sets it on the pool and slider widget before the first `submitTask`; `WorkerThreadPool.cpp:93` applies `min(ideal, slider, cap)`. `CoreMemoryBudgetTestSuite` and `testWorkerPoolHonoursMemoryCap` pass fresh. Recorded D-08 run (`records/memory-run.md`): cap 5 of ideal 10, peak 17737 MiB, swap 0. Not behaviourally proven in the real app path or on real scans, see Human Verification. |
-| 4 | OpenGL option gone from Settings, build no longer links Qt OpenGL modules, colour-picker test passes | VERIFIED | `CMakeLists.txt:105` lists no OpenGL component. `otool -L` of `scantailor-advanced`, `qt_tests`, `core_tests`: QtOpenGL 0, QtGui 1 (positive control). `git grep -il opengl -- src` lists only the two test files that assert absence. `testSettingsHasNoOpenGlControl`, `testNoOpenGlInSourcesOrBuild`, `testMedianColorRatioInvariant`, `testColorPickerGrabAtRatio2` all pass fresh. No `enable_opengl` reference remains in `src`, so a stored value is neither read nor rewritten. |
-| 5 | Files split, one Save-as flow, no `#if 0`/`boost/foreach`; full ctest passes with baselines unchanged; Phase 5 menus behave as before | VERIFIED | `OutputGenerator.cpp` 268 lines plus five split files; `MainWindow.cpp` 1237 lines plus four split files. `git grep` for `#if 0` and `boost/foreach` in `src`: empty. `QFileDialog::getSaveFileName` only in `ProjectSaveFlow.cpp:34`; used from `MainWindowProject.cpp` and `OutOfMemoryDialog`. Fresh `ctest --preset macos-release`: 100% passed, 7 of 7 (`build/scratch/verify6/ctest-release.txt`). `git diff a796c2ae -- src/pipeline_tests/golden` is empty. All 12 changed files under output paths are on `records/output-path-allowlist.txt`; the `src/imageproc`/`src/dewarping` diff is only dead-code and foreach-include removal. Live `mac_check` PASS for both invocations is recorded and was not re-run (per instruction). Menu behaviour on the Cocoa display therefore rests on the recorded run plus offscreen `TestMacQt` (passes). |
+| 1 | A TIFF whose header claims absurd dimensions shows an error instead of a huge allocation or crash, and a test covers it | VERIFIED | `ImageSizeLimit::exceeds` is called from `TiffReader.cpp:277`, `ImageLoader.cpp:77` (Qt formats), `JpegMetadataLoader.cpp:214` and `LoadFileTask.cpp:69`; `static_assert`s pin the int-overflow reasoning (`ImageSizeLimit.h:68`). After WR-01 the limit applies to source scans only (`loadSource`, `enforceSizeLimit`), so the app's own output files are no longer refused; `Task.cpp` output reads still use `ImageLoader::load`. WR-07: `JpegMetadataLoader.cpp:222` skips `jpeg_start_decompress` when `jpeg_has_multiple_scans`. `core_tests --run_test=CoreImageSizeLimitTestSuite` passes (fresh, 17 cases incl. the forged TIFF/PNG/JPEG and the footprint bound). `TestUxQt::testOversizedImageShowsTooLargeInPageView` is inside the green `qt_tests`. |
+| 2 | Names with `&`, `<`, `"`, non-ASCII save and reload intact; round-trip test passes without expected failures | VERIFIED | `ProjectWriter.cpp:88,122,137` write via `XmlMarshaller::setEscapedAttribute`; `ProjectReader.cpp:29,107,140` read via `XmlUnmarshaller::escapedAttribute`. `TestProjectRoundTrip.cpp` has 0 `XFAIL`/`expected_failures`; fixtures `a&b <c> "d" 'e'.png`, `in & <dir> "q" 'a'`, `out & <x> "y"` plus NFC/NFD and 200-byte names; cases for control characters, unusual names, backslash. `ProjectRoundTrip*` and `FoundationXmlEscapeTestSuite` pass fresh. No FIXME/TBD remains in `src`. |
+| 3 | Batch-processing large scans runs with a worker-thread count capped by the Mac's RAM; no swap growth | VERIFIED | Wiring: `MainWindowBatch.cpp:148-151` computes `MemoryBudget::batchMemoryCap(sequence, outputDpiOf)` (WR-03: per-page output dpi through `Filter::outputDpi`) and sets it on the pool and slider before the first `submitTask` (line 160ff); `WorkerThreadPool.cpp:93` applies `min(ideal, slider, cap)`. Behaviour: `CoreMemoryBudgetTestSuite` (fresh pass), `testWorkerPoolHonoursMemoryCap`, `testSystemLoadToolTipShowsMemoryLimit`. Recorded D-08 run (`records/memory-run.md`): ten 165.6 MP pages through `LoadFileTask` on `WorkerThreadPool`, cap 5 of ideal 10, peak 17737 MiB of a 32768 MiB budget, swap 0 in all samples and before/after. The earlier gap (real `MainWindow` path never exercised) is closed by `06-UAT.md` test 1: the user ran the app on real camera JPEGs and saw "10/10, limited to 2 by memory" during the batch. Not checked live: swap in Activity Monitor on that real run was not recorded; the swap evidence is the synthetic run on the production pool. See advisory for the stop-reset. |
+| 4 | OpenGL option gone from Settings, build no longer links the Qt OpenGL modules, colour-picker test passes | VERIFIED | `CMakeLists.txt:105`: `find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network Svg Test ...)`; `git grep -i opengl` over every `CMakeLists.txt` and `cmake/`: empty. `git grep -il opengl -- src`: only `tst_mac_qt.cpp/.h` (the absence tests). `otool -L` of `scantailor-advanced`, `qt_tests`, `core_tests`: QtOpenGL 0, QtGui 1 (positive control). `git grep` for `enable_opengl`, `OpenGLSupport`, `QOpenGL` in `src`: only the forbidden-term list inside `testNoOpenGlInSourcesOrBuild`. `qt_tests` green, which includes `testSettingsHasNoOpenGlControl`, `testNoOpenGlInSourcesOrBuild` and the colour-picker tests. |
+| 5 | Files split, one Save-as flow, no `#if 0` / `boost/foreach`; full ctest passes with baselines unchanged; Phase 5 menus behave as before | VERIFIED | `OutputGenerator.cpp` 268 lines plus `OutputGeneratorNoDewarp/Dewarp/Binarize.cpp` and two headers; `MainWindow.cpp` 1237 lines plus `MainWindowActions/Batch/Project/Pages.cpp`. `git grep` for `^\s*#\s*if\s+0` (control: `#if` found in `src/app/*.h`) and `boost/foreach` in `src`: empty. `QFileDialog::getSaveFileName` only at `ProjectSaveFlow.cpp:34`, reached from `MainWindowProject.cpp:235` and `OutOfMemoryDialog.cpp:49`. Fresh `cmake --build` (no work) and `ctest --preset macos-release`: 100% passed, 7 of 7 (`build/scratch/verify6b/ctest-release.txt`). `git diff a796c2ae HEAD -- src/pipeline_tests/golden` empty. The output digest probe re-run now matches the pre-split digests line for line for all 7 pages (`build/scratch/verify6b/digests.txt` vs `build/scratch/closing6/digests.txt`), so the review fixes did not change output either. Files changed under `src/imageproc` and `src/dewarping` are exactly the 12 on `records/output-path-allowlist.txt`. Menus: recorded live `mac_check` PASS (both invocations, `records/closing-check.md`) plus offscreen `TestMacQt` in the green run; not re-run (instructed). The fixes after that run touched `MainWindowBatch/Project.cpp` only in the cap reset and the close-on-failed-save path (WR-06, UAT test 2 passed), not menu or shortcut wiring. |
 
-**Score:** 4/5 truths verified (1 present, wired, behaviour not exercised on the real path)
+**Score:** 5/5 truths verified, 0 present-but-behaviour-unverified.
 
 ### Required Artifacts
 
+`verify.artifacts` over all 16 plans: every plan `all_passed: true` (artifacts exist, substantive).
+
 | Artifact | Status | Details |
 |----------|--------|---------|
-| `src/core/ImageSizeLimit.{h,cpp}` | VERIFIED | Substantive, used by four loaders |
-| `src/core/MemoryBudget.{h,cpp}` | VERIFIED | Used by `MainWindowBatch.cpp`, `WorkerThreadPool.cpp`, `SystemLoadWidget.cpp` |
-| `src/foundation/XmlMarshaller/XmlUnmarshaller` escape API | VERIFIED | Used by `ProjectWriter`/`ProjectReader` |
-| `src/app/ProjectSaveFlow.{h,cpp}` | VERIFIED | Sole save dialog caller |
-| `OutputGenerator*` split files | VERIFIED | Built and exercised by pipeline goldens |
-| `MainWindow{Batch,Actions,Project,Pages}.cpp` | VERIFIED | In `src/app/CMakeLists.txt`, linked into the binary |
+| `src/core/ImageSizeLimit.{h,cpp}` | VERIFIED | Used by TiffReader, ImageLoader, JpegMetadataLoader, LoadFileTask, ProjectFilesDialog, MainWindowPages |
+| `src/core/MemoryBudget.{h,cpp}` | VERIFIED | Used by MainWindowBatch, WorkerThreadPool, SystemLoadWidget |
+| Escape API in `XmlMarshaller` / `XmlUnmarshaller` | VERIFIED | Used by ProjectWriter / ProjectReader |
+| `src/app/ProjectSaveFlow.{h,cpp}` | VERIFIED | Sole save-dialog caller |
+| `OutputGenerator*` split files | VERIFIED | Built; exercised by pipeline goldens and digests |
+| `MainWindow{Batch,Actions,Project,Pages}.cpp` | VERIFIED | Built into `scantailor-advanced` |
 
 ### Key Link Verification
 
-| From | To | Status |
-|------|----|--------|
-| `MainWindow::startBatchProcessing` | `MemoryBudget::batchMemoryCap` -> pool and slider | WIRED (code read) |
-| `ProjectWriter`/`ProjectReader` | escape helpers | WIRED |
-| `MainWindow`, `OutOfMemoryDialog` | `ProjectSaveFlow` | WIRED |
-| `TiffReader`/`ImageLoader`/`Jpeg`/`LoadFileTask` | `ImageSizeLimit` | WIRED |
+`verify.key-links`: all plans verified except two, both false negatives checked by hand.
 
-### Requirements Coverage
+| From | To | Status | Details |
+|------|----|--------|---------|
+| `MainWindow::startBatchProcessing` | `MemoryBudget::batchMemoryCap` then pool and slider | WIRED | `MainWindowBatch.cpp:148-151`, live-observed in UAT |
+| `MainWindow::stopBatchProcessing` / `switchToNewProject` | cap reset to `kNoCap` | WIRED (code read) | `MainWindowBatch.cpp:193`, `MainWindowProject.cpp:99` |
+| `ProjectWriter` / `ProjectReader` | escape helpers | WIRED | lines above |
+| `MainWindow` (06-12 link) | `ProjectSaveFlow::saveAs` | WIRED | tool says not found in `MainWindow.cpp` because 06-15 moved the call to `MainWindowProject.cpp:235` |
+| `OutOfMemoryDialog` | `ProjectSaveFlow` | WIRED | `OutOfMemoryDialog.cpp:41,49` |
+| `CMakeLists.txt` (06-11 link) | no OpenGL components | WIRED | tool could not evaluate the plan's pattern (`find_package(Qt6` is not valid RE2); checked by hand, line 105 |
+| Loaders | `ImageSizeLimit` | WIRED | see truth 1 |
 
-All nine IDs are declared in plan frontmatter (06-16 declares all nine) and mapped to Phase 6 in REQUIREMENTS.md, which marks all nine complete. No orphaned requirements.
+### Data-Flow Trace (Level 4)
 
-| Requirement | Source Plans | Status | Evidence |
-|-------------|--------------|--------|----------|
-| SAFE-01 | 06-04, 06-05, 06-06 | SATISFIED | Truth 1 |
-| SAFE-02 | 06-07 | SATISFIED | Truth 2 |
-| SAFE-03 | 06-08, 06-09, 06-16 | SATISFIED in code and tests; real-scan swap check pending (human) | Truth 3 |
-| STRIP-07 | 06-10, 06-11 | SATISFIED | Truth 4 |
-| CLEAN-01 | 06-13, 06-14 | SATISFIED | goldens unchanged, 7 output digests equal per `records/closing-check.md` (digest probe not re-run; goldens and pipeline tests re-run green) |
-| CLEAN-02 | 06-15, 06-16 | SATISFIED | Split sizes, build, `TestMacQt` pass; live mac_check recorded |
-| CLEAN-03 | 06-01 | SATISFIED | no `#if 0` in `src` |
-| CLEAN-04 | 06-02, 06-03 | SATISFIED | no `boost/foreach` in `src` |
-| CLEAN-05 | 06-12 | SATISFIED | single `getSaveFileName` caller, tests pass |
-
-### Anti-Patterns Found
-
-| File | Pattern | Severity | Impact |
-|------|---------|----------|--------|
-| `MainWindowPages.cpp:146` | `XXX` upstream note, moved verbatim | Info | Pre-existing, not new debt (see advisory) |
-| Review findings WR-01 to WR-06, IN-01 to IN-03 | open, advisory (0 critical) | Warning | WR-02 (cap outlives batch) and WR-03 (cap assumes 600 dpi output) are documented limits of the cap; WR-06 is pre-existing behaviour moved. None negates a must-have. |
-
-Other scans: no new FIXME/TBD in the Phase 6 diff; the old FIXME was removed. `06-SECURITY.md` `threats_open: 0`.
+| Artifact | Data | Source | Real data | Status |
+|----------|------|--------|-----------|--------|
+| Batch cap | `largestPagePixels` | `PageInfo::metadata()` and `Filter::outputDpi` from the output `Settings` (default 600 if absent) | yes | FLOWING (UAT cap 2 matched the hand calculation of 384 MP) |
+| Too-large message | claimed size | header read via `ImageSizeLimit::claimedSizeIfTooLarge` | yes | FLOWING |
 
 ### Behavioral Spot-Checks
 
-| Behavior | Command | Result |
-|----------|---------|--------|
-| Full suite | `ctest --preset macos-release` | 100% of 7 passed |
-| Size limit suite | `core_tests --run_test=CoreImageSizeLimitTestSuite` | no errors |
-| Round trip | `pipeline_tests --run_test='ProjectRoundTrip*'` | no errors |
-| Named qt tests (each in its own class) | `qt_tests <names>` | all pass in their class (the "function not found" lines come from passing names to classes that do not own them, not from test failures) |
-| No Qt OpenGL linking | `otool -L` | 0 |
+| Behavior | Command | Result | Status |
+|----------|---------|--------|--------|
+| Full suite | `ctest --preset macos-release` | 100% passed, 7 of 7 (68 s) | PASS |
+| Size limit | `core_tests --run_test=CoreImageSizeLimitTestSuite` | no errors | PASS |
+| Memory budget | `core_tests --run_test=CoreMemoryBudgetTestSuite` | no errors | PASS |
+| Round trip | `pipeline_tests --run_test='ProjectRoundTrip*'` | no errors | PASS |
+| Escape helpers | `foundation_tests --run_test=FoundationXmlEscapeTestSuite` | no errors | PASS |
+| Output unchanged | `pipeline_tests --run_test=OutputDigestProbeTestSuite` | 7 digests equal the pre-split set | PASS |
+| No Qt OpenGL linking | `otool -L` on three binaries | QtOpenGL 0, QtGui 1 | PASS |
 
-Not re-run: Debug and ASan ctest (closing record shows both 100%; source unchanged since `a9d17d1c`), digest probe, live `mac_check`, memory probes (instructed).
+### Probe Execution
+
+SKIPPED: the phase declares no `scripts/*/tests/probe-*.sh`. Its probes are Boost cases (digest probe, peak-memory probe) run above or recorded.
+
+Not re-run (instructed or recorded): `mac_check`, `retina_check`, memory probe (live harnesses), Debug and ASan ctest (the session's Debug run was reported 100% by the caller and `records/closing-check.md` shows Debug and ASan green at the last pre-fix source; I did not run Debug myself).
+
+### Requirements Coverage
+
+All nine IDs are declared in plan frontmatter (06-16 declares all nine) and mapped to Phase 6 in `REQUIREMENTS.md`, which marks all nine complete. No orphaned requirements.
+
+| Requirement | Source Plans | Status | Evidence |
+|-------------|--------------|--------|----------|
+| SAFE-01 | 06-04, 06-05, 06-06, 06-16 | SATISFIED | Truth 1 |
+| SAFE-02 | 06-07, 06-16 | SATISFIED | Truth 2 |
+| SAFE-03 | 06-08, 06-09, 06-16 | SATISFIED | Truth 3 |
+| STRIP-07 | 06-10, 06-11, 06-16 | SATISFIED | Truth 4 |
+| CLEAN-01 | 06-13, 06-14, 06-16 | SATISFIED | Truth 5; goldens and 7 digests unchanged, re-run now |
+| CLEAN-02 | 06-15, 06-16 | SATISFIED | Truth 5; sizes, build, `TestMacQt`, recorded live `mac_check` |
+| CLEAN-03 | 06-01, 06-16 | SATISFIED | no `#if 0` in `src` |
+| CLEAN-04 | 06-02, 06-03, 06-16 | SATISFIED | no `boost/foreach` in `src` |
+| CLEAN-05 | 06-12, 06-16 | SATISFIED | single `getSaveFileName` caller; `testSaveAsFlowFromOutOfMemoryDialog` in green `qt_tests` |
+
+### Anti-Patterns Found
+
+| File | Line | Pattern | Severity | Impact |
+|------|------|---------|----------|--------|
+| `MainWindowPages.cpp` | 146 | `XXX:` upstream note, moved verbatim | Info | Not new debt (advisory) |
+| `OutputGeneratorBinarize.cpp` | 2 sites | `"XXX"` morphology pattern strings, not comments | Info | Pattern data, not a marker |
+
+Added-line scan of `git diff e5319cd9 HEAD -- src`: no new TBD, FIXME, TODO or HACK. Review ledger: WR-01 to WR-07 fixed, IN-01 to IN-06 open and advisory. `06-SECURITY.md`: `threats_open: 0`; `06-VALIDATION.md`: nyquist compliant, 0 gaps (as reported, not re-derived).
 
 ### Human Verification Required
 
-#### 1. Real-scan batch swap check (optional, from the closing record)
-
-**Test:** Open a project of several large real scans in the built app, start batch processing, and watch Activity Monitor, tab Memory, "Swap Used".
-**Expected:** Swap Used does not grow; the thread slider tooltip reads "limited to n by memory" for pages above about 85 MP.
-**Why human:** Needs the app launched on real scans, which Claude does not do. All code, cap arithmetic and a synthetic 165.6 MP batch through the pool (swap 0) are already verified.
+None. The two items of the previous report were run: `06-UAT.md` complete, 2 passed, 0 issues.
 
 ### Gaps Summary
 
-No gaps. No goal-blocking defect found. The one open item is the ROADMAP wording of criterion 3 ("Activity Monitor shows no growth in swap") which has only synthetic, stand-in evidence; this is the reason for `human_needed` rather than `passed`. If you accept the synthetic memory run as sufficient, record it as an override and the phase is `passed`. Housekeeping: ROADMAP.md still shows Phase 6 as unchecked at line 20 and "In Progress" in the progress table although 16/16 plans are done; update it at phase completion.
+No gaps. Phase goal achieved: the size limit, XML escaping and RAM cap are in the code, wired, tested and (for the cap) observed live; the OpenGL option and modules are gone; the two oversized files are split by pure moves with goldens and output digests unchanged; one save-as flow remains. Two points are recorded as non-blocking advisories: the cap reset after a stopped batch rests on code reading, and swap growth was measured on the synthetic production-pool run rather than on the user's real-scan run.
 
 ---
 
