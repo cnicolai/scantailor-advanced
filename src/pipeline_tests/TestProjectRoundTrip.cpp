@@ -48,6 +48,7 @@
 #include <QSize>
 #include <QSizeF>
 #include <QString>
+#include <QStringList>
 #include <QTemporaryDir>
 #include <QTextStream>
 #include <boost/test/unit_test.hpp>
@@ -517,6 +518,62 @@ BOOST_AUTO_TEST_CASE(test_control_characters_survive) {
 BOOST_AUTO_TEST_CASE(test_ordinary_projects_carry_no_escape_flag) {
   const RoundTripResult result = roundTrip(*this, inputPaths(), true, "plain.ScanTailor", "plain_2.ScanTailor");
   BOOST_CHECK_MESSAGE(!result.firstFile.contains("Escaped=\""), "an ordinary project carries an escape flag");
+}
+
+// D-10: names that are legal on APFS but unusual in XML.  None of them needs the escape of SAFE-02, so each is written
+// as QDom writes it (tab, LF and CR as character references) and the file carries no flag attribute.
+BOOST_AUTO_TEST_CASE(test_unusual_names_survive) {
+  const QString dir = QStringLiteral(" in") + QChar(0x000a) + QStringLiteral("dir");
+  const QStringList names{QStringLiteral("tab") + QChar(0x0009) + QStringLiteral("name.png"),
+                          QStringLiteral("line") + QChar(0x000a) + QStringLiteral("feed.png"),
+                          QStringLiteral("carriage") + QChar(0x000d) + QStringLiteral("return.png"),
+                          QStringLiteral("crlf") + QChar(0x000d) + QChar(0x000a) + QStringLiteral("name.png"),
+                          QStringLiteral(" leading space.png"),
+                          QStringLiteral("trailing space .png"),
+                          QStringLiteral("it's.png"),
+                          QStringLiteral("a>b.png"),
+                          QString::fromUtf8("\xF0\x9F\x93\x84 page.png"),
+                          QStringLiteral("del") + QChar(0x007f) + QStringLiteral(".png")};
+  std::vector<QString> files;
+  for (const QString& name : names) {
+    files.push_back(writePng(dir + "/" + name));
+  }
+  // Tab, CR and CRLF in a folder name (LF is the folder name above), one file in each.
+  const QStringList folders{QStringLiteral("tab") + QChar(0x0009) + QStringLiteral("dir"),
+                            QStringLiteral("carriage") + QChar(0x000d) + QStringLiteral("dir"),
+                            QStringLiteral("crlf") + QChar(0x000d) + QChar(0x000a) + QStringLiteral("dir")};
+  for (const QString& folder : folders) {
+    files.push_back(writePng(folder + "/page.png"));
+  }
+
+  const RoundTripResult result = roundTrip(*this, files, true, "unusual.ScanTailor", "unusual_2.ScanTailor");
+
+  BOOST_REQUIRE_EQUAL(result.readPagePaths.size(), files.size());
+  for (size_t i = 0; i < files.size(); ++i) {
+    BOOST_CHECK_MESSAGE(result.readPagePaths[i] == files[i], "name " << i << " did not come back unchanged");
+  }
+  BOOST_CHECK_MESSAGE(result.firstFile == result.secondFile,
+                      "written, read and written again differ: " << result.firstFile.size() << " vs "
+                                                                 << result.secondFile.size() << " bytes");
+  BOOST_CHECK(!result.firstFile.contains("Escaped=\""));
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+// A backslash is legal in a macOS file name.  Backlog 999.8 concerns RelinkablePath::normalize, which relinking uses;
+// the project file round trip does not go through it.
+BOOST_FIXTURE_TEST_SUITE(ProjectRoundTripBackslashTestSuite, RoundTripFixture)
+
+BOOST_AUTO_TEST_CASE(test_backslash_in_file_name) {
+  const std::vector<QString> files{writePng(inputDirName() + "/" + QStringLiteral("back\\slash.png"))};
+
+  const RoundTripResult result = roundTrip(*this, files, true, "backslash.ScanTailor", "backslash_2.ScanTailor");
+
+  BOOST_REQUIRE_EQUAL(result.readPagePaths.size(), 1u);
+  BOOST_CHECK(result.readPagePaths.front() == files.front());
+  BOOST_CHECK_MESSAGE(result.firstFile == result.secondFile,
+                      "written, read and written again differ: " << result.firstFile.size() << " vs "
+                                                                 << result.secondFile.size() << " bytes");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
