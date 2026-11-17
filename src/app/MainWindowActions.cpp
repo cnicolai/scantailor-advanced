@@ -338,8 +338,9 @@ void MainWindow::zoomCurrentView(const double factor) {
   }
   const double zoom = std::max(1.0, view->zoomLevel() * factor);
 
-  // The focus rule of UI-SPEC: the cursor if it is over the view, else the view centre. The step is the one of
-  // ZoomHandler, which binds the plain plus and minus keys.
+  // The zoom focus is the cursor if it is over the view, else the view centre. The factor per step matches the
+  // plain plus and minus keys of ZoomHandler. Unlike ZoomHandler::zoom(), this does not move the image towards its
+  // ideal position at zoom 1.0, and it only checks that no interaction holds the view.
   const QPoint local = view->mapFromGlobal(QCursor::pos());
   const QPointF focus = view->rect().contains(local) ? QPointF(local) : QRectF(view->rect()).center();
   view->setWidgetFocalPointWithoutMoving(focus);

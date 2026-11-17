@@ -519,6 +519,12 @@ QString sourceRoot() {
   return QString::fromUtf8(SOURCE_ROOT);
 }
 
+// Lower bounds for the source scans. The scan scope held 766 C++ files and 34 .ui files when the bounds were set;
+// bounds well below those counts catch a scan that reads the wrong tree without failing on ordinary additions or
+// deletions.
+constexpr int kMinScannedCppFiles = 500;
+constexpr int kMinScannedUiFiles = 30;
+
 // Files below SOURCE_ROOT/src that end in the suffix, as sorted paths relative to SOURCE_ROOT. Test code, the test
 // support library and the three harnesses are not shipped text and stay out.
 QStringList scanScopeFiles(const QString& suffix) {
@@ -1430,9 +1436,17 @@ void TestMacQt::testRightClickOpensZoneMenu() {
     QVERIFY(texts.contains(QStringLiteral("Properties")));
     QVERIFY(texts.contains(QStringLiteral("Delete")));
     menu->hide();
-    // The interaction restores the default one after a deferred check.
-    QTest::qWait(300);
+    QTRY_COMPARE_WITH_TIMEOUT(editor.findChildren<QMenu*>().size(), 0, 100);
     QCOMPARE(zoneCount(editor), 1);
+
+    // Backspace removes the zone under the pointer only when the default interaction is back, so the removal
+    // shows that the menu's interaction has given way to it.
+    zw.window.activateWindow();
+    zw.focusEditor();
+    QTRY_VERIFY(focusIsIn(editor));
+    pointAt(editor.viewport(), centre);
+    keyToFocusWidget(Qt::Key_Backspace);
+    QCOMPARE(zoneCount(editor), 0);
   }
 
   {
@@ -1529,8 +1543,8 @@ auto c = R"x(Del "raw")x";
     }
   }
 
-  QVERIFY2(uiFileCount >= 30, qPrintable(QStringLiteral("only %1 .ui files read").arg(uiFileCount)));
-  QVERIFY2(cppFileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(cppFileCount)));
+  QVERIFY2(uiFileCount >= kMinScannedUiFiles, qPrintable(QStringLiteral("only %1 .ui files read").arg(uiFileCount)));
+  QVERIFY2(cppFileCount >= kMinScannedCppFiles, qPrintable(QStringLiteral("only %1 C++ files read").arg(cppFileCount)));
   QVERIFY2(hits.isEmpty(), qPrintable("PC key names in user-visible text:\n" + hits.join('\n')));
 }
 
@@ -1613,18 +1627,25 @@ void TestMacQt::testRewrittenStrings() {
 
 void TestMacQt::testBatchAlarmUsesBeep() {
   // Words that would mean a shell command is run from the application. The control proves the search finds them.
-  const QStringList forbidden{"std::system", "system(", "QProcess", "popen", "/usr/share/sounds", "external_alarm_cmd"};
-  const auto firstForbidden = [&forbidden](const QString& text) {
+  // A call of system() counts only as a whole identifier, so a name such as mysystem( does not trip it.
+  const QStringList forbidden{"std::system", "QProcess", "popen", "/usr/share/sounds", "external_alarm_cmd"};
+  const QRegularExpression systemCall(QStringLiteral("(?<![A-Za-z0-9_])system\\("));
+  const auto firstForbidden = [&forbidden, &systemCall](const QString& text) {
     for (const QString& word : forbidden) {
       if (text.contains(word)) {
         return word;
       }
+    }
+    if (text.contains(systemCall)) {
+      return QStringLiteral("system(");
     }
     return QString();
   };
   QCOMPARE(firstForbidden(QStringLiteral("Q_UNUSED(std::system(cmd));")), QStringLiteral("std::system"));
   QCOMPARE(firstForbidden(QStringLiteral("settings.value(\"main_window/external_alarm_cmd\")")),
            QStringLiteral("external_alarm_cmd"));
+  QCOMPARE(firstForbidden(QStringLiteral("int status = system(cmd);")), QStringLiteral("system("));
+  QCOMPARE(firstForbidden(QStringLiteral("int status = mysystem(x);")), QString());
   QCOMPARE(firstForbidden(QStringLiteral("QApplication::beep();")), QString());
 
   // MainWindow is split into same-class translation units (MainWindow.cpp, MainWindowBatch.cpp, ...). Every one of
@@ -1677,7 +1698,7 @@ void TestMacQt::testBatchAlarmUsesBeep() {
       }
     }
   }
-  QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
+  QVERIFY2(fileCount >= kMinScannedCppFiles, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
   QVERIFY2(hits.isEmpty(), qPrintable("shell command paths in the app:\n" + hits.join('\n')));
 }
 
@@ -1721,7 +1742,7 @@ void TestMacQt::testNoDontUseNativeDialog() {
       }
     }
   }
-  QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
+  QVERIFY2(fileCount >= kMinScannedCppFiles, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
   QVERIFY2(hits.isEmpty(), qPrintable("forced non-native dialogs or menu-bar overrides:\n" + hits.join('\n')));
 }
 
@@ -1757,7 +1778,7 @@ void TestMacQt::testNoOpenGlInSourcesOrBuild() {
       }
     }
   }
-  QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
+  QVERIFY2(fileCount >= kMinScannedCppFiles, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
   QVERIFY2(hits.isEmpty(), qPrintable("OpenGL in the sources:\n" + hits.join('\n')));
 
   // The build files name no OpenGL component or library.
