@@ -20,12 +20,12 @@ A single suite runs with ctest's regular filter, for example `ctest --preset mac
 
 | Suite | Covers |
 |-------|--------|
-| `foundation_tests` | Constants, line intersection, distances between points and segments, locale-independent number-to-string conversion |
+| `foundation_tests` | Constants, line intersection, distances between points and segments, locale-independent number-to-string conversion, and the escape of control characters in project-file attributes (`FoundationXmlEscapeTestSuite`) |
 | `math_tests` | Automatic differentiation (Hessians), linear and quadratic functions, matrix calculations, sides of a line, lines clipped by a rectangle, squared-distance approximation |
 | `imageproc_tests` | Binary images, binarization, morphology, raster operations, scaling, shear, transforms, rotation, connected components and their eraser, seed fill, distance maps, skew finder, line finder, histograms, polygon rasterizer, DPI |
-| `core_tests` | Image and page identifiers, page ranges and sequence, margins, units, natural file-name ordering, deskew parameters, content span finder, oblique finder, select-content application |
-| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`), and the Retina tests (`TestHiDpiQt`): page view, thumbnails, zone mask and stage-list animation built at the device pixel ratio, moves between the 1x and the 2x screen, icon geometry and colour-picker sampling, and the Mac tests (`TestMacQt`): the application menu roles, the File, View and Tools menus, every window key (stages, Output tabs, zoom, thumbnails, Settings, Save As), the zone and content-box keys and their protection in text fields, the right-click menus, the scan that keeps PC key names (Ctrl, Alt and the like) out of user-visible text, and the source checks for the batch beep and the native file dialogs |
-| `pipeline_tests` | The headless pipeline on generated pages: flat documents, book spreads, mixed pages, dewarping, project round trips, a smoke run, and the test support itself (generator determinism, image comparison, truth metrics, the golden store, the comparator self-test) |
+| `core_tests` | Image and page identifiers, page ranges and sequence, margins, units, natural file-name ordering, deskew parameters, content span finder, oblique finder, select-content application, the image size ceiling (`CoreImageSizeLimitTestSuite`: forged TIFF headers are refused without allocating, JPEG metadata, multi-page files) and the memory budget of the worker threads (`CoreMemoryBudgetTestSuite`) |
+| `qt_tests` | Qt Test cases: units, number formatting, file-name ordering and signals (`TestCoreQt`), and widget behaviour such as button clicks, check boxes, line edits, the collapsible group box and the error widget (`TestUxQt`), and the Retina tests (`TestHiDpiQt`): page view, thumbnails, zone mask and stage-list animation built at the device pixel ratio, moves between the 1x and the 2x screen, icon geometry and colour-picker sampling, and the Mac tests (`TestMacQt`): the application menu roles, the File, View and Tools menus, every window key (stages, Output tabs, zoom, thumbnails, Settings, Save As), the zone and content-box keys and their protection in text fields, the right-click menus, the scan that keeps PC key names (Ctrl, Alt and the like) out of user-visible text, and the source checks for the batch beep and the native file dialogs. Phase 6 added slots for: oversized images (the page view says "too large to load", the project file dialog marks the file, an oversized thumbnail fails without allocating), the PNG and JPEG limits (forged headers refused, large grey PNG and JPEG load), the worker pool and the slider honouring the memory cap, the stored thread count clamping, no OpenGL control in Settings and no OpenGL in sources or build files, and the shared Save Project As flow |
+| `pipeline_tests` | The headless pipeline on generated pages: flat documents, book spreads, mixed pages, dewarping, project round trips (`ProjectRoundTripTestSuite`, including control characters and unusual file and folder names, and `ProjectRoundTripBackslashTestSuite`), a smoke run, and the test support itself (generator determinism, image comparison, truth metrics, the golden store, the comparator self-test). It also holds three opt-in probes that ctest never runs, see "Opt-in probes" |
 | `dewarping_tests` | Text line tracer, distortion model, cylindrical dewarper |
 
 Test data is generated in code with fixed seeds. No scan is stored in the repository.
@@ -74,6 +74,30 @@ Defects found by the golden-baseline tests are recorded, not fixed. A check that
 | none (the test runs the stage first) | A layout type from the default profile is not written to the project file until `page_split` has run | 999.7 |
 
 `src/pipeline_tests/TestGoldenStore.cpp` raises two marks on purpose to test the trip-wire itself; they do not refer to a defect.
+
+## Opt-in probes
+
+`pipeline_tests` holds three probes that are disabled by default. ctest runs `pipeline_tests` without `--run_test`, so Boost skips them and ctest never runs them; they run only when named. Build the Release preset first and run from the repository root.
+
+**Output digests** (`OutputDigestProbeTestSuite`) prints seven `DIGEST` lines, one SHA-1 of the decoded output pixels for each of seven generated pages. It is the proof that splitting `OutputGenerator.cpp` moved code without changing a pixel: run it before and after a move and compare the lines. The reference lines are in `.planning/phases/06-hardening-and-cleanup/records/output-digests.md`.
+
+```sh
+build/macos-release/pipeline_tests --run_test=OutputDigestProbeTestSuite --log_level=message
+```
+
+**Peak memory of one page** (`PeakMemoryProbeTestSuite`) runs one generated mixed page through all six stages and prints one `PROBE` line: the pixel estimate, the estimate in MiB, the peak growth of the process footprint above its start, and the thread caps `MemoryBudget` gives for 16 GiB, for 64 GiB and for this Mac. It fails if the growth exceeds the estimate of 40 bytes per pixel. `ST_PROBE_DPI` (default 300) sets the page's dpi and `ST_PROBE_SCALE` (default 1) enlarges the page by repeating pixels and multiplying the dpi, so `ST_PROBE_DPI=1200 ST_PROBE_SCALE=3` builds a 12000 x 13800 page.
+
+```sh
+env ST_PROBE_DPI=<dpi> ST_PROBE_SCALE=<n> build/macos-release/pipeline_tests --run_test=PeakMemoryProbeTestSuite/test_print_peak_memory --log_level=message
+```
+
+**Batch through the worker pool** (`BatchMemoryProbeTestSuite`) pushes `ST_PROBE_PAGES` such pages (default 4) through the application's `WorkerThreadPool`, as `LoadFileTask`-wrapped stage chains, with the memory cap that the application computes (`MemoryBudget::batchMemoryCap`). It prints a `SAMPLE` line every 2 seconds (pages running, footprint, swap in use) and one `BATCH` line: the cap and the effective thread count, the most pages running at once, pages done and failed, the peak footprint above the start, and swap before, at its maximum and after. It fails on a page error, if the thread count differs from the cap's, if more pages run at once than threads, if swap grows during the run, or if the peak exceeds half of the RAM. The pages are hard links of one PNG in a temporary folder under `build/<preset>/test-tmp`, and the run stops submitting after 3600 seconds.
+
+```sh
+env ST_PROBE_DPI=<dpi> ST_PROBE_SCALE=<n> ST_PROBE_PAGES=<N> build/macos-release/pipeline_tests --run_test=BatchMemoryProbeTestSuite/test_batch_through_worker_pool --log_level=message
+```
+
+A large run of either memory probe uses gigabytes of memory (the 12000 x 13800 page peaks near 5 GB, and the batch near five times that), so start it only when the Mac is otherwise idle and other memory-heavy programs are closed. The records of the Phase 6 runs are in `.planning/phases/06-hardening-and-cleanup/records/` (`safe-03.md`, `memory-run.md`).
 
 ## Sanitizer build
 
