@@ -3,13 +3,9 @@
 
 #include "OutOfMemoryDialog.h"
 
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QSettings>
 #include <utility>
 
-#include "ProjectWriter.h"
-#include "RecentProjects.h"
+#include "ProjectSaveFlow.h"
 
 OutOfMemoryDialog::OutOfMemoryDialog(QWidget* parent) : QDialog(parent) {
   ui.setupUi(this);
@@ -42,54 +38,21 @@ void OutOfMemoryDialog::setParams(const QString& projectFile,
 void OutOfMemoryDialog::saveProject() {
   if (m_projectFile.isEmpty()) {
     saveProjectAs();
-  } else if (saveProjectWithFeedback(m_projectFile)) {
+  } else if (ProjectSaveFlow::writeWithFeedback(this, m_projectFile, m_pages, m_selectedPage, m_outFileNameGen,
+                                                *m_stages)) {
     showSaveSuccessScreen();
   }
 }
 
 void OutOfMemoryDialog::saveProjectAs() {
-  // XXX: this function is duplicated MainWindow
-
-  QString projectDir;
-  if (!m_projectFile.isEmpty()) {
-    projectDir = QFileInfo(m_projectFile).absolutePath();
-  } else {
-    QSettings settings;
-    projectDir = settings.value("project/lastDir").toString();
-  }
-
-  QString projectFile(
-      QFileDialog::getSaveFileName(this, QString(), projectDir, tr("Scan Tailor Projects") + " (*.ScanTailor)"));
+  const QString projectFile
+      = ProjectSaveFlow::saveAs(this, m_projectFile, m_pages, m_selectedPage, m_outFileNameGen, *m_stages);
   if (projectFile.isEmpty()) {
     return;
   }
 
-  if (!projectFile.endsWith(".ScanTailor", Qt::CaseInsensitive)) {
-    projectFile += ".ScanTailor";
-  }
-
-  if (saveProjectWithFeedback(projectFile)) {
-    m_projectFile = projectFile;
-    showSaveSuccessScreen();
-
-    QSettings settings;
-    settings.setValue("project/lastDir", QFileInfo(m_projectFile).absolutePath());
-
-    RecentProjects rp;
-    rp.read();
-    rp.setMostRecent(m_projectFile);
-    rp.write();
-  }
-}  // OutOfMemoryDialog::saveProjectAs
-
-bool OutOfMemoryDialog::saveProjectWithFeedback(const QString& projectFile) {
-  ProjectWriter writer(m_pages, m_selectedPage, m_outFileNameGen);
-
-  if (!writer.write(projectFile, m_stages->filters())) {
-    QMessageBox::warning(this, tr("Error"), tr("Error saving the project file!"));
-    return false;
-  }
-  return true;
+  m_projectFile = projectFile;
+  showSaveSuccessScreen();
 }
 
 void OutOfMemoryDialog::showSaveSuccessScreen() {

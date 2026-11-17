@@ -33,8 +33,6 @@ class OutOfMemoryDialog : public QDialog {
   void saveProjectAs();
 
  private:
-  bool saveProjectWithFeedback(const QString& projectFile);
-
   void showSaveSuccessScreen();
 
   Ui::OutOfMemoryDialog ui;

@@ -11,17 +11,24 @@
 #include <ColorSchemeManager.h>
 #include <ContentMask.h>
 #include <Dpi.h>
+#include <FileNameDisambiguator.h>
 #include <IconProvider.h>
 #include <ImageId.h>
+#include <ImageInfo.h>
+#include <ImageMetadata.h>
 #include <ImagePixmapUnion.h>
 #include <ImageTransformation.h>
 #include <InteractionState.h>
+#include <OutputFileNameGenerator.h>
 #include <PageId.h>
 #include <PageRange.h>
 #include <PageSelectionAccessor.h>
 #include <PageSelectionProvider.h>
 #include <PageSequence.h>
 #include <ProjectPages.h>
+#include <ProjectReader.h>
+#include <RecentProjects.h>
+#include <SelectedPage.h>
 #include <SerializableSpline.h>
 #include <StageSequence.h>
 #include <StyledIconPack.h>
@@ -36,6 +43,8 @@
 #include <config.h>
 
 #include "MainWindow.h"
+#include "OutOfMemoryDialog.h"
+#include "ProjectSaveFlow.h"
 #include "SettingsDialog.h"
 
 #include <QAbstractButton>
@@ -46,7 +55,10 @@
 #include <QCursor>
 #include <QDir>
 #include <QDirIterator>
+#include <QDomDocument>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QFrame>
 #include <QGuiApplication>
 #include <QImage>
@@ -57,15 +69,21 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QPair>
 #include <QPolygonF>
+#include <QPushButton>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QSignalSpy>
 #include <QSpinBox>
 #include <QStackedLayout>
+#include <QStackedWidget>
 #include <QStatusBar>
 #include <QString>
 #include <QStringList>
+#include <QTemporaryDir>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QXmlStreamReader>
@@ -124,6 +142,141 @@ class EmptySelectionProvider : public PageSelectionProvider {
 
   std::vector<PageRange> selectedRanges() const override { return std::vector<PageRange>(); }
 };
+
+// A one-page project in a temporary folder below TEST_TMP_ROOT, enough for ProjectWriter and ProjectReader.
+struct SaveFixture {
+  QTemporaryDir dir;
+  std::shared_ptr<ProjectPages> pages;
+  std::shared_ptr<StageSequence> stages;
+  SelectedPage selected;
+  OutputFileNameGenerator nameGen;
+
+  bool init() {
+    if (!dir.isValid() || !dir.path().startsWith(QString::fromUtf8(TEST_TMP_ROOT))) {
+      return false;
+    }
+    QImage image(64, 64, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    image.setDotsPerMeterX(11811);  // 300 dpi
+    image.setDotsPerMeterY(11811);
+    const QString pagePath = dir.filePath("page.png");
+    if (!image.save(pagePath, "PNG")) {
+      return false;
+    }
+    const std::vector<ImageInfo> images{
+        ImageInfo(ImageId(pagePath), ImageMetadata(QSize(64, 64), Dpi(300, 300)), 1, false, false)};
+    pages = std::make_shared<ProjectPages>(images, Qt::LeftToRight);
+    stages = std::make_shared<StageSequence>(pages, PageSelectionAccessor(std::make_shared<EmptySelectionProvider>()));
+    selected = SelectedPage(pages->toPageSequence(PAGE_VIEW).pageAt(0).id(), PAGE_VIEW);
+    nameGen = OutputFileNameGenerator(std::make_shared<FileNameDisambiguator>(), dir.filePath("out"), Qt::LeftToRight);
+    return true;
+  }
+
+  QString path(const QString& name) const { return dir.filePath(name); }
+};
+
+// Answers the modal widgets of the save flow: a file dialog gets the target name (or is cancelled), a message box
+// (the overwrite confirmation) is answered with Yes. Two timers, because a timer does not fire again while its own
+// slot waits in a nested event loop.
+class PanelAnswerer {
+ public:
+  PanelAnswerer(bool cancel, const QString& target) : m_cancel(cancel), m_target(target) {
+    m_dialogTimer.setInterval(50);
+    QObject::connect(&m_dialogTimer, &QTimer::timeout, [this]() {
+      if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
+        ++m_fileDialogs;
+        if (m_cancel) {
+          dialog->reject();
+        } else {
+          // selectFile() leaves the name edit alone while it has the focus, so type the name into it.
+          if (auto* const nameEdit = dialog->findChild<QLineEdit*>("fileNameEdit")) {
+            nameEdit->setText(m_target);
+          }
+          static_cast<QDialog*>(dialog)->accept();  // QFileDialog::accept is protected
+        }
+      }
+    });
+    m_boxTimer.setInterval(50);
+    QObject::connect(&m_boxTimer, &QTimer::timeout, [this]() {
+      if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+        m_boxTexts.push_back(box->text());
+        if (QAbstractButton* const yes = box->button(QMessageBox::Yes)) {
+          yes->click();
+        } else {
+          box->accept();
+        }
+      }
+    });
+    m_dialogTimer.start();
+    m_boxTimer.start();
+  }
+
+  int fileDialogs() const { return m_fileDialogs; }
+
+  const QStringList& boxTexts() const { return m_boxTexts; }
+
+ private:
+  const bool m_cancel;
+  const QString m_target;
+  QTimer m_dialogTimer;
+  QTimer m_boxTimer;
+  int m_fileDialogs = 0;
+  QStringList m_boxTexts;
+};
+
+// Saves every "project/..." key of the settings (the remembered folder and the recent-projects array), clears them,
+// and puts them back at the end of the test.
+class ProjectSettingsGuard {
+ public:
+  ProjectSettingsGuard() {
+    QSettings settings;
+    settings.beginGroup("project");
+    for (const QString& key : settings.allKeys()) {
+      m_saved.append(qMakePair(key, settings.value(key)));
+    }
+    settings.endGroup();
+    settings.remove("project");
+  }
+
+  ~ProjectSettingsGuard() {
+    QSettings settings;
+    settings.remove("project");
+    settings.beginGroup("project");
+    for (const auto& entry : m_saved) {
+      settings.setValue(entry.first, entry.second);
+    }
+    settings.endGroup();
+  }
+
+ private:
+  QList<QPair<QString, QVariant>> m_saved;
+};
+
+QStringList recentProjectPaths() {
+  RecentProjects recent;
+  recent.read();
+  QStringList paths;
+  recent.enumerate([&paths](const QString& path) { paths.append(path); });
+  return paths;
+}
+
+// True if the file is a project file that ProjectReader accepts, with the given number of pages.
+bool readsAsProject(const QString& path, int expectedPages) {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    return false;
+  }
+  QDomDocument doc;
+  if (!static_cast<bool>(doc.setContent(&file))) {
+    return false;
+  }
+  const ProjectReader reader(doc, path);
+  return reader.success() && reader.pages()->numImages() == expectedPages;
+}
+
+QStringList projectFilesIn(const QString& folder) {
+  return QDir(folder).entryList(QStringList{"*.ScanTailor"}, QDir::Files, QDir::Name);
+}
 
 QStackedLayout* imageFrameLayout(MainWindow& window) {
   QFrame* const frame = window.findChild<QFrame*>("imageViewFrame");
@@ -1597,4 +1750,68 @@ void TestMacQt::testNoOpenGlInSourcesOrBuild() {
   const QString settingsUi = readUtf8(root.filePath("src/app/SettingsDialog.ui"));
   QVERIFY(!settingsUi.isEmpty());
   QVERIFY(!settingsUi.contains(QStringLiteral("opengl"), Qt::CaseInsensitive));
+}
+
+void TestMacQt::testProjectExtension() {
+  QCOMPARE(ProjectSaveFlow::withProjectExtension("a"), QString("a.ScanTailor"));
+  QCOMPARE(ProjectSaveFlow::withProjectExtension("a.ScanTailor"), QString("a.ScanTailor"));
+  QCOMPARE(ProjectSaveFlow::withProjectExtension("a.scantailor"), QString("a.scantailor"));
+  QCOMPARE(ProjectSaveFlow::withProjectExtension("a.ScanTailor.bak"), QString("a.ScanTailor.bak.ScanTailor"));
+  QCOMPARE(ProjectSaveFlow::withProjectExtension("dir/b.SCANTAILOR"), QString("dir/b.SCANTAILOR"));
+}
+
+void TestMacQt::testSaveAsFlowFromOutOfMemoryDialog() {
+  const ProjectSettingsGuard settingsGuard;
+  SaveFixture fixture;
+  QVERIFY(fixture.init());
+
+  // Accept the file dialog with "<tmp>/oom": the project lands in "<tmp>/oom.ScanTailor".
+  {
+    OutOfMemoryDialog dialog;
+    dialog.setParams(QString(), fixture.stages, fixture.pages, fixture.selected, fixture.nameGen);
+    dialog.show();
+    auto* const stack = dialog.findChild<QStackedWidget*>("topLevelStack");
+    auto* const saveAsButton = dialog.findChild<QPushButton*>("saveProjectAsBtn");
+    auto* const successPage = dialog.findChild<QWidget*>("saveSuccessPage");
+    auto* const mainPage = dialog.findChild<QWidget*>("mainPage");
+    QVERIFY(stack != nullptr && saveAsButton != nullptr && successPage != nullptr && mainPage != nullptr);
+    QCOMPARE(stack->currentWidget(), mainPage);
+
+    PanelAnswerer answerer(false, fixture.path("oom"));
+    saveAsButton->click();
+    QCOMPARE(answerer.fileDialogs(), 1);
+
+    const QString saved = fixture.path("oom.ScanTailor");
+    QVERIFY2(QFileInfo::exists(saved), qPrintable(saved));
+    QVERIFY(readsAsProject(saved, 1));
+    QCOMPARE(QSettings().value("project/lastDir").toString(), fixture.dir.path());
+    QCOMPARE(recentProjectPaths(), QStringList{saved});
+    QCOMPARE(stack->currentWidget(), successPage);
+  }
+
+  // Cancel the file dialog: nothing is written, nothing is remembered, the dialog stays on its main page.
+  {
+    const QString lastDirBefore = QSettings().value("project/lastDir").toString();
+    const QStringList recentBefore = recentProjectPaths();
+    const QStringList filesBefore = projectFilesIn(fixture.dir.path());
+    QCOMPARE(filesBefore, QStringList{"oom.ScanTailor"});
+
+    OutOfMemoryDialog dialog;
+    dialog.setParams(QString(), fixture.stages, fixture.pages, fixture.selected, fixture.nameGen);
+    dialog.show();
+    auto* const stack = dialog.findChild<QStackedWidget*>("topLevelStack");
+    auto* const saveAsButton = dialog.findChild<QPushButton*>("saveProjectAsBtn");
+    auto* const mainPage = dialog.findChild<QWidget*>("mainPage");
+    QVERIFY(stack != nullptr && saveAsButton != nullptr && mainPage != nullptr);
+
+    PanelAnswerer answerer(true, fixture.path("cancelled"));
+    saveAsButton->click();
+    QCOMPARE(answerer.fileDialogs(), 1);
+
+    QCOMPARE(projectFilesIn(fixture.dir.path()), filesBefore);
+    QVERIFY(!QFileInfo::exists(fixture.path("cancelled.ScanTailor")));
+    QCOMPARE(QSettings().value("project/lastDir").toString(), lastDirBefore);
+    QCOMPARE(recentProjectPaths(), recentBefore);
+    QCOMPARE(stack->currentWidget(), mainPage);
+  }
 }

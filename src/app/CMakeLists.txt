@@ -21,6 +21,7 @@ set(gui_only_sources
     ProjectCreationContext.cpp ProjectCreationContext.h
     ProjectOpeningContext.cpp ProjectOpeningContext.h
     OutOfMemoryDialog.cpp OutOfMemoryDialog.h
+    ProjectSaveFlow.cpp ProjectSaveFlow.h
     ThumbnailSequence.cpp ThumbnailSequence.h
     ProjectFilesDialog.cpp ProjectFilesDialog.h
     NewOpenProjectPanel.cpp NewOpenProjectPanel.h
