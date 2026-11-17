@@ -29,13 +29,13 @@ findings:
     title: "Presets omit architecture and host-condition guards, and `PORTABLE_VERSION` is untyped"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`macos-debug` and `macos-asan` differ from `macos-release` beyond optimisation"
   - id: IN-04
     severity: info
     disposition: open
     title: "Comments cite decision IDs that are not resolvable in the source tree"
-open: 7
+open: 6
 total: 8
 recorded: 2026-10-23T13:34:20.385Z
 ---
@@ -50,7 +50,7 @@ recorded: 2026-10-23T13:34:20.385Z
 | WR-04 | warning | open | - |
 | IN-01 | info | fixed | fixed by 03-03 (462f22cd) and 03-07 (cf4da61c): no .github directory and no non-macOS CI any more; the docs say CMake 3.25+ |
 | IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| IN-03 | info | fixed | fixed by 06.1-02 (1f6c2af9): TESTING.md states the Debug-only differences and that goldens come from macos-release; DEVELOPER_VERSION stays on for Debug |
 | IN-04 | info | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
