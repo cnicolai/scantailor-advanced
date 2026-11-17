@@ -321,6 +321,9 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
   void setupIcons();
 
+  // The addAction() and connect() calls for the page, zoom, thumbnail and stage actions. Called from the constructor.
+  void setupActions();
+
   // Multi-sequence shortcut lists that a .ui file cannot hold. Called after setupUi() and after retranslateUi().
   void setupMacKeys();
 
