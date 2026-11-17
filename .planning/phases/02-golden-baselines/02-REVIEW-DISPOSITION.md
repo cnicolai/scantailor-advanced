@@ -45,7 +45,7 @@ findings:
     title: "Text goldens are written without checking that they parse back"
   - id: IN-05
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "Test code carries plan and decision identifiers that mean nothing outside `.planning`"
   - id: IN-06
     severity: info
@@ -74,7 +74,7 @@ recorded: 2026-10-24T15:40:32.710Z
 | WR-03 | warning | fixed | plan 02-14 (G-02-3) (not in the current review) |
 | WR-04 | warning | fixed | plan 02-14 (G-02-3) (not in the current review) |
 | WR-05 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
-| IN-05 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) (not in the current review) |
+| IN-05 | info | fixed | fixed by 06.1-10 (60b708d1): test code states its reasons instead of plan and decision ids, including the HeadlessPipeline guarantee (D-05) |
 | IN-06 | info | fixed | fixed by 06.1-04 (18456d09): the unused ExpectedFailure.h include and the dead HAVE_CONFIG_H block are gone |
 | IN-07 | info | fixed | fixed by 03-02 (c63a74c2): CMake requires Qt 6.5 only, no Qt 5 fallback is advertised |
 
