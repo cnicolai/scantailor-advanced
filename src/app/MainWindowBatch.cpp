@@ -187,6 +187,10 @@ void MainWindow::stopBatchProcessing(MainAreaAction mainArea) {
   m_batchQueue->cancelAndClear();
   m_batchQueue.reset();
 
+  // The cap was computed for this batch's pages; interactive work and later projects run uncapped.
+  m_workerThreadPool->setMemoryCap(MemoryBudget::kNoCap);
+  m_systemLoadWidget->setMemoryCap(MemoryBudget::kNoCap);
+
   filterList->setBatchProcessingInProgress(false);
   filterList->setEnabled(true);
 

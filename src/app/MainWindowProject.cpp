@@ -95,6 +95,9 @@ void MainWindow::switchToNewProject(const std::shared_ptr<ProjectPages>& pages,
                                     const QString& projectFilePath,
                                     const ProjectReader* projectReader) {
   stopBatchProcessing(CLEAR_MAIN_AREA);
+  // The cap belongs to the pages of the previous project, whatever ended its batch.
+  m_workerThreadPool->setMemoryCap(MemoryBudget::kNoCap);
+  m_systemLoadWidget->setMemoryCap(MemoryBudget::kNoCap);
   m_interactiveQueue->cancelAndClear();
 
   if (!outDir.isEmpty()) {
