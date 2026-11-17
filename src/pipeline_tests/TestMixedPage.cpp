@@ -25,8 +25,8 @@
 
 namespace {
 
-// Ground-truth bounds.  Starting values of plan 02-07, then set by the D-15 tightening rule from the measurements in
-// records/scenario-mixed.md ("Tolerance decisions").
+// Ground-truth bounds.  Start values, then tightened from the measured worst case in
+// .planning/phases/02-golden-baselines/records/scenario-mixed.md ("Tolerance decisions").
 // Share of the specks present with despeckling off that the default removes.  Start 0.90; worst case 1 (shortfall 0),
 // so one step of 0.05 percentage points.
 const double kMinSpeckRemovedShare = 0.9995;
@@ -53,7 +53,7 @@ const double kMinPictureNonBilevelShare = 0.999;
 const double kMinOutsidePictureBilevelShare = 0.9995;
 
 const int kOutputDpi = 600;
-// Sanity (D-05) of an output before it may become a golden.
+// Sanity check of an output before it may become a golden.
 const double kMinInkFractionOfOutput = 0.005;
 const double kMaxInkFractionOfOutput = 0.6;  // the binarized picture adds ink
 const double kSanityWidthSlack = 1.2;
@@ -332,7 +332,7 @@ struct SanityResult {
   QString reason;
 };
 
-// Output sanity (D-05) of one scenario, applied before a golden is recorded: size, ink fraction, orientation and line
+// Output sanity check of one scenario, applied before a golden is recorded: size, ink fraction, orientation and line
 // count of the text block, content where the truth puts it, and for colour and MIXED output that it is not bi-level.
 // The orientation is checked on the ink box inside the mapped text block, because the box of text and picture is almost
 // square (1608 x 1620 px).
@@ -411,7 +411,7 @@ QString intText(const long long value) {
   return QString::number(value);
 }
 
-// Stage decisions of the scenario as text golden values (D-14); the suffix of a key decides its tolerance.
+// Stage decisions of the scenario as text golden values; the suffix of a key decides its tolerance.
 test_support::TextValues stageDecisions(const Scenario& scenario,
                                         const PipelineResult& result,
                                         const double despeckle) {
@@ -443,7 +443,7 @@ test_support::TextValues stageDecisions(const Scenario& scenario,
   return values;
 }
 
-// Goldens are recorded only when the sanity checks of the scenario passed (D-05).  The scenario's output is the one
+// Goldens are recorded only when the sanity checks of the scenario passed.  The scenario's output is the one
 // of the default despeckle level; the despeckle-off run and the AUTO observation get no golden.
 void checkGoldens(const Scenario& scenario, const PipelineResult& result, const QPoint& offset) {
   const QImage& out = result.pages.front().output;
@@ -695,7 +695,7 @@ BOOST_AUTO_TEST_CASE(test_mixed_300_mixed_picture_zone) {
 }
 
 // Research P3: page_split AUTO cuts the mixed page and drops its picture.  The coverage scenarios force
-// SINGLE_PAGE_UNCUT; this case observes the AUTO behaviour and keeps it as a marked defect (D-18).
+// SINGLE_PAGE_UNCUT; this case observes the AUTO behaviour and keeps it as a marked defect.
 BOOST_AUTO_TEST_CASE(test_mixed_auto_layout_keeps_single_page) {
   const int dpi = 300;
   const test_support::GeneratedPage& page = mixedPage(dpi);

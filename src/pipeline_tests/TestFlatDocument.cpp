@@ -22,19 +22,20 @@
 
 namespace {
 
-// Ground-truth bounds.  Starting values of D-15, then set by the D-15 tightening rule from the measurements in
-// records/scenario-flat.md ("Tolerance decisions").
+// Ground-truth bounds.  Start values, then tightened from the measured worst case in
+// .planning/phases/02-golden-baselines/records/scenario-flat.md ("Tolerance decisions").
 const double kAngleToleranceDeg = 0.15;
 const double kMinContentIou = 0.96;  // worst 1 - IoU 0.0187, twice rounded up to 0.005: 0.04
 const double kMaxBinarizationMismatch = 0.005;
 // Colour/greyscale output: mean grey under the truth ink must be at least this many levels below the mean grey
-// under the truth paper.  Not a D-15 value (D-15 names no colour check), so it is not tightened.
+// under the truth paper.  No start value exists for a colour check, so it is not tightened.
 const double kMinInkPaperContrast = 100.0;
 
 const double kAppliedSkewDeg = 1.5;
 const int kOutputDpi = 600;
 const int kRegistrationRadius = 4;
-// Sanity (D-05): the glyph ink starts within this distance of the stored hard margins, at 600 dpi.
+// Sanity check before a golden may be recorded: the glyph ink starts within this distance of the stored hard margins,
+// at 600 dpi.
 const double kMarginSlackMm = 5.0;
 const double kMillimetresPerInch = 25.4;
 const double kSanityWidthSlack = 1.2;
@@ -242,7 +243,7 @@ void reportScenario(const Scenario& scenario, const Measured& m) {
                                                          << " bound=1 reason=" << m.sanity.reason.toStdString());
 }
 
-// knownDefect: when not null, the binarization check is an expected failure (D-18) with this tag.
+// knownDefect: when not null, the binarization check is an expected failure with this tag.
 void checkScenario(const Scenario& scenario, const Measured& m, const char* knownDefect) {
   const std::string name = scenario.name;
   BOOST_CHECK_MESSAGE(m.deskewErrorDeg <= kAngleToleranceDeg,
@@ -271,7 +272,7 @@ QString intText(const long long value) {
   return QString::number(value);
 }
 
-// Stage decisions of the scenario as text golden values (D-14); the suffix of a key decides its tolerance.
+// Stage decisions of the scenario as text golden values; the suffix of a key decides its tolerance.
 test_support::TextValues stageDecisions(const Scenario& scenario, const Measured& m) {
   using test_support::formatNumber;
   const SubPageResult& sub = m.result.pages.front();
@@ -304,7 +305,7 @@ void runScenarioCase(const Scenario& scenario, const char* knownDefect = nullptr
   reportScenario(scenario, m);
   checkScenario(scenario, m, knownDefect);
 
-  // Goldens are recorded only when the sanity checks of the scenario passed (D-05).
+  // Goldens are recorded only when the sanity checks of the scenario passed.
   const test_support::Sanity sanity{m.sanity.ok, m.sanity.reason};
   const test_support::ImageKind kind = scenario.colorMode == output::BLACK_AND_WHITE ? test_support::ImageKind::BILEVEL
                                                                                      : test_support::ImageKind::COLOR;
@@ -316,7 +317,7 @@ void runScenarioCase(const Scenario& scenario, const char* knownDefect = nullptr
 
 BOOST_AUTO_TEST_SUITE(FlatDocumentTestSuite)
 
-// Tracer case of plan 02-01: stage decisions of the 300 dpi black-and-white page against ground truth.
+// First end-to-end case: stage decisions of the 300 dpi black-and-white page against ground truth.
 BOOST_AUTO_TEST_CASE(test_flat_300_bw_deskew_and_content_box) {
   const test_support::GeneratedPage& page = flatPage(300, kAppliedSkewDeg);
   const PipelineResult result = runPipeline(page.image, PipelineOptions());

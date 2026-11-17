@@ -520,7 +520,7 @@ BOOST_AUTO_TEST_CASE(test_ordinary_projects_carry_no_escape_flag) {
   BOOST_CHECK_MESSAGE(!result.firstFile.contains("Escaped=\""), "an ordinary project carries an escape flag");
 }
 
-// D-10: names that are legal on APFS but unusual in XML.  None of them needs the escape of SAFE-02, so each is written
+// Names that are legal on APFS but unusual in XML.  None of them needs the escape of SAFE-02, so each is written
 // as QDom writes it (tab, LF and CR as character references) and the file carries no flag attribute.
 BOOST_AUTO_TEST_CASE(test_unusual_names_survive) {
   const QString dir = QStringLiteral(" in") + QChar(0x000a) + QStringLiteral("dir");

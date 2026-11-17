@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE(test_update_twice_is_idempotent) {
   BOOST_CHECK_MESSAGE(snapshotOf(roots.goldenPath()) == first, "the second update run changed a file");
 }
 
-// WR-02: a suite counts as handled only once its manifest is on disk.  A directory where MANIFEST.txt belongs makes
+// A suite counts as handled only once its manifest is on disk.  A directory where MANIFEST.txt belongs makes
 // the manifest write fail; every later golden of the suite must fail too, and none may be written without a manifest.
 BOOST_AUTO_TEST_CASE(test_failed_manifest_write_fails_every_golden_of_the_suite) {
   const Roots roots;
@@ -471,7 +471,7 @@ BOOST_AUTO_TEST_CASE(test_failed_manifest_write_fails_every_golden_of_the_suite)
   BOOST_CHECK_MESSAGE(manifest == expected, "manifest differs from the current toolchain plus source_commit");
 }
 
-// WR-05: text values that would not parse back are refused in both modes, before anything is written.
+// Text values that would not parse back are refused in both modes, before anything is written.
 BOOST_AUTO_TEST_CASE(test_text_that_cannot_round_trip_is_refused) {
   const Roots roots;
   const TextValues badKey{{"angle_deg", "1.0000"}, {"bad = key", "2"}};

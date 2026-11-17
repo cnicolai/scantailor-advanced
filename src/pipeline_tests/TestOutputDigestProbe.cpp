@@ -1,8 +1,8 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
-// Opt-in tool for the OutputGenerator split of Phase 6 (CLEAN-01, D-16). The case never runs under ctest: it is
-// disabled by default and only runs when named, see the comment above it.
+// Opt-in tool that proved the OutputGenerator split was a pure move (same output digests before and after). The case
+// never runs under ctest: it is disabled by default and only runs when named, see the comment above it.
 
 #include <PageGenerator.h>
 #include <filters/output/DewarpingOptions.h>

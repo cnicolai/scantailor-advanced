@@ -1,8 +1,8 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
-// Opt-in tools for the memory run of Phase 6 (D-08). Neither case runs under ctest: both are disabled by default
-// and only run when named, see the comment above each case.
+// Opt-in tools for the measured batch memory run (.planning/phases/06-hardening-and-cleanup/records/memory-run.md).
+// Neither case runs under ctest: both are disabled by default and only run when named, see the comment above each case.
 
 #include <BackgroundTask.h>
 #include <DefaultParams.h>
@@ -233,9 +233,9 @@ class CountingTask : public BackgroundTask {
 
 BOOST_AUTO_TEST_SUITE(PeakMemoryProbeTestSuite)
 
-// A tool for the D-08 run, never run by ctest. One MIXED page through all six stages, then one PROBE line. Run it
-// with --run_test=PeakMemoryProbeTestSuite/test_print_peak_memory; ST_PROBE_DPI (default 300) and ST_PROBE_SCALE
-// (default 1) choose the page.
+// A tool for the measured batch memory run, never run by ctest. One MIXED page through all six stages, then one PROBE
+// line. Run it with --run_test=PeakMemoryProbeTestSuite/test_print_peak_memory; ST_PROBE_DPI (default 300) and
+// ST_PROBE_SCALE (default 1) choose the page.
 BOOST_AUTO_TEST_CASE(test_print_peak_memory, *boost::unit_test::disabled()) {
   const int dpi = envInt("ST_PROBE_DPI", 300);
   const int scale = envInt("ST_PROBE_SCALE", 1);
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(BatchMemoryProbeTestSuite)
 
-// The D-08 run of plan 06-16 drives large synthetic pages through the application's worker pool with the
+// The measured batch memory run drives large synthetic pages through the application's worker pool with the
 // application's memory cap; never run by ctest. Run it with
 // --run_test=BatchMemoryProbeTestSuite/test_batch_through_worker_pool; ST_PROBE_DPI (default 300), ST_PROBE_SCALE
 // (default 1) and ST_PROBE_PAGES (default 4) choose the batch. It prints SAMPLE lines every 2 s and one BATCH line.

@@ -27,14 +27,14 @@
 
 namespace {
 
-// Ground-truth bounds.  Starting values of D-15, then set by the D-15 tightening rule from the measurements in
-// records/scenario-book.md ("Tolerance decisions").
+// Ground-truth bounds.  Start values, then tightened from the measured worst case in
+// .planning/phases/02-golden-baselines/records/scenario-book.md ("Tolerance decisions").
 const double kAngleToleranceDeg = 0.01;  // start 0.15; worst case 0 on all eight sub-pages, so one step
 // The cutter may leave the gutter by this much at any sampled height (start: gutter edges +- 2 px).  Worst case 0 (the
 // cutter stays at least 80 px inside the gutter), so one step.
 const double kMaxOutsideGutterPx = 0.5;
-// D-15 point check: distance of the cutter from the gutter centre at mid-height.  Kept at the starting value; the
-// unmodified code misses it (D-18, F-06-1).
+// Point check: distance of the cutter from the gutter centre at mid-height.  Kept at the start value; the
+// unmodified code misses it, so the check is an expected failure whose tag names the defect.
 const double kMaxMidHeightOffsetPx = 2.0;
 // Kept at the starting value: worst 1 - IoU 0.0319 is above half of 0.05.
 const double kMinContentIou = 0.95;
@@ -42,16 +42,18 @@ const double kMinContentIou = 0.95;
 const double kAppliedSkewDeg = 1.0;
 const int kOutputDpi = 600;
 const int kSampleStepPx = 10;
-// Sanity (D-05): the glyph ink starts within this distance of the stored hard margins, at 600 dpi.
+// Sanity check before a golden may be recorded: the glyph ink starts within this distance of the stored hard margins,
+// at 600 dpi.
 const double kMarginSlackMm = 5.0;
 const double kMillimetresPerInch = 25.4;
 const double kSanityWidthSlack = 1.2;
 const double kMinInkFractionOfOutput = 0.005;
 const double kMaxInkFractionOfOutput = 0.5;
 
-// Dewarp page (D-04, D-15).  Residuals are measured in output pixels and converted to 300 dpi pixels for the bound.
+// Dewarp page: requirement-minimum checks; bounds as above.  Residuals are measured in output pixels and converted to
+// 300 dpi pixels for the bound.
 const int kDewarpInputDpi = 300;
-// D-15 starting value and bound: dewarped baseline residual at 300 dpi.
+// Start value and bound: dewarped baseline residual at 300 dpi.
 const double kMaxDewarpResidual300Px = 1.5;
 // Noise floor of the line offset measure on a page with straight lines, output pixels at 600 dpi.  Measured 0.58 px;
 // twice that is 1.16 px, rounded up to the next 0.5 px step gives 1.5 px.
@@ -116,7 +118,7 @@ struct SanityResult {
   QString reason;
 };
 
-// Output sanity of one sub-page (D-05).  truthBlock is the ink box of the sub-page's text block in input pixels.
+// Output sanity check of one sub-page.  truthBlock is the ink box of the sub-page's text block in input pixels.
 SanityResult subPageSanity(const SpreadScenario& scenario,
                            const test_support::GeneratedPage& page,
                            const QRect& truthBlock,
@@ -284,7 +286,7 @@ void reportSpread(const SpreadScenario& scenario, const SpreadMeasured& m) {
   }
 }
 
-// midOffsetDefect: when not null, the D-15 mid-height check is an expected failure (D-18) with this tag.
+// midOffsetDefect: when not null, the mid-height check is an expected failure with this tag.
 void checkSpread(const SpreadScenario& scenario, const SpreadMeasured& m, const char* midOffsetDefect) {
   const std::string name = scenario.name;
   BOOST_CHECK_EQUAL(m.result.layoutType, 2);
@@ -317,7 +319,7 @@ QString intText(const long long value) {
   return QString::number(value);
 }
 
-// Stage decisions of the scenario as text golden values (D-14); the suffix of a key decides its tolerance.
+// Stage decisions of the scenario as text golden values; the suffix of a key decides its tolerance.
 test_support::TextValues spreadDecisions(const SpreadScenario& scenario, const SpreadMeasured& m) {
   using test_support::formatNumber;
   test_support::TextValues values;
@@ -358,7 +360,7 @@ void runSpreadCase(const SpreadScenario& scenario, const char* midOffsetDefect =
   reportSpread(scenario, m);
   checkSpread(scenario, m, midOffsetDefect);
 
-  // Goldens are recorded only when the sanity checks of both sub-pages passed (D-05).
+  // Goldens are recorded only when the sanity checks of both sub-pages passed.
   const test_support::ImageKind kind = scenario.colorMode == output::BLACK_AND_WHITE ? test_support::ImageKind::BILEVEL
                                                                                      : test_support::ImageKind::COLOR;
   for (int i = 0; i < 2; ++i) {
@@ -666,17 +668,17 @@ BOOST_AUTO_TEST_CASE(test_curved_300_auto_dewarp_straightens) {
   reportMetric(scenario, "output_off_w_px", off.result.pages.front().outputSize.width(), "none");
   reportMetric(scenario, "output_off_h_px", off.result.pages.front().outputSize.height(), "none");
 
-  // D-04: dewarped text lines are straighter than the same page without dewarping.
+  // Requirement-minimum check: dewarped text lines are straighter than the same page without dewarping.
   BOOST_CHECK_MESSAGE(residualAuto < residualOff, scenario << ": AUTO dewarping residual " << num(residualAuto)
                                                            << " px is not below the residual without dewarping "
                                                            << num(residualOff) << " px");
-  // D-15 bound.
+  // Measured bound.
   BOOST_CHECK_MESSAGE(residualAuto300 <= kMaxDewarpResidual300Px,
                       scenario << ": AUTO dewarping leaves " << num(residualAuto300)
                                << " px residual at 300 dpi, bound " << num(kMaxDewarpResidual300Px) << " px");
 
   // Golden of the AUTO output, recorded only when the straightness measure found every line and the ink fraction is
-  // plausible (D-05).
+  // plausible.
   const double ink = test_support::inkFraction(autoSub.output);
   QString reason;
   if (!off.offsets.valid || !autoRun.offsets.valid) {

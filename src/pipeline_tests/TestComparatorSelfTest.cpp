@@ -25,10 +25,11 @@
 #include <string>
 #include <vector>
 
-// D-13: the comparator limits are frozen from measurement (Tolerances.h), and this suite proves on the recorded
-// goldens that they still catch what a regression looks like: isolated specks, a one pixel shift and a small
+// Comparator self-test: the comparator limits are frozen from measurement (Tolerances.h), and this suite proves on the
+// recorded goldens that they still catch what a regression looks like: isolated specks, a one pixel shift and a small
 // grey-level offset.  The store is built with update mode off, so a run with UPDATE_GOLDENS=1 cannot write a
-// golden from here (D-06).  Artifacts go to a temporary root under the build tree.
+// golden from here (goldens are re-recorded only with UPDATE_GOLDENS=1).  Artifacts go to a temporary root under the
+// build tree.
 
 namespace test_support {
 namespace tests {
@@ -497,7 +498,7 @@ BOOST_AUTO_TEST_CASE(test_artifacts_written_for_each_failure) {
   }
 }
 
-// WR-01: a failing BOOST_REQUIRE throws; the update flag must not stay set for the suites that run after it.
+// A failing BOOST_REQUIRE throws; the update flag must not stay set for the suites that run after it.
 BOOST_AUTO_TEST_CASE(test_update_flag_restored_when_an_assertion_throws) {
   const ScopedEnvironmentVariable outer("UPDATE_GOLDENS", "0");  // keeps the process state of the case
 

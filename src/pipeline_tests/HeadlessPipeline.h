@@ -74,10 +74,9 @@ struct PipelineResult {
   StageSettings settings;            // for scenario-specific reads
 };
 
-// This file is frozen after plan 02-03 of the golden baselines phase.  Wave-3 scenario plans configure
-// scenarios through PipelineOptions::configure (called per sub-page after the stage defaults and before
-// processing) and must not edit HeadlessPipeline.h or HeadlessPipeline.cpp.  The spread, the AUTO dewarping
-// and the MIXED output paths are proven by PipelineSmokeTestSuite.
+// Scenarios configure the pipeline through PipelineOptions::configure (called per sub-page after the stage defaults
+// and before processing) instead of editing HeadlessPipeline.h or HeadlessPipeline.cpp.  The spread, the AUTO
+// dewarping and the MIXED output paths are proven by PipelineSmokeTestSuite.
 
 /**
  * Runs one image through the six stage Tasks the way MainWindow::createCompositeTask chains them, but

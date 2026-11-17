@@ -425,7 +425,8 @@ BOOST_AUTO_TEST_CASE(test_forward_map_inverts_renderer_map) {
 }
 
 BOOST_AUTO_TEST_CASE(test_flat_page_unchanged) {
-  // Recorded from the plan 02-01 generator before plan 02-03 changed it: the flat page must stay byte-identical.
+  // Recorded from the first generator version, before a later change of the page geometry: the flat page must stay
+  // byte-identical.
   PageSpec spec;
   spec.kind = PageKind::FLAT;
   spec.seed = 1;
@@ -440,7 +441,7 @@ BOOST_AUTO_TEST_CASE(test_flat_page_unchanged) {
 }
 
 BOOST_AUTO_TEST_CASE(test_pinned_pages_unchanged) {
-  // Recorded from the generator before the dpi fit check existed (plan 02-12): the 75 dpi pages of all four kinds
+  // Recorded from the generator before the dpi fit check existed: the 75 dpi pages of all four kinds
   // and the curved page at 600 dpi must stay byte-identical.  The other kinds at 300 and 600 dpi are pinned by
   // test_flat_page_unchanged and by the fixtures.txt goldens.
   BOOST_CHECK_EQUAL(test_support::fingerprint(cachedPage(makeSpec(PageKind::FLAT, 75)).image).toStdString(),
