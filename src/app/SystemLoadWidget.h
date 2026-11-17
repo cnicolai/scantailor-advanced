@@ -4,14 +4,26 @@
 #ifndef SCANTAILOR_APP_SYSTEMLOADWIDGET_H_
 #define SCANTAILOR_APP_SYSTEMLOADWIDGET_H_
 
+#include <QString>
 #include <QWidget>
 
+#include "MemoryBudget.h"
 #include "ui_SystemLoadWidget.h"
 
 class SystemLoadWidget : public QWidget {
   Q_OBJECT
  public:
   explicit SystemLoadWidget(QWidget* parent = nullptr);
+
+  /**
+   * \brief Tells the slider how many tasks memory allows at once.
+   *
+   * Only the tooltip changes: the slider range and the stored setting stay as they are.
+   */
+  void setMemoryCap(int cap);
+
+  /// "<threads>/<max>", followed by ", limited to <cap> by memory" when the memory cap is below threads.
+  QString toolTipText(int threads) const;
 
  private slots:
 
@@ -32,6 +44,7 @@ class SystemLoadWidget : public QWidget {
 
   Ui::SystemLoadWidget ui;
   int m_maxThreads;
+  int m_memoryCap = MemoryBudget::kNoCap;
 };
 
 

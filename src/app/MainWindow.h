@@ -57,6 +57,7 @@ class TabbedDebugImages;
 class ProcessingTaskQueue;
 class FixDpiDialog;
 class OutOfMemoryDialog;
+class SystemLoadWidget;
 class QLineF;
 class QRectF;
 class QLayout;
@@ -349,6 +350,8 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
   std::unique_ptr<ContentBoxPropagator> m_contentBoxPropagator;
   std::unique_ptr<PageOrientationPropagator> m_pageOrientationPropagator;
   std::unique_ptr<QWidget> m_batchProcessingWidget;
+  // Owned by the batch processing widget through the Qt parent.
+  SystemLoadWidget* m_systemLoadWidget = nullptr;
   std::unique_ptr<ProcessingIndicationWidget> m_processingIndicationWidget;
   boost::function<bool()> m_checkBeepWhenFinished;
   SelectedPage m_selectedPage;

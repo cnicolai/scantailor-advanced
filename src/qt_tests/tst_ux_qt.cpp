@@ -20,9 +20,11 @@
 #include <ProjectPages.h>
 #include <ThumbnailLoadResult.h>
 #include <ThumbnailPixmapCache.h>
+#include <WorkerThreadPool.h>
 #include <filters/fix_orientation/Task.h>
 
 #include "ProjectFilesDialog.h"
+#include "SystemLoadWidget.h"
 
 #include <QAbstractItemModel>
 #include <QApplication>
@@ -38,8 +40,11 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
+#include <QSettings>
 #include <QSignalSpy>
+#include <QSlider>
 #include <QTemporaryDir>
+#include <QThread>
 #include <QTimer>
 #include <QToolButton>
 #include <QWidget>
@@ -396,4 +401,61 @@ void TestUxQt::testOversizedThumbnailFails() {
   requestThumbnail(dir.filePath("normal.png"), normalThumbs, &status, &growth);
   QCOMPARE(int(status), int(ThumbnailLoadResult::LOADED));
   QCOMPARE(QDir(normalThumbs).entryList(QDir::Files | QDir::NoDotAndDotDot).size(), 1);
+}
+
+void TestUxQt::testSystemLoadToolTipShowsMemoryLimit() {
+  const QString key = WorkerThreadPool::threadCountKey();
+  const int ideal = QThread::idealThreadCount();
+  QSettings().remove(key);
+
+  {
+    SystemLoadWidget widget;
+    auto* slider = widget.findChild<QSlider*>("slider");
+    QVERIFY(slider != nullptr);
+    QCOMPARE(slider->minimum(), 1);
+    QCOMPARE(slider->maximum(), ideal);
+    QCOMPARE(slider->value(), ideal);
+
+    // No cap: the plain text, as before.
+    QCOMPARE(widget.toolTipText(ideal), QString("%1/%2").arg(ideal).arg(ideal));
+
+    widget.setMemoryCap(1);
+    QCOMPARE(widget.toolTipText(1), QString("1/%1").arg(ideal));
+    if (ideal >= 2) {
+      QCOMPARE(widget.toolTipText(ideal), QString("%1/%1, limited to 1 by memory").arg(ideal));
+    }
+    QCOMPARE(slider->toolTip(), widget.toolTipText(slider->value()));
+
+    // The cap changes the text only: range and value stay, and nothing is stored.
+    QCOMPARE(slider->minimum(), 1);
+    QCOMPARE(slider->maximum(), ideal);
+    QCOMPARE(slider->value(), ideal);
+    QVERIFY(!QSettings().contains(key));
+
+    // A slider move refreshes the tooltip property and stores the value as before.
+    if (ideal >= 3) {
+      slider->setValue(3);
+      QCOMPARE(slider->toolTip(), QString("3/%1, limited to 1 by memory").arg(ideal));
+      QCOMPARE(QSettings().value(key).toInt(), 3);
+
+      // A cap at the slider value brings the plain text back; the stored 3 stays.
+      widget.setMemoryCap(3);
+      QCOMPARE(slider->toolTip(), QString("3/%1").arg(ideal));
+      widget.setMemoryCap(1);
+      QCOMPARE(QSettings().value(key).toInt(), 3);
+    }
+  }
+
+  // A stored value survives a new widget; the cap is not remembered.
+  QSettings().setValue(key, 1);
+  {
+    SystemLoadWidget widget;
+    auto* slider = widget.findChild<QSlider*>("slider");
+    QVERIFY(slider != nullptr);
+    QCOMPARE(slider->value(), 1);
+    widget.setMemoryCap(1);
+    QCOMPARE(slider->toolTip(), QString("1/%1").arg(ideal));
+    QCOMPARE(QSettings().value(key).toInt(), 1);
+  }
+  QSettings().remove(key);
 }

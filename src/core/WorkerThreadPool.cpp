@@ -89,6 +89,14 @@ int WorkerThreadPool::maxThreadCount() const {
 
 void WorkerThreadPool::updateNumberOfThreads() {
   const int ideal = QThread::idealThreadCount();
-  const int slider = std::min(m_settings.value("settings/batch_processing_threads", ideal).toInt(), ideal);
+  const int slider = storedThreadCount(m_settings, ideal);
   m_pool->setMaxThreadCount(MemoryBudget::effectiveThreads(ideal, slider, m_memoryCap));
+}
+
+QString WorkerThreadPool::threadCountKey() {
+  return QStringLiteral("settings/batch_processing_threads");
+}
+
+int WorkerThreadPool::storedThreadCount(const QSettings& settings, const int maxThreads) {
+  return std::clamp(settings.value(threadCountKey(), maxThreads).toInt(), 1, std::max(1, maxThreads));
 }

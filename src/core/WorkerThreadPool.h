@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QString>
 #include <memory>
 
 #include "BackgroundTask.h"
@@ -42,6 +43,12 @@ class WorkerThreadPool : public QObject {
   int maxThreadCount() const;
 
   void submitTask(const BackgroundTaskPtr& task);
+
+  /// The settings key of the batch thread slider; the one place that names it.
+  static QString threadCountKey();
+
+  /// The slider value stored in the settings, clamped to [1, maxThreads]; maxThreads if none is stored.
+  static int storedThreadCount(const QSettings& settings, int maxThreads);
 
  signals:
 

@@ -507,6 +507,7 @@ void MainWindow::createBatchProcessingWidget() {
 
   auto* lowerPanel = new LowerPanel(m_batchProcessingWidget.get());
   m_checkBeepWhenFinished = [lowerPanel]() { return lowerPanel->ui.beepWhenFinished->isChecked(); };
+  m_systemLoadWidget = lowerPanel->ui.systemLoadWidget;
 
   int row = 0;  // Row 0 is reserved.
   layout->addWidget(stopBtn, ++row, 1, Qt::AlignCenter);
@@ -1256,7 +1257,9 @@ void MainWindow::startBatchProcessing() {
   }
 
   // Cap the parallel pages by physical memory and the largest page before the first task is submitted.
-  m_workerThreadPool->setMemoryCap(MemoryBudget::batchMemoryCap(sequence));
+  const int memoryCap = MemoryBudget::batchMemoryCap(sequence);
+  m_workerThreadPool->setMemoryCap(memoryCap);
+  m_systemLoadWidget->setMemoryCap(memoryCap);
 
   focusButton->setChecked(true);
 

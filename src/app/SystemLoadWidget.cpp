@@ -4,25 +4,17 @@
 #include "SystemLoadWidget.h"
 
 #include <core/IconProvider.h>
+#include <core/WorkerThreadPool.h>
 
 #include <QSettings>
 #include <QThread>
 #include <QToolTip>
 
-static const char* const key = "settings/batch_processing_threads";
-
 SystemLoadWidget::SystemLoadWidget(QWidget* parent) : QWidget(parent), m_maxThreads(QThread::idealThreadCount()) {
   ui.setupUi(this);
   setupIcons();
 
-  if (sizeof(void*) <= 4) {
-    // Restricting num of processors for 32-bit due to
-    // address space constraints.
-    if (m_maxThreads > 2) {
-      m_maxThreads = 2;
-    }
-  }
-  int numThreads = std::min<int>(m_maxThreads, QSettings().value(key, m_maxThreads).toInt());
+  const int numThreads = WorkerThreadPool::storedThreadCount(QSettings(), m_maxThreads);
 
   ui.slider->setRange(1, m_maxThreads);
   ui.slider->setValue(numThreads);
@@ -45,10 +37,27 @@ void SystemLoadWidget::sliderMoved(int threads) {
 void SystemLoadWidget::valueChanged(int threads) {
   QSettings settings;
   if (threads == m_maxThreads) {
-    settings.remove(key);
+    settings.remove(WorkerThreadPool::threadCountKey());
   } else {
-    settings.setValue(key, threads);
+    settings.setValue(WorkerThreadPool::threadCountKey(), threads);
   }
+
+  if (m_memoryCap != MemoryBudget::kNoCap) {
+    ui.slider->setToolTip(toolTipText(threads));
+  }
+}
+
+void SystemLoadWidget::setMemoryCap(const int cap) {
+  m_memoryCap = cap;
+  ui.slider->setToolTip(toolTipText(ui.slider->value()));
+}
+
+QString SystemLoadWidget::toolTipText(const int threads) const {
+  QString text = QString("%1/%2").arg(threads).arg(m_maxThreads);
+  if (m_memoryCap < threads) {
+    text += tr(", limited to %1 by memory").arg(m_memoryCap);
+  }
+  return text;
 }
 
 void SystemLoadWidget::decreaseLoad() {
@@ -72,7 +81,7 @@ void SystemLoadWidget::showHideToolTip(int threads) {
     tooltipPos.setY(center.y());
   }
   tooltipPos = ui.slider->mapToGlobal(tooltipPos);
-  QToolTip::showText(tooltipPos, QString("%1/%2").arg(threads).arg(m_maxThreads), ui.slider);
+  QToolTip::showText(tooltipPos, toolTipText(threads), ui.slider);
 }
 
 void SystemLoadWidget::setupIcons() {

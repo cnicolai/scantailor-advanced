@@ -23,6 +23,7 @@ class TestCoreQt : public QObject {
   void testLargeGreyPngLoads();
   void testForgedPngMetadataReportsClaimedSize();
   void testWorkerPoolHonoursMemoryCap();
+  void testStoredThreadCountClamps();
 };
 
 class Emitter : public QObject {

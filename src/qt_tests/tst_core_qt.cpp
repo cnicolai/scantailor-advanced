@@ -238,3 +238,25 @@ void TestCoreQt::testWorkerPoolHonoursMemoryCap() {
   }
   QSettings().remove(key);
 }
+
+void TestCoreQt::testStoredThreadCountClamps() {
+  const QString key = WorkerThreadPool::threadCountKey();
+  QCOMPARE(key, QString("settings/batch_processing_threads"));
+
+  QSettings settings;
+  settings.remove(key);
+  QCOMPARE(WorkerThreadPool::storedThreadCount(settings, 10), 10);
+
+  settings.setValue(key, 0);
+  QCOMPARE(WorkerThreadPool::storedThreadCount(settings, 10), 1);
+  settings.setValue(key, -5);
+  QCOMPARE(WorkerThreadPool::storedThreadCount(settings, 10), 1);
+  settings.setValue(key, 4);
+  QCOMPARE(WorkerThreadPool::storedThreadCount(settings, 10), 4);
+  settings.setValue(key, 999);
+  QCOMPARE(WorkerThreadPool::storedThreadCount(settings, 10), 10);
+  // The function reads; it never rewrites a stored value.
+  QCOMPARE(settings.value(key).toInt(), 999);
+
+  settings.remove(key);
+}

@@ -18,6 +18,7 @@ class TestUxQt : public QObject {
   void testOversizedImageShowsTooLargeInPageView();
   void testProjectFilesDialogMarksOversizedFile();
   void testOversizedThumbnailFails();
+  void testSystemLoadToolTipShowsMemoryLimit();
 };
 
 #endif
