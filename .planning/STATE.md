@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-14-PLAN.md
-last_updated: "2026-11-17T11:48:04.019Z"
+stopped_at: Completed 06-15-PLAN.md
+last_updated: "2026-11-17T12:13:22.009Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: 1d2167cefb9f443f46497f0bd28e35f676067cc6
+state_head: a9956793106c3a43c42a5cf6c2723f3fd89ee81f
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 63
+  completed_plans: 64
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 15 of 16
+Plan: 16 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -124,6 +124,7 @@ Progress: [████████░░] 83%
 | Phase 06 P12 | 50 min | 2 tasks | 8 files |
 | Phase 06 P13 | 40 min | 2 tasks | 10 files |
 | Phase 06 P14 | 25 min | 2 tasks | 7 files |
+| Phase 06 P15 | 40 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -248,6 +249,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-13: shared OutputGenerator helpers live in the header-only OutputGeneratorPixelOps.h (anonymous namespace), so every translation unit keeps internal linkage; the first split step is proven by move_check.py (79 chunks equal, failing control) and identical output digests
 - [Phase 06]: 06-14: calcLocalWindowSize and from300dpi (no callers) are kept in OutputGeneratorBinarize.cpp before to300dpi, not deleted (D-16)
 - [Phase 06]: 06-14: OutputGenerator.cpp is 268 lines and includes only OutputGeneratorProcessor.h; Dewarp and Binarize include both internal headers; the 79-chunk move check over six files, seven digests and gate s19 prove the pure move
+- [Phase 06]: 06-15: setupActions() takes the constructor block only up to the sortOptions connect because later lambdas capture the local settings; switchToNewProject and showNewOpenProjectPanel moved with the project flow to keep MainWindow.cpp below 1300 lines (1237)
 
 ### Pending Todos
 
@@ -268,6 +270,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T11:48:03.572Z
-Stopped at: Completed 06-14-PLAN.md
+Last session: 2026-11-17T12:13:21.504Z
+Stopped at: Completed 06-15-PLAN.md
 Resume file: None
