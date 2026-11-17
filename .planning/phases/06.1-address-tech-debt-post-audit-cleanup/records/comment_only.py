@@ -31,7 +31,7 @@ def keep_literal(text, placeholder, strings_mode):
     if strings_mode:
         return placeholder
     # one token per literal: whitespace inside it must not split it
-    return "".join("\x00%02x" % ord(c) if c.isspace() else c for c in text)
+    return "".join("\\" + c if c == "\\" else ("\\x%02x" % ord(c) if c.isspace() else c) for c in text)
 
 
 def tokens_cpp(text, strings_mode):
