@@ -54,7 +54,7 @@ const int kDewarpInputDpi = 300;
 // D-15 starting value and bound: dewarped baseline residual at 300 dpi.
 const double kMaxDewarpResidual300Px = 1.5;
 // Noise floor of the line offset measure on a page with straight lines, output pixels at 600 dpi.  Measured 0.58 px;
-// twice that, rounded up to 0.5 px.  Not a D-15 value.
+// twice that is 1.16 px, rounded up to the next 0.5 px step gives 1.5 px.
 const double kMaxNoiseFloorPx = 1.5;
 
 struct SpreadScenario {
@@ -414,15 +414,23 @@ BOOST_AUTO_TEST_CASE(test_book_fixture_fingerprints) {
   CHECK_TEXT_GOLDEN("book", "fixtures", values, (test_support::Sanity{true, QString()}));
 }
 
-// WR-04: a reference handed out by the cache must stay valid when another page is added.  Run alone, this is the
-// first use of the cache, so the second page is the second insertion.  Only addresses are compared before the check:
-// a reallocating container would leave the first pointer dangling.
+// The cache must hand out references that stay valid while it grows.  The case adds at least 16 low-dpi pages that no
+// other case renders, so a container that reallocates when it grows must move the first page inside this case,
+// whatever ran before.  Only addresses are compared before the check: a reallocating container would leave the first
+// pointer dangling.
 BOOST_AUTO_TEST_CASE(test_spread_page_cache_keeps_references) {
-  const test_support::GeneratedPage* const remembered = &spreadPage(300);
-  spreadPage(600);
-  BOOST_REQUIRE_MESSAGE(&spreadPage(300) == remembered,
-                        "the 300 dpi spread page moved when the 600 dpi page was added to the cache");
-  BOOST_CHECK(!remembered->image.isNull());
+  const test_support::GeneratedPage* const first = &spreadPage(75);
+  int added = 0;
+  for (int dpi = 105; dpi < 150 && added < 17; ++dpi) {
+    if (test_support::dpiSupported(test_support::PageKind::SPREAD, dpi)) {
+      spreadPage(dpi);
+      ++added;
+    }
+  }
+  BOOST_REQUIRE_GE(added, 16);
+  BOOST_REQUIRE_MESSAGE(&spreadPage(75) == first,
+                        "the 75 dpi spread page moved when " << added << " more pages were added to the cache");
+  BOOST_CHECK(!first->image.isNull());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
