@@ -47,6 +47,9 @@ class TestMacQt : public QObject {
   void testSaveAsFlowFromOutOfMemoryDialog();
   void testSaveAsFlowRunsTwice();
   void testFailedSaveWhileClosingKeepsTheProject();
+  void testHarnessGuardAcceptsDirectoryInside();
+  void testHarnessGuardRefusesRootAndEscapes();
+  void testHarnessGuardRefusesSymlinkOut();
 };
 
 #endif

@@ -42,6 +42,7 @@
 
 #include <config.h>
 
+#include "HarnessGuards.h"
 #include "MainWindow.h"
 #include "OutOfMemoryDialog.h"
 #include "ProjectSaveFlow.h"
@@ -1981,4 +1982,96 @@ void TestMacQt::testFailedSaveWhileClosingKeepsTheProject() {
     closeAction->trigger();
   }
   QVERIFY2(window->windowTitle().contains("Unnamed"), qPrintable(window->windowTitle()));
+}
+
+namespace {
+
+// A temporary folder below TEST_TMP_ROOT with an empty fake root folder inside it, for the harness guard tests.
+struct GuardFixture {
+  QTemporaryDir dir;
+
+  bool init() {
+    return dir.isValid() && dir.path().startsWith(QString::fromUtf8(TEST_TMP_ROOT)) && QDir().mkpath(root());
+  }
+
+  QString root() const { return dir.filePath("root"); }
+};
+
+}  // namespace
+
+void TestMacQt::testHarnessGuardAcceptsDirectoryInside() {
+  GuardFixture fixture;
+  QVERIFY(fixture.init());
+  const QString canonicalRoot = QDir(fixture.root()).canonicalPath();
+  QVERIFY(!canonicalRoot.isEmpty());
+
+  QString resolved;
+  QString error;
+  QVERIFY2(harness::outputDirIsStrictlyInside(fixture.root() + "/sub/new", fixture.root(), &resolved, &error),
+           qPrintable(error));
+  QCOMPARE(resolved, canonicalRoot + "/sub/new");
+  // The guard only checks; the caller creates the directories afterwards.
+  QVERIFY(!QFileInfo::exists(fixture.root() + "/sub"));
+
+  // A "." component is dropped, and a directory that exists already is accepted too.
+  QVERIFY(QDir().mkpath(fixture.root() + "/real"));
+  resolved.clear();
+  QVERIFY2(harness::outputDirIsStrictlyInside(fixture.root() + "/./real", fixture.root(), &resolved, &error),
+           qPrintable(error));
+  QCOMPARE(resolved, canonicalRoot + "/real");
+}
+
+void TestMacQt::testHarnessGuardRefusesRootAndEscapes() {
+  GuardFixture fixture;
+  QVERIFY(fixture.init());
+  QVERIFY(QDir().mkpath(fixture.dir.filePath("rootX/y")));  // the sibling exists and shares the root's name as prefix
+
+  const QStringList refused = {
+      fixture.root(),
+      fixture.root() + "/",
+      fixture.root() + "/../x",
+      fixture.root() + "/sub/../../x",
+      fixture.dir.filePath("rootX/y"),
+      fixture.dir.filePath("rootX/new"),
+      QString(),
+  };
+  for (const QString& outArg : refused) {
+    QString resolved = "unchanged";
+    QString error;
+    QVERIFY2(!harness::outputDirIsStrictlyInside(outArg, fixture.root(), &resolved, &error), qPrintable(outArg));
+    QVERIFY2(!error.isEmpty(), qPrintable(outArg));
+    QCOMPARE(resolved, QString("unchanged"));
+  }
+
+  // A root that does not exist accepts nothing.
+  QString resolved;
+  QString error;
+  QVERIFY(
+      !harness::outputDirIsStrictlyInside(fixture.root() + "/a", fixture.dir.filePath("missing"), &resolved, &error));
+  QVERIFY(!error.isEmpty());
+}
+
+void TestMacQt::testHarnessGuardRefusesSymlinkOut() {
+  GuardFixture fixture;
+  QVERIFY(fixture.init());
+  const QString outside = fixture.dir.filePath("outside");
+  QVERIFY(QDir().mkpath(outside));
+  QVERIFY(QFile::link(outside, fixture.root() + "/link"));
+  QVERIFY(QFile::link(fixture.dir.filePath("nowhere"), fixture.root() + "/dangling"));
+
+  QString resolved = "unchanged";
+  QString error;
+  QVERIFY(!harness::outputDirIsStrictlyInside(fixture.root() + "/link/x", fixture.root(), &resolved, &error));
+  QVERIFY(!error.isEmpty());
+  QVERIFY(!harness::outputDirIsStrictlyInside(fixture.root() + "/link", fixture.root(), &resolved, &error));
+  QVERIFY(!harness::outputDirIsStrictlyInside(fixture.root() + "/dangling/x", fixture.root(), &resolved, &error));
+  QCOMPARE(resolved, QString("unchanged"));
+  // Nothing was created through the link, and the target is still empty.
+  QVERIFY(QDir(outside).isEmpty());
+  QVERIFY(!QFileInfo::exists(fixture.dir.filePath("nowhere")));
+
+  // Control: a real directory next to the link is accepted by the same call.
+  QVERIFY(QDir().mkpath(fixture.root() + "/real"));
+  QVERIFY2(harness::outputDirIsStrictlyInside(fixture.root() + "/real/x", fixture.root(), &resolved, &error),
+           qPrintable(error));
 }

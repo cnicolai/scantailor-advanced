@@ -3,8 +3,8 @@
 //
 // Offscreen snapshot of the main window and the Settings dialog for Phase 3 (D-12).
 // usage: ui_snapshot <output-dir> [--assert-no-language]
-// The output directory must lie below the checkout's build/ directory. QSettings and temporary files are kept
-// inside it, so a run never touches the user's real settings or profiles.
+// The output directory must lie strictly below the checkout's build/ directory (symlinks resolved). QSettings and
+// temporary files are kept inside it, so a run never touches the user's real settings or profiles.
 
 #include <core/Application.h>
 #include <core/ApplicationSettings.h>
@@ -29,6 +29,7 @@
 #include <cstdio>
 #include <memory>
 
+#include "HarnessGuards.h"
 #include "MainWindow.h"
 #include "SettingsDialog.h"
 
@@ -111,11 +112,10 @@ int main(int argc, char* argv[]) {
     return 2;
   }
 
-  const QString root = QDir::cleanPath(QString::fromUtf8(UI_SNAPSHOT_ROOT));
-  const QString out = QDir::cleanPath(QDir::current().absoluteFilePath(outArg));
-  if (out != root && !out.startsWith(root + "/")) {
-    std::fprintf(stderr, "ui_snapshot: %s is not under %s\n", out.toLocal8Bit().constData(),
-                 root.toLocal8Bit().constData());
+  QString out;
+  QString guardError;
+  if (!harness::outputDirIsStrictlyInside(outArg, QString::fromUtf8(UI_SNAPSHOT_ROOT), &out, &guardError)) {
+    std::fprintf(stderr, "ui_snapshot: %s\n", guardError.toLocal8Bit().constData());
     return 2;
   }
   if (!QDir().mkpath(out + "/tmp") || !QDir().mkpath(out + "/settings")) {
