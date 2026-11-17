@@ -11,23 +11,11 @@
 #include <cmath>
 
 #include "Application.h"
-#include "OpenGLSupport.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   ui.setupUi(this);
 
   ApplicationSettings& settings = ApplicationSettings::getInstance();
-
-  if (!OpenGLSupport::supported()) {
-    ui.enableOpenglCb->setChecked(false);
-    ui.enableOpenglCb->setEnabled(false);
-    ui.openglDeviceLabel->setEnabled(false);
-    ui.openglDeviceLabel->setText(tr("Your hardware / driver don't provide the necessary features"));
-  } else {
-    ui.enableOpenglCb->setChecked(settings.isOpenGlEnabled());
-    const QString openglDevicePattern = ui.openglDeviceLabel->text();
-    ui.openglDeviceLabel->setText(openglDevicePattern.arg(OpenGLSupport::deviceName()));
-  }
 
   ui.colorSchemeBox->addItem(tr("Dark"), "dark");
   ui.colorSchemeBox->addItem(tr("Light"), "light");
@@ -80,7 +68,6 @@ SettingsDialog::~SettingsDialog() = default;
 void SettingsDialog::commitChanges() {
   ApplicationSettings& settings = ApplicationSettings::getInstance();
 
-  settings.setOpenGlEnabled(ui.enableOpenglCb->isChecked());
   settings.setAutoSaveProjectEnabled(ui.autoSaveProjectCB->isChecked());
   settings.setHighlightDeviationEnabled(ui.highlightDeviationCB->isChecked());
   settings.setColorScheme(ui.colorSchemeBox->currentData().toString());

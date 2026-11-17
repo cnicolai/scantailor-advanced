@@ -7,7 +7,6 @@
 #include <QPainter>
 #include <QShortcut>
 
-#include "ApplicationSettings.h"
 #include "HiDpi.h"
 #include "ImageViewBase.h"
 #include "ScopedIncDec.h"
@@ -69,18 +68,12 @@ void ColorPickupInteraction::takeColor() {
   const ScopedIncDec<int> guard(m_dontDrawCircle);
 
   const QRect rect(targetBoundingRect());
-  QImage image;
-  if (ApplicationSettings::getInstance().isOpenGlEnabled()) {
-    image = m_context.imageView().sampleImageAtWidgetRect(rect);
+  // The grab of a logical rect has device resolution and carries the device pixel ratio.
+  const QPixmap pixmap = m_context.imageView().grab(rect);
+  if (pixmap.isNull()) {
+    return;
   }
-  if (image.isNull()) {
-    // The grab of a logical rect has device resolution and carries the device pixel ratio.
-    const QPixmap pixmap = m_context.imageView().grab(rect);
-    if (pixmap.isNull()) {
-      return;
-    }
-    image = pixmap.toImage();
-  }
+  const QImage image = pixmap.toImage();
 
   const QColor color(medianColor(image));
   if (!color.isValid()) {

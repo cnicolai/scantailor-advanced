@@ -42,6 +42,7 @@
 #include <QAbstractItemView>
 #include <QAction>
 #include <QApplication>
+#include <QCheckBox>
 #include <QCursor>
 #include <QDir>
 #include <QDirIterator>
@@ -51,6 +52,7 @@
 #include <QImage>
 #include <QItemSelectionModel>
 #include <QKeySequence>
+#include <QLabel>
 #include <QLayoutItem>
 #include <QLineEdit>
 #include <QMenu>
@@ -318,6 +320,28 @@ QAction* actionWithText(const QWidget& view, const QString& text) {
   return nullptr;
 }
 
+// Controls that mention OpenGL: child widgets named so, and labels and buttons whose text says so.
+QStringList openGlControls(const QWidget& root) {
+  const QString needle = QStringLiteral("opengl");
+  QStringList found;
+  for (const QWidget* const child : root.findChildren<QWidget*>()) {
+    if (child->objectName().contains(needle, Qt::CaseInsensitive)) {
+      found << child->objectName();
+    }
+  }
+  for (const QLabel* const label : root.findChildren<QLabel*>()) {
+    if (label->text().contains(needle, Qt::CaseInsensitive)) {
+      found << label->text();
+    }
+  }
+  for (const QAbstractButton* const button : root.findChildren<QAbstractButton*>()) {
+    if (button->text().contains(needle, Qt::CaseInsensitive)) {
+      found << button->text();
+    }
+  }
+  return found;
+}
+
 // Source scans (key names in user-visible text). The tree is read from SOURCE_ROOT, set by CMake.
 
 using LineText = QPair<int, QString>;
@@ -555,6 +579,19 @@ void TestMacQt::testSettingsShortcutOpensSettings() {
   // The dialog deletes itself on close (WA_DeleteOnClose).
   dialog->close();
   QTRY_VERIFY(window->findChild<SettingsDialog*>() == nullptr);
+}
+
+void TestMacQt::testSettingsHasNoOpenGlControl() {
+  // Control: the search finds the removed checkbox in a synthetic widget.
+  QWidget synthetic;
+  auto* const checkBox = new QCheckBox(QStringLiteral("Accelerate user interface with OpenGL"), &synthetic);
+  checkBox->setObjectName(QStringLiteral("enableOpenglCb"));
+  QVERIFY(!openGlControls(synthetic).isEmpty());
+
+  const SettingsDialog dialog;
+  const QStringList found = openGlControls(dialog);
+  QVERIFY2(found.isEmpty(), qPrintable("OpenGL controls in the Settings dialog: " + found.join(", ")));
+  QVERIFY(!dialog.findChildren<QCheckBox*>().isEmpty());
 }
 
 void TestMacQt::testMenuRoles() {

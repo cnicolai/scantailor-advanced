@@ -34,20 +34,6 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QCheckBox" name="enableOpenglCb">
-            <property name="text">
-             <string>Accelerate user interface with OpenGL</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="openglDeviceLabel">
-            <property name="text">
-             <string>Device: %1</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="autoSaveProjectCB">
             <property name="text">
              <string>Auto-save the existing project</string>
@@ -82,9 +68,7 @@
            </layout>
           </item>
          </layout>
-         <zorder>enableOpenglCb</zorder>
          <zorder>autoSaveProjectCB</zorder>
-         <zorder>openglDeviceLabel</zorder>
         </widget>
        </item>
        <item>

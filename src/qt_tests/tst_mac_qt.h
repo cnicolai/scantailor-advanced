@@ -17,6 +17,7 @@ class TestMacQt : public QObject {
   void initTestCase();
   void testSettingsInFileWithPreferencesRole();
   void testSettingsShortcutOpensSettings();
+  void testSettingsHasNoOpenGlControl();
   void testMenuRoles();
   void testFileMenuTextsAndKeys();
   void testToolsMenuWithoutSettings();

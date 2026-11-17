@@ -7,9 +7,6 @@
 #include <Transform.h>
 
 #include <QApplication>
-
-#include <QtOpenGLWidgets/QOpenGLWidget>
-
 #include <QMouseEvent>
 #include <QPaintEngine>
 #include <QPainter>
@@ -19,13 +16,11 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QStatusBar>
 
-#include "ApplicationSettings.h"
 #include "BackgroundExecutor.h"
 #include "ColorSchemeManager.h"
 #include "Dpm.h"
 #include "HiDpi.h"
 #include "ImagePresentation.h"
-#include "OpenGLSupport.h"
 #include "PixmapRenderer.h"
 #include "ScopedIncDec.h"
 #include "UnitsProvider.h"
@@ -149,17 +144,9 @@ ImageViewBase::ImageViewBase(const QImage& image,
   /* For some reason, the default viewport fills background with
    * a color different from QPalette::Window. Here we make it not
    * fill it at all, assuming QMainWindow will do that anyway
-   * (with the correct color). Note that an attempt to do the same
-   * to an OpenGL viewport produces "black hole" artefacts. Therefore,
-   * we do this before setting an OpenGL viewport rather than after.
+   * (with the correct color).
    */
   viewport()->setAutoFillBackground(false);
-
-  if (ApplicationSettings::getInstance().isOpenGlEnabled()) {
-    if (OpenGLSupport::supported()) {
-      setViewport(new QOpenGLWidget());
-    }
-  }
 
   setFrameShape(QFrame::NoFrame);
   viewport()->setFocusPolicy(Qt::WheelFocus);
@@ -274,25 +261,6 @@ QRectF ImageViewBase::dynamicViewportRect() const {
 QRectF ImageViewBase::getOccupiedWidgetRect() const {
   const QRectF widgetRect(m_virtualToWidget.mapRect(virtualDisplayRect()));
   return widgetRect.intersected(dynamicViewportRect());
-}
-
-QImage ImageViewBase::sampleImageAtWidgetRect(const QRect& widgetRect, const int maxImageSide) const {
-  if (m_image.isNull() || widgetRect.isEmpty()) {
-    return QImage();
-  }
-  const QPointF widgetCenter(widgetRect.center());
-  const QPointF imagePoint(widgetToImage().map(widgetCenter));
-  const int ix = qRound(imagePoint.x());
-  const int iy = qRound(imagePoint.y());
-  const int half = maxImageSide / 2;
-  const int x1 = qBound(0, ix - half, m_image.width());
-  const int y1 = qBound(0, iy - half, m_image.height());
-  const int x2 = qBound(0, ix + half, m_image.width());
-  const int y2 = qBound(0, iy + half, m_image.height());
-  if (x2 <= x1 || y2 <= y1) {
-    return QImage();
-  }
-  return m_image.copy(x1, y1, x2 - x1, y2 - y1);
 }
 
 void ImageViewBase::setWidgetFocalPoint(const QPointF& widgetFp) {
