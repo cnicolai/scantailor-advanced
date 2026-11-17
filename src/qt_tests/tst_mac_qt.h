@@ -42,6 +42,7 @@ class TestMacQt : public QObject {
   void testRewrittenStrings();
   void testBatchAlarmUsesBeep();
   void testNoDontUseNativeDialog();
+  void testNoOpenGlInSourcesOrBuild();
 };
 
 #endif

@@ -102,7 +102,7 @@ endif()
 
 #=================================== Qt ===================================#
 
-find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)
+find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network Svg Test CONFIG REQUIRED)
 
 #=================================== Threads ===================================#
 

@@ -1551,3 +1551,50 @@ void TestMacQt::testNoDontUseNativeDialog() {
   QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
   QVERIFY2(hits.isEmpty(), qPrintable("forced non-native dialogs or menu-bar overrides:\n" + hits.join('\n')));
 }
+
+void TestMacQt::testNoOpenGlInSourcesOrBuild() {
+  // The Qt OpenGL modules and OpenGLSupport are gone from the sources and the build. The controls prove the search
+  // finds them.
+  const QStringList forbidden{"QOpenGL", "QtOpenGL", "OpenGLSupport", "isOpenGlEnabled", "setOpenGlEnabled"};
+  const auto firstForbidden = [&forbidden](const QString& text) {
+    for (const QString& word : forbidden) {
+      if (text.contains(word)) {
+        return word;
+      }
+    }
+    return QString();
+  };
+  QCOMPARE(firstForbidden(QStringLiteral("#include <QtOpenGLWidgets/QOpenGLWidget>")), QStringLiteral("QOpenGL"));
+  QCOMPARE(firstForbidden(QStringLiteral("QWidget* parent = nullptr;")), QString());
+
+  const QDir root(sourceRoot());
+  QStringList hits;
+  int fileCount = 0;
+  for (const QString& suffix : {QStringLiteral(".cpp"), QStringLiteral(".h"), QStringLiteral(".mm")}) {
+    for (const QString& relative : scanScopeFiles(suffix)) {
+      const QString source = readUtf8(root.filePath(relative));
+      if (source.isEmpty()) {
+        hits.append(relative + ": unreadable");
+        continue;
+      }
+      ++fileCount;
+      const QString word = firstForbidden(source);
+      if (!word.isEmpty()) {
+        hits.append(relative + ": " + word);
+      }
+    }
+  }
+  QVERIFY2(fileCount >= 500, qPrintable(QStringLiteral("only %1 C++ files read").arg(fileCount)));
+  QVERIFY2(hits.isEmpty(), qPrintable("OpenGL in the sources:\n" + hits.join('\n')));
+
+  // The build files name no OpenGL component or library.
+  for (const QString& relative : {QStringLiteral("CMakeLists.txt"), QStringLiteral("src/core/CMakeLists.txt")}) {
+    const QString cmake = readUtf8(root.filePath(relative));
+    QVERIFY2(!cmake.isEmpty(), qPrintable(relative + " is empty or unreadable"));
+    QVERIFY2(!cmake.contains(QStringLiteral("OpenGL")), qPrintable(relative + " names OpenGL"));
+  }
+
+  const QString settingsUi = readUtf8(root.filePath("src/app/SettingsDialog.ui"));
+  QVERIFY(!settingsUi.isEmpty());
+  QVERIFY(!settingsUi.contains(QStringLiteral("opengl"), Qt::CaseInsensitive));
+}

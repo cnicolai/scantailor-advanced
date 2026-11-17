@@ -66,7 +66,6 @@ set(common_sources
     EstimateBackground.cpp EstimateBackground.h
     Despeckle.cpp Despeckle.h
     FileNameDisambiguator.cpp FileNameDisambiguator.h
-    OpenGLSupport.cpp OpenGLSupport.h
     OutputFileNameGenerator.cpp OutputFileNameGenerator.h
     Margins.cpp Margins.h
     ColorScheme.h
@@ -126,7 +125,7 @@ add_library(core STATIC ${common_sources} ${common_ui_files})
 target_link_libraries(
   core
   PRIVATE TIFF::TIFF PNG::PNG ZLIB::ZLIB JPEG::JPEG
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Xml Qt6::Network Qt6::OpenGL Qt6::Svg Qt6::OpenGLWidgets
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Xml Qt6::Network Qt6::Svg
   imageproc zones
   fix_orientation page_split deskew select_content page_layout output)
 target_include_directories(core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
