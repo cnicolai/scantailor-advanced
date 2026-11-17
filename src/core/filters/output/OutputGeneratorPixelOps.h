@@ -6,44 +6,14 @@
 
 #include "OutputGenerator.h"
 
-#include <AdjustBrightness.h>
-#include <Binarize.h>
-#include <BlackOnWhiteEstimator.h>
-#include <ConnCompEraser.h>
-#include <ConnectivityMap.h>
-#include <Constants.h>
-#include <CylindricalSurfaceDewarper.h>
-#include <Despeckle.h>
-#include <DewarpingPointMapper.h>
-#include <DistortionModelBuilder.h>
-#include <DrawOver.h>
-#include <GrayRasterOp.h>
 #include <Grayscale.h>
-#include <InfluenceMap.h>
-#include <Morphology.h>
-#include <OrthogonalRotation.h>
 #include <PolygonRasterizer.h>
-#include <PolynomialSurface.h>
-#include <RasterDewarper.h>
-#include <RasterOp.h>
 #include <SavGolFilter.h>
-#include <Scale.h>
 #include <SeedFill.h>
-#include <TextLineTracer.h>
-#include <TopBottomEdgeTracer.h>
-#include <Transform.h>
-#include <core/ApplicationSettings.h>
-#include <imageproc/BackgroundColorCalculator.h>
-#include <imageproc/ColorSegmenter.h>
 #include <imageproc/ImageCombination.h>
-#include <imageproc/OrthogonalRotation.h>
 #include <imageproc/PolygonUtils.h>
-#include <imageproc/Posterizer.h>
-#include <imageproc/SkewFinder.h>
-#include <imageproc/WienerFilter.h>
 
 #include <QColor>
-#include <QDebug>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPointF>
@@ -55,24 +25,8 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "ColorParams.h"
-#include "DebugImages.h"
-#include "DewarpingOptions.h"
-#include "Dpm.h"
-#include "EstimateBackground.h"
 #include "FillColorProperty.h"
-#include "FilterData.h"
-#include "ForegroundType.h"
-#include "OutputImageBuilder.h"
-#include "OutputProcessingParams.h"
-#include "Params.h"
-#include "PictureLayerProperty.h"
-#include "PictureShapeOptions.h"
-#include "RenderParams.h"
 #include "Settings.h"
-#include "TaskStatus.h"
-#include "Utils.h"
-#include "ZoneCategoryProperty.h"
 
 using namespace imageproc;
 using namespace dewarping;
