@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Completed 06.1-02-PLAN.md
-last_updated: "2026-11-17T19:53:05.715Z"
+stopped_at: Completed 06.1-03-PLAN.md
+last_updated: "2026-11-17T20:08:46.097Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: c89a9b3222736a3bae83555b06d05cac9aca5ac5
+state_head: 7d4682e77c1bc9938c9735338f1ef9dfc5dd4532
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 80
-  completed_plans: 67
+  completed_plans: 68
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 3 of 15
+Plan: 4 of 15
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -129,6 +129,7 @@ Progress: [██████████] 100%
 | Phase 06 P16 | 65 min | 3 tasks | 4 files |
 | Phase 06.1 P01 | 25 min | 2 tasks | 6 files |
 | Phase 06.1 P02 | 1 min | 3 tasks | 10 files |
+| Phase 06.1 P03 | 14 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -258,6 +259,7 @@ Recent decisions affecting current work:
 - [Phase 06]: Review fixes after verification: the size limit applies to source scans only (WR-01); the memory cap is sized per page's output dpi and reset on stop and project switch (WR-02/03); every multi-scan JPEG skips jpeg_start_decompress in the metadata load (WR-04/07); re-verified passed 5/5
 - [Phase 06.1]: 06.1-01: testNoOpenGlInSourcesOrBuild scans .claude/CLAUDE.md case-insensitively; qt_tests now reads that file at run time, so changes to it are gated
 - [Phase 06.1]: 06.1-02: Phase 1 IN-03 closed by a TESTING.md paragraph on the Debug-only differences (DEVELOPER_VERSION stays on for Debug); Phase 3 IN-06 and Phase 5 IN-02 to IN-04 skipped with the CONTEXT reasons; disposition_state.py checks every later closure
+- [Phase 06.1]: 06.1-03: UNC branch of RelinkablePathVisualization deleted after TestRelinkablePath pinned that // and backslash host paths normalise to one slash; MainWindow::changeEvent deleted
 
 ### Pending Todos
 
@@ -282,6 +284,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T19:53:05.050Z
-Stopped at: Completed 06.1-02-PLAN.md
+Last session: 2026-11-17T20:08:45.406Z
+Stopped at: Completed 06.1-03-PLAN.md
 Resume file: None
