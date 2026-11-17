@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-11-PLAN.md
-last_updated: "2026-11-17T10:51:17.593Z"
+stopped_at: Completed 06-12-PLAN.md
+last_updated: "2026-11-17T11:16:45.319Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: 1ddec16ea164a3d9665bdb37527de72723afdc52
+state_head: 59800adb7f3586fcaf9bbea5a840ef4439acc55d
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 60
+  completed_plans: 61
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 12 of 16
+Plan: 13 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -121,6 +121,7 @@ Progress: [████████░░] 83%
 | Phase 06 P09 | 95min | 2 tasks | 13 files |
 | Phase 06 P10 | 35 min | 1 tasks | 10 files |
 | Phase 06 P11 | 40min | 1 tasks | 8 files |
+| Phase 06 P12 | 50 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -239,6 +240,9 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-10: the OpenGL viewer option is removed from Settings, ApplicationSettings, ImageViewBase and the colour picker; a stored enable_opengl value stays untouched (D-00c); OpenGLSupport and the Qt OpenGL modules go in 06-11
 - [Phase 06]: 06-11: system OpenGL.framework stays (QtGui links it); link checks look for QtOpenGL only; stored enable_opengl key untouched (D-00c)
 - [Phase 06]: 06-11: s14 command diff classified at token level (OpenGL tokens only; five link lines reorder Qt frameworks); the plan's sed normalisation could not pass as written
+- [Phase 06]: 06-12: ProjectSaveFlow is a static helper class with Q_DECLARE_TR_FUNCTIONS (no Q_OBJECT), so adding it changes no automoc line
+- [Phase 06]: 06-12: ProjectSaveFlow::saveAs writes the file, project/lastDir and the recent list; the caller sets its project file and UI afterwards (same synchronous GUI-thread order)
+- [Phase 06]: 06-12: the save-error box has one function, ProjectSaveFlow::showSaveError, because MainWindow::closeProjectInteractive shows the same text on a backup-rename failure
 
 ### Pending Todos
 
@@ -259,6 +263,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T10:51:17.161Z
-Stopped at: Completed 06-11-PLAN.md
+Last session: 2026-11-17T11:16:44.876Z
+Stopped at: Completed 06-12-PLAN.md
 Resume file: None
