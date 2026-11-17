@@ -17,15 +17,15 @@ findings:
     title: "`ImageViewBase::event()` reads the viewport's ratio inside the scroll area's own `DevicePixelRatioChange`, which the tests show can lag behind"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Test-only accessors added to production classes"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Settings tooltip hard-codes a display model and a default"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "ctest registration still sets `QT_QPA_PLATFORM=offscreen`, which `main()` immediately overrides"
   - id: IN-04
     severity: info
@@ -35,7 +35,7 @@ findings:
     severity: info
     disposition: open
     title: "`retina_check` output-path guard is lexical"
-open: 5
+open: 2
 total: 8
 recorded: 2026-10-25T17:05:15.963Z
 ---
@@ -47,9 +47,9 @@ recorded: 2026-10-25T17:05:15.963Z
 | WR-01 | warning | fixed | 04-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 04-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 04-REVIEW-FIX.md |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| IN-01 | info | fixed | fixed by 06.1-05 (076021ab): one diagnostics wording on the three headers; no friend accessor |
+| IN-02 | info | fixed | fixed by 06.1-05 (076021ab): the tooltips name no display model and no default number |
+| IN-03 | info | fixed | fixed by 06.1-05 (46e8a86b): platform from main() only, scale variables cleared; a run with QT_SCALE_FACTOR=2 in the shell passes |
 | IN-04 | info | open | - |
 | IN-05 | info | open | - |
 

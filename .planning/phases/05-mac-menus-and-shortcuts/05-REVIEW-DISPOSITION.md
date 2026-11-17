@@ -13,7 +13,7 @@ findings:
     title: "`mac_check` keys section does not verify that the production slots were disconnected"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`TestMacQt::testRightClickOpensZoneMenu` has a dead wait and a stale comment"
   - id: IN-02
     severity: info
@@ -33,9 +33,9 @@ findings:
     title: "Output-directory guard is lexical and allows the build root itself"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Test brittleness and duplication"
-open: 3
+open: 1
 total: 8
 recorded: 2026-11-15T17:18:11.673Z
 ---
@@ -46,12 +46,12 @@ recorded: 2026-11-15T17:18:11.673Z
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | 05-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 05-REVIEW-FIX.md |
-| IN-01 | info | open | - |
+| IN-01 | info | fixed | fixed by 06.1-05 (c2e8f81a): polled menu close plus a Backspace effect check instead of a fixed wait |
 | IN-02 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
 | IN-03 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
 | IN-04 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
 | IN-05 | info | open | - |
-| IN-06 | info | open | - |
+| IN-06 | info | fixed | fixed by 06.1-05 (c2e8f81a): named scan floors with their derivation, whole-identifier system( marker, truthful zoom comment; skipped: autogen path (single-config only, latent) and helper duplication (mac_check does not link test_support, needs a live run) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
