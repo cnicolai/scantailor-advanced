@@ -10,6 +10,7 @@ set(sources
     TestPageId.cpp
     TestPageRange.cpp
     TestPageSequence.cpp
+    TestRelinkablePath.cpp
     TestSelectContentApply.cpp
     TestSmartFilenameOrdering.cpp
     TestUnits.cpp)

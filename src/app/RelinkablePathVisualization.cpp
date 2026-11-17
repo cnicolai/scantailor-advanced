@@ -62,10 +62,7 @@ void RelinkablePathVisualization::setPath(const RelinkablePath& path, bool click
   // prefixPath is the path up to and including the current component.
   QString prefixPath;
 
-  if (path.normalizedPath().startsWith(QLatin1String("//"))) {
-    // That's the Windows \\host\path thing.
-    components.front().prepend(QLatin1String("//"));
-  } else if (path.normalizedPath().startsWith(QChar('/'))) {
+  if (path.normalizedPath().startsWith(QChar('/'))) {
     // Unix paths start with a slash.
     prefixPath += QChar('/');
   }
@@ -263,7 +260,7 @@ void RelinkablePathVisualization::ComponentButton::paintEvent(QPaintEvent* evt) 
     option.state |= QStyle::State_MouseOver;
   }
 
-  // Prevent weird looking font effects for disabled buttons with Windows XP style.
+  // Always draw the button as enabled so a path component keeps its normal text look.
   option.state |= QStyle::State_Enabled;
 
   QStylePainter painter(this);
