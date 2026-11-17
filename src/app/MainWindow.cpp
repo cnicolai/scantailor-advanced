@@ -36,6 +36,7 @@
 #include "FixDpiDialog.h"
 #include "ImageInfo.h"
 #include "ImageMetadataLoader.h"
+#include "ImageSizeLimit.h"
 #include "ImageViewBase.h"
 #include "LoadFileTask.h"
 #include "LoadFilesStatusDialog.h"
@@ -1970,7 +1971,14 @@ void MainWindow::showInsertFileDialog(BeforeOrAfter beforeOrAfter, const ImageId
     const ImageMetadataLoader::Status status = ImageMetadataLoader::load(
         files.at(i), [&](const ImageMetadata& metadata) { imageFileInfo.imageInfo().push_back(metadata); });
 
-    if (status == ImageMetadataLoader::LOADED) {
+    // The same limit as when a page is loaded (D-04): a file with an oversized page is listed as failed, with its size.
+    const QString tooLargeText = (status == ImageMetadataLoader::LOADED)
+                                     ? ImageSizeLimit::oversizedPagesText(imageFileInfo.imageInfo())
+                                     : QString();
+
+    if (!tooLargeText.isEmpty()) {
+      failedFiles.push_back(fileInfo.absoluteFilePath() + " (" + tooLargeText + ")");
+    } else if (status == ImageMetadataLoader::LOADED) {
       newFiles.push_back(imageFileInfo);
       loadedFiles.push_back(fileInfo.absoluteFilePath());
     } else {

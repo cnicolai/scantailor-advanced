@@ -16,7 +16,9 @@
 #include <LoadFileTask.h>
 #include <PageId.h>
 #include <PageInfo.h>
+#include <ProcessMemory.h>
 #include <ProjectPages.h>
+#include <ThumbnailLoadResult.h>
 #include <ThumbnailPixmapCache.h>
 #include <filters/fix_orientation/Task.h>
 
@@ -34,6 +36,7 @@
 #include <QLineEdit>
 #include <QListView>
 #include <QMessageBox>
+#include <QPixmap>
 #include <QPushButton>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -323,4 +326,74 @@ void TestUxQt::testProjectFilesDialogMarksOversizedFile() {
   QTRY_COMPARE(dialog2.result(), int(QDialog::Accepted));
   QVERIFY(closer2.texts().isEmpty());
   QCOMPARE(dialog2.inProjectFiles().size(), size_t(1));
+}
+
+namespace {
+
+class RecordingThumbnailHandler : public ThumbnailPixmapCache::CompletionHandler {
+ public:
+  void operator()(const ThumbnailLoadResult& result) override {
+    m_status = result.status();
+    m_fired = true;
+  }
+
+  bool fired() const { return m_fired; }
+
+  ThumbnailLoadResult::Status status() const { return m_status; }
+
+ private:
+  ThumbnailLoadResult::Status m_status = ThumbnailLoadResult::REQUEST_EXPIRED;
+  bool m_fired = false;
+};
+
+// Requests the thumbnail of one file through the cache (a background thread loads the source image) and waits for
+// the completion handler. The peak footprint growth is measured around the whole request.
+void requestThumbnail(const QString& filePath,
+                      const QString& thumbDir,
+                      ThumbnailLoadResult::Status* status,
+                      qint64* peakGrowthBytes) {
+  QVERIFY(QDir().mkpath(thumbDir));
+  ThumbnailPixmapCache cache(thumbDir, QSize(100, 100), 5, 3);
+  const auto handler = std::make_shared<RecordingThumbnailHandler>();
+  QPixmap pixmap;
+
+  const qint64 peakBefore = test_support::peakPhysFootprintBytes();
+  const ThumbnailPixmapCache::Status requested
+      = cache.loadRequest(ImageId(filePath), pixmap, std::weak_ptr<ThumbnailPixmapCache::CompletionHandler>(handler));
+  if (requested == ThumbnailPixmapCache::QUEUED) {
+    QTRY_VERIFY_WITH_TIMEOUT(handler->fired(), 20000);
+    *status = handler->status();
+  } else {
+    *status
+        = (requested == ThumbnailPixmapCache::LOADED) ? ThumbnailLoadResult::LOADED : ThumbnailLoadResult::LOAD_FAILED;
+  }
+  *peakGrowthBytes = test_support::peakPhysFootprintBytes() - peakBefore;
+}
+
+}  // namespace
+
+void TestUxQt::testOversizedThumbnailFails() {
+  const qint64 kBoundBytes = qint64(64) * 1024 * 1024;
+
+  QTemporaryDir dir;
+  QVERIFY(dir.isValid());
+  QVERIFY(dir.path().startsWith(QString::fromUtf8(TEST_TMP_ROOT)));
+  writeBytes(dir.filePath("forged.tif"), test_support::forgedTiff({{100000, 100000, 1, 1, false}}));
+  writeNormalPng(dir.filePath("normal.png"));
+
+  ThumbnailLoadResult::Status status = ThumbnailLoadResult::REQUEST_EXPIRED;
+  qint64 growth = 0;
+
+  const QString forgedThumbs = dir.filePath("thumbs-forged");
+  requestThumbnail(dir.filePath("forged.tif"), forgedThumbs, &status, &growth);
+  QCOMPARE(int(status), int(ThumbnailLoadResult::LOAD_FAILED));
+  QVERIFY2(QDir(forgedThumbs).entryList(QDir::Files | QDir::NoDotAndDotDot).isEmpty(),
+           "a refused source image must leave no thumbnail file");
+  QVERIFY2(growth < kBoundBytes, qPrintable(QString("peak footprint grew by %1 bytes").arg(growth)));
+
+  // Control: a normal file gives a thumbnail and a file.
+  const QString normalThumbs = dir.filePath("thumbs-normal");
+  requestThumbnail(dir.filePath("normal.png"), normalThumbs, &status, &growth);
+  QCOMPARE(int(status), int(ThumbnailLoadResult::LOADED));
+  QCOMPARE(QDir(normalThumbs).entryList(QDir::Files | QDir::NoDotAndDotDot).size(), 1);
 }
