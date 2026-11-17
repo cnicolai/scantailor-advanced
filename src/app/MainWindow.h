@@ -170,9 +170,11 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
   void fixedDpiSubmitted();
 
-  void saveProjectTriggered();
+  /// Saves to the project file, or asks for one (Save As) if the project has none. True only if the file was written.
+  bool saveProjectTriggered();
 
-  void saveProjectAsTriggered();
+  /// True only if the user chose a file and it was written.
+  bool saveProjectAsTriggered();
 
   void newProject();
 

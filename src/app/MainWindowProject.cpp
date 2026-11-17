@@ -218,26 +218,28 @@ void MainWindow::autoSaveProject() {
   saveProjectWithFeedback(m_projectFile);
 }
 
-void MainWindow::saveProjectTriggered() {
+bool MainWindow::saveProjectTriggered() {
   if (m_projectFile.isEmpty()) {
-    saveProjectAsTriggered();
-    return;
+    return saveProjectAsTriggered();
   }
 
-  if (saveProjectWithFeedback(m_projectFile)) {
-    updateWindowTitle();
+  if (!saveProjectWithFeedback(m_projectFile)) {
+    return false;
   }
+  updateWindowTitle();
+  return true;
 }
 
-void MainWindow::saveProjectAsTriggered() {
+bool MainWindow::saveProjectAsTriggered() {
   const QString projectFile
       = ProjectSaveFlow::saveAs(this, m_projectFile, m_pages, m_selectedPage, m_outFileNameGen, *m_stages);
   if (projectFile.isEmpty()) {
-    return;
+    return false;
   }
 
   m_projectFile = projectFile;
   updateWindowTitle();
+  return true;
 }
 
 void MainWindow::newProject() {
@@ -320,8 +322,10 @@ bool MainWindow::closeProjectInteractive() {
   if (m_projectFile.isEmpty()) {
     switch (promptProjectSave()) {
       case SAVE:
-        saveProjectTriggered();
-        // fall through
+        if (!saveProjectTriggered()) {
+          return false;  // Save As cancelled or the write failed: stay in the project, nothing is lost.
+        }
+        break;
       case DONT_SAVE:
         break;
       case CANCEL:
@@ -342,8 +346,10 @@ bool MainWindow::closeProjectInteractive() {
     QFile::remove(backupFilePath);
     switch (promptProjectSave()) {
       case SAVE:
-        saveProjectTriggered();
-        // fall through
+        if (!saveProjectTriggered()) {
+          return false;  // Save As cancelled or the write failed: stay in the project, nothing is lost.
+        }
+        break;
       case DONT_SAVE:
         break;
       case CANCEL:

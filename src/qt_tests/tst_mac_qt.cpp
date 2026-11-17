@@ -1889,3 +1889,70 @@ void TestMacQt::testSaveAsFlowRunsTwice() {
   QCOMPARE(QSettings().value("project/lastDir").toString(), fixture.dir.path());
   QCOMPARE(projectFilesIn(fixture.dir.path()), QStringList{"twice.ScanTailor"});
 }
+
+namespace {
+
+// Gives a folder and a file their permissions back when the test ends, so that the temporary folder can be removed
+// even if a check fails halfway.
+class PermissionRestorer {
+ public:
+  PermissionRestorer(const QString& dir, const QString& file) : m_dir(dir), m_file(file) {}
+
+  ~PermissionRestorer() { restore(); }
+
+  void restore() {
+    QFile::setPermissions(m_dir, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+    QFile::setPermissions(m_file, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+  }
+
+ private:
+  const QString m_dir;
+  const QString m_file;
+};
+
+}  // namespace
+
+void TestMacQt::testFailedSaveWhileClosingKeepsTheProject() {
+  // Close Project asks "Save the project?"; the user says Yes, but the write fails (the folder and the file are
+  // read-only, so not even the backup file can be written). The project must stay open: it used to be discarded
+  // with all its page settings. The Save As branch of a project without a file shares the code, but such a project
+  // can only come from the New Project wizard, which has no offscreen path.
+  const ProjectSettingsGuard settingsGuard;
+  SaveFixture fixture;
+  QVERIFY(fixture.init());
+  const QString projectFile = fixture.path("keep.ScanTailor");
+  QVERIFY(ProjectSaveFlow::writeWithFeedback(nullptr, projectFile, fixture.pages, fixture.selected, fixture.nameGen,
+                                             *fixture.stages));
+
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+  window->openProject(projectFile);
+  QVERIFY2(window->windowTitle().contains("keep"), qPrintable(window->windowTitle()));
+  QAction* const closeAction = findAction(*window, "actionCloseProject");
+  QVERIFY(closeAction != nullptr);
+
+  PermissionRestorer permissions(fixture.dir.path(), projectFile);
+  QVERIFY(QFile::setPermissions(projectFile, QFileDevice::ReadOwner));
+  QVERIFY(QFile::setPermissions(fixture.dir.path(), QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+  {
+    QFile probe(fixture.path("probe.tmp"));
+    QVERIFY2(!probe.open(QIODevice::WriteOnly), "the folder must be read-only for this test to mean anything");
+  }
+
+  {
+    PanelAnswerer answerer(true, QString());  // answers every message box with Yes (or its only button)
+    closeAction->trigger();
+    QCOMPARE(answerer.boxTexts().size(), 2);
+    QVERIFY2(answerer.boxTexts().first().contains("Save the project"), qPrintable(answerer.boxTexts().first()));
+    QCOMPARE(answerer.fileDialogs(), 0);
+  }
+  QVERIFY2(window->windowTitle().contains("keep"), qPrintable(window->windowTitle()));
+  QVERIFY2(!window->windowTitle().contains("Unnamed"), qPrintable(window->windowTitle()));
+
+  // Control: with the permissions back, the same action saves and closes the project.
+  permissions.restore();
+  {
+    PanelAnswerer answerer(true, QString());
+    closeAction->trigger();
+  }
+  QVERIFY2(window->windowTitle().contains("Unnamed"), qPrintable(window->windowTitle()));
+}
