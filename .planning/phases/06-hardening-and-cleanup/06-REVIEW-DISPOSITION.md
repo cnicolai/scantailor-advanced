@@ -45,7 +45,7 @@ findings:
     title: "Cancelling or failing \"Save\" while closing a project still closes it (pre-existing, moved)"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Every split translation unit repeats the full include list of the original file"
   - id: IN-02
     severity: info
@@ -55,7 +55,7 @@ findings:
     severity: info
     disposition: fixed
     title: "Comments and test names say \"W x H\" where the code prints \"W × H\""
-open: 1
+open: 0
 total: 13
 recorded: 2026-11-17T14:57:05.443Z
 ---
@@ -74,7 +74,7 @@ recorded: 2026-11-17T14:57:05.443Z
 | WR-04 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
-| IN-01 | info | open | - (not in the current review) |
+| IN-01 | info | fixed | fixed by 06.1-08 (13dc112f): the eleven split files keep only the includes they name or need, by Release and Debug syntax checks; OutputGenerator object code proven identical by disassembly (records/include-prune.md) |
 | IN-02 | info | fixed | fixed by 06.1-06 (d9a32fd9): the 16-bit PNG case of the Qt allocation limit is documented as accepted in ImageSizeLimit.h (the reviewer's first option); not measured |
 | IN-03 | info | fixed | fixed by 06.1-06 (d9a32fd9, afcaa7ee): both comments use the multiplication sign |
 
