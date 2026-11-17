@@ -39,7 +39,7 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 - [x] **STRIP-04**: Packaging is removed: Flatpak, DEB, NSIS/CPack, `build-*.sh` scripts and MXE notes
 - [x] **STRIP-05**: All GitHub Actions workflows and the Dependabot configuration are removed
 - [x] **STRIP-06**: Translations are removed; the UI is English only
-- [ ] **STRIP-07**: The OpenGL viewer option and its code are removed, after a test covers the colour-picker path
+- [x] **STRIP-07**: The OpenGL viewer option and its code are removed, after a test covers the colour-picker path
 - [x] **STRIP-08**: The README documents the macOS build and test commands
 
 ### Retina
@@ -67,17 +67,17 @@ Requirements for the macOS milestone. Each maps to roadmap phases.
 
 ### Safety
 
-- [ ] **SAFE-01**: A TIFF file with absurd dimensions is rejected with an error instead of triggering a huge allocation
-- [ ] **SAFE-02**: Names containing `&`, `<`, `"` or non-ASCII characters survive saving and reloading a project (resolves the `XmlUnmarshaller` FIXME)
-- [ ] **SAFE-03**: The number of worker threads is capped by available RAM, so large scans don't push macOS into swap
+- [x] **SAFE-01**: A TIFF file with absurd dimensions is rejected with an error instead of triggering a huge allocation
+- [x] **SAFE-02**: Names containing `&`, `<`, `"` or non-ASCII characters survive saving and reloading a project (resolves the `XmlUnmarshaller` FIXME)
+- [x] **SAFE-03**: The number of worker threads is capped by available RAM, so large scans don't push macOS into swap
 
 ### Code Cleanup
 
-- [ ] **CLEAN-01**: `OutputGenerator.cpp` is split into topic files by pure moves, with baseline images unchanged
-- [ ] **CLEAN-02**: `MainWindow.cpp` is split (menu/action wiring and batch processing move out) with no change in behaviour
-- [ ] **CLEAN-03**: Dead `#if 0` blocks are removed
-- [ ] **CLEAN-04**: Unused `boost/foreach.hpp` includes are removed
-- [ ] **CLEAN-05**: The duplicated "Save project as" flow becomes one shared helper
+- [x] **CLEAN-01**: `OutputGenerator.cpp` is split into topic files by pure moves, with baseline images unchanged
+- [x] **CLEAN-02**: `MainWindow.cpp` is split (menu/action wiring and batch processing move out) with no change in behaviour
+- [x] **CLEAN-03**: Dead `#if 0` blocks are removed
+- [x] **CLEAN-04**: Unused `boost/foreach.hpp` includes are removed
+- [x] **CLEAN-05**: The duplicated "Save project as" flow becomes one shared helper
 
 ## v2 Requirements
 
@@ -148,7 +148,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRIP-04 | Phase 3 | Complete |
 | STRIP-05 | Phase 3 | Complete |
 | STRIP-06 | Phase 3 | Complete |
-| STRIP-07 | Phase 6 | Pending |
+| STRIP-07 | Phase 6 | Complete |
 | STRIP-08 | Phase 3 | Complete |
 | HIDPI-01 | Phase 4 | Complete |
 | HIDPI-02 | Phase 4 | Complete |
@@ -168,14 +168,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAC-09 | Phase 5 | Complete |
 | MAC-10 | Phase 5 | Complete |
 | MAC-11 | Phase 5 | Complete |
-| SAFE-01 | Phase 6 | Pending |
-| SAFE-02 | Phase 6 | Pending |
-| SAFE-03 | Phase 6 | Pending |
-| CLEAN-01 | Phase 6 | Pending |
-| CLEAN-02 | Phase 6 | Pending |
-| CLEAN-03 | Phase 6 | Pending |
-| CLEAN-04 | Phase 6 | Pending |
-| CLEAN-05 | Phase 6 | Pending |
+| SAFE-01 | Phase 6 | Complete |
+| SAFE-02 | Phase 6 | Complete |
+| SAFE-03 | Phase 6 | Complete |
+| CLEAN-01 | Phase 6 | Complete |
+| CLEAN-02 | Phase 6 | Complete |
+| CLEAN-03 | Phase 6 | Complete |
+| CLEAN-04 | Phase 6 | Complete |
+| CLEAN-05 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 51 total
