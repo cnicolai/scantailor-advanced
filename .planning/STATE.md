@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-12-PLAN.md
-last_updated: "2026-11-17T11:16:45.319Z"
+stopped_at: Completed 06-13-PLAN.md
+last_updated: "2026-11-17T11:37:20.256Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: 59800adb7f3586fcaf9bbea5a840ef4439acc55d
+state_head: c3fa2f1a32faaeb90c396af51dd73cff28bec96f
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 61
+  completed_plans: 62
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 13 of 16
+Plan: 14 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -122,6 +122,7 @@ Progress: [████████░░] 83%
 | Phase 06 P10 | 35 min | 1 tasks | 10 files |
 | Phase 06 P11 | 40min | 1 tasks | 8 files |
 | Phase 06 P12 | 50 min | 2 tasks | 8 files |
+| Phase 06 P13 | 40 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -243,6 +244,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-12: ProjectSaveFlow is a static helper class with Q_DECLARE_TR_FUNCTIONS (no Q_OBJECT), so adding it changes no automoc line
 - [Phase 06]: 06-12: ProjectSaveFlow::saveAs writes the file, project/lastDir and the recent list; the caller sets its project file and UI afterwards (same synchronous GUI-thread order)
 - [Phase 06]: 06-12: the save-error box has one function, ProjectSaveFlow::showSaveError, because MainWindow::closeProjectInteractive shows the same text on a backup-rename failure
+- [Phase 06]: 06-13: shared OutputGenerator helpers live in the header-only OutputGeneratorPixelOps.h (anonymous namespace), so every translation unit keeps internal linkage; the first split step is proven by move_check.py (79 chunks equal, failing control) and identical output digests
 
 ### Pending Todos
 
@@ -263,6 +265,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T11:16:44.876Z
-Stopped at: Completed 06-12-PLAN.md
+Last session: 2026-11-17T11:37:19.800Z
+Stopped at: Completed 06-13-PLAN.md
 Resume file: None

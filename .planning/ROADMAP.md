@@ -256,7 +256,7 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: 12/16 plans executed
+**Plans**: 13/16 plans executed
 
 Plans:
 **Wave 1**
@@ -296,7 +296,7 @@ Plans:
 - [x] 06-12-PLAN.md — One shared Save Project As flow for the main window and the out-of-memory dialog (CLEAN-05)
 
 **Wave 13** *(blocked on Wave 12 completion)*
-- [ ] 06-13-PLAN.md — OutputGenerator split, first step: digest probe and move check, Processor class, shared helpers and no-dewarping path moved, proven by chunk multiset and output digests (CLEAN-01)
+- [x] 06-13-PLAN.md — OutputGenerator split, first step: digest probe and move check, Processor class, shared helpers and no-dewarping path moved, proven by chunk multiset and output digests (CLEAN-01)
 
 **Wave 14** *(blocked on Wave 13 completion)*
 - [ ] 06-14-PLAN.md — OutputGenerator split, second step: dewarping and binarization paths moved, whole split proven by chunk multiset and output digests, CLEAN-01 record (CLEAN-01)
@@ -326,7 +326,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
-| 6. Hardening and Cleanup | 12/16 | In Progress | - |
+| 6. Hardening and Cleanup | 13/16 | In Progress | - |
 
 ---
 *Roadmap created: 2026-10-18*
