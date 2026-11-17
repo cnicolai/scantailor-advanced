@@ -13,12 +13,13 @@
 #include <deque>
 
 #include "ImageMetadataLoader.h"
+#include "ImageSizeLimit.h"
 #include "NonCopyable.h"
 #include "SmartFilenameOrdering.h"
 
 class ProjectFilesDialog::Item {
  public:
-  enum Status { STATUS_DEFAULT, STATUS_LOAD_OK, STATUS_LOAD_FAILED };
+  enum Status { STATUS_DEFAULT, STATUS_LOAD_OK, STATUS_LOAD_FAILED, STATUS_TOO_LARGE };
 
   Item(const QFileInfo& fileInfo, Qt::ItemFlags flags)
       : m_fileInfo(fileInfo), m_flags(flags), m_status(STATUS_DEFAULT) {}
@@ -31,6 +32,11 @@ class ProjectFilesDialog::Item {
 
   void setStatus(Status status) { m_status = status; }
 
+  /// Set together with STATUS_TOO_LARGE: "too large: W x H px" or "page N too large: ...".
+  const QString& tooLargeText() const { return m_tooLargeText; }
+
+  void setTooLargeText(const QString& text) { m_tooLargeText = text; }
+
   const std::vector<ImageMetadata>& perPageMetadata() const { return m_perPageMetadata; }
 
   std::vector<ImageMetadata>& perPageMetadata() { return m_perPageMetadata; }
@@ -39,6 +45,7 @@ class ProjectFilesDialog::Item {
   QFileInfo m_fileInfo;
   Qt::ItemFlags m_flags;
   std::vector<ImageMetadata> m_perPageMetadata;
+  QString m_tooLargeText;
   Status m_status;
 };
 
@@ -462,10 +469,18 @@ void ProjectFilesDialog::finishLoadingMetadata() {
 
   if (m_metadataLoadFailed) {
     progressBar->setValue(0);
-    QMessageBox::warning(this, tr("Error"),
-                         tr("Some of the files failed to load.\n"
-                            "Either we don't support their format, or they are broken.\n"
-                            "You should remove them from the project."));
+    QString message = tr(
+        "Some of the files failed to load.\n"
+        "Either we don't support their format, or they are broken.\n"
+        "You should remove them from the project.");
+    bool anyTooLarge = false;
+    m_inProjectFiles->items(
+        [&](const Item& item) { anyTooLarge = anyTooLarge || item.status() == Item::STATUS_TOO_LARGE; });
+    if (anyTooLarge) {
+      message += "\n"
+                 + tr("Files marked \"too large\" exceed the image size limit of %1.").arg(ImageSizeLimit::limitText());
+    }
+    QMessageBox::warning(this, tr("Error"), message);
     return;
   }
 
@@ -528,6 +543,9 @@ QVariant ProjectFilesDialog::FileList::data(const QModelIndex& index, const int 
   const Item& item = m_items[index.row()];
   switch (role) {
     case Qt::DisplayRole:
+      if (item.status() == Item::STATUS_TOO_LARGE) {
+        return item.fileInfo().fileName() + " (" + item.tooLargeText() + ")";
+      }
       return item.fileInfo().fileName();
     case Qt::ForegroundRole:
       switch (item.status()) {
@@ -536,6 +554,7 @@ QVariant ProjectFilesDialog::FileList::data(const QModelIndex& index, const int 
         case Item::STATUS_LOAD_OK:
           return QBrush(QColor(0x00, 0xff, 0x00));
         case Item::STATUS_LOAD_FAILED:
+        case Item::STATUS_TOO_LARGE:
           return QBrush(QColor(0xff, 0x00, 0x00));
       }
       break;
@@ -576,7 +595,15 @@ ProjectFilesDialog::FileList::LoadStatus ProjectFilesDialog::FileList::loadNextF
 
   LoadStatus status;
 
-  if (st == ImageMetadataLoader::LOADED) {
+  // The same limit as when a page is loaded (D-04). A file is admitted or refused as a whole, so one oversized page
+  // keeps the file out of the project.
+  const QString tooLargeText
+      = (st == ImageMetadataLoader::LOADED) ? ImageSizeLimit::oversizedPagesText(perPageMetadata) : QString();
+  if (!tooLargeText.isEmpty()) {
+    status = LOAD_FAILED;
+    item.setTooLargeText(tooLargeText);
+    item.setStatus(Item::STATUS_TOO_LARGE);
+  } else if (st == ImageMetadataLoader::LOADED) {
     status = LOAD_OK;
     item.perPageMetadata().swap(perPageMetadata);
     item.setStatus(Item::STATUS_LOAD_OK);
@@ -608,8 +635,8 @@ bool ProjectFilesDialog::SortedFileList::lessThan(const QModelIndex& lhs, const 
 /*=============== ProjectFilesDialog::ItemVisualOrdering =================*/
 
 bool ProjectFilesDialog::ItemVisualOrdering::operator()(const Item& lhs, const Item& rhs) const {
-  const bool lhsFailed = (lhs.status() == Item::STATUS_LOAD_FAILED);
-  const bool rhsFailed = (rhs.status() == Item::STATUS_LOAD_FAILED);
+  const bool lhsFailed = (lhs.status() == Item::STATUS_LOAD_FAILED || lhs.status() == Item::STATUS_TOO_LARGE);
+  const bool rhsFailed = (rhs.status() == Item::STATUS_LOAD_FAILED || rhs.status() == Item::STATUS_TOO_LARGE);
   if (lhsFailed != rhsFailed) {
     // Failed ones go to the top.
     return lhsFailed;

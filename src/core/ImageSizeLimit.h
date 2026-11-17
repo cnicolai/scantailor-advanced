@@ -8,8 +8,10 @@
 #include <QSize>
 #include <QString>
 #include <limits>
+#include <vector>
 
 class ImageId;
+class ImageMetadata;
 
 /**
  * The one place that knows how large a source image may be and how the refusal is worded.
@@ -54,6 +56,13 @@ class ImageSizeLimit {
    * \p claimedSize, only if the file could be read and the page exceeds the limit.
    */
   static bool claimedSizeIfTooLarge(const ImageId& imageId, QSize* claimedSize);
+
+  /**
+   * Text for a file whose pages are all known from their headers: empty if no page exceeds the limit,
+   * "too large: W x H px" for a one-page file and "page N too large: ..." (N is 1-based, the first
+   * oversized page) for a file with several pages. Used where a whole file is accepted or refused.
+   */
+  static QString oversizedPagesText(const std::vector<ImageMetadata>& pages);
 };
 
 static_assert(4 * ImageSizeLimit::kMaxPixels <= std::numeric_limits<int>::max(),

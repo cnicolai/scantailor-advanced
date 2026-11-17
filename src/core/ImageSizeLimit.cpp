@@ -46,3 +46,17 @@ bool ImageSizeLimit::claimedSizeIfTooLarge(const ImageId& imageId, QSize* claime
   *claimedSize = pages[index].size();
   return true;
 }
+
+QString ImageSizeLimit::oversizedPagesText(const std::vector<ImageMetadata>& pages) {
+  for (size_t i = 0; i < pages.size(); ++i) {
+    const QSize size = pages[i].size();
+    if (!exceeds(size)) {
+      continue;
+    }
+    if (pages.size() == 1) {
+      return tooLargeText(size);
+    }
+    return tr("page %1 %2").arg(int(i + 1)).arg(tooLargeText(size));
+  }
+  return QString();
+}

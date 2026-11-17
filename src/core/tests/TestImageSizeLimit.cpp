@@ -197,6 +197,20 @@ BOOST_AUTO_TEST_CASE(test_texts) {
               == QString::fromUtf8("too large: 100000 × 100000 px"));
 }
 
+BOOST_AUTO_TEST_CASE(test_oversized_pages_text) {
+  const ImageMetadata small(QSize(64, 64), Dpi(300, 300));
+  const ImageMetadata huge(QSize(100000, 100000), Dpi(300, 300));
+  const ImageMetadata wide(QSize(70000, 1), Dpi(300, 300));
+
+  BOOST_CHECK(ImageSizeLimit::oversizedPagesText({}).isEmpty());
+  BOOST_CHECK(ImageSizeLimit::oversizedPagesText({small}).isEmpty());
+  BOOST_CHECK(ImageSizeLimit::oversizedPagesText({huge}) == QString::fromUtf8("too large: 100000 × 100000 px"));
+  // The first oversized page is named, counted from 1.
+  BOOST_CHECK(ImageSizeLimit::oversizedPagesText({small, huge, wide})
+              == QString::fromUtf8("page 2 too large: 100000 × 100000 px"));
+  BOOST_CHECK(ImageSizeLimit::oversizedPagesText({small, small}).isEmpty());
+}
+
 BOOST_AUTO_TEST_CASE(test_tiff_side_boundary) {
   const QImage widest = readFirstPage({65535, 1, 1, 1, true});
   BOOST_CHECK(!widest.isNull());

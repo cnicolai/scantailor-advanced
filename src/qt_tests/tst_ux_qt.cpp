@@ -20,15 +20,25 @@
 #include <ThumbnailPixmapCache.h>
 #include <filters/fix_orientation/Task.h>
 
+#include "ProjectFilesDialog.h"
+
+#include <QAbstractItemModel>
+#include <QApplication>
+#include <QBrush>
 #include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListView>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <QTimer>
+#include <QToolButton>
 #include <QWidget>
 #include <QtTest/QtTest>
 #include <memory>
@@ -205,4 +215,112 @@ void TestUxQt::testOversizedImageShowsTooLargeInPageView() {
     QVERIFY2(text.contains("could not be loaded"), qPrintable(text));
     QVERIFY2(!text.contains("too large"), qPrintable(text));
   }
+}
+
+namespace {
+
+// Fills a temporary folder the way a user's scan folder would look for the project file dialog.
+void writeBytes(const QString& path, const QByteArray& bytes) {
+  QFile file(path);
+  QVERIFY(file.open(QIODevice::WriteOnly));
+  QCOMPARE(file.write(bytes), qint64(bytes.size()));
+}
+
+void writeNormalPng(const QString& path) {
+  QImage image(64, 64, QImage::Format_RGB32);
+  image.fill(Qt::white);
+  image.setDotsPerMeterX(11811);  // 300 dpi
+  image.setDotsPerMeterY(11811);
+  QVERIFY(image.save(path, "PNG"));
+}
+
+// Closes the warning box of the dialog as soon as it is on screen and keeps its text.
+class BoxCloser {
+ public:
+  BoxCloser() {
+    m_timer.setInterval(50);
+    QObject::connect(&m_timer, &QTimer::timeout, [this]() {
+      if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+        m_texts.push_back(box->text());
+        box->accept();
+      }
+    });
+    m_timer.start();
+  }
+
+  const QStringList& texts() const { return m_texts; }
+
+ private:
+  QTimer m_timer;
+  QStringList m_texts;
+};
+
+}  // namespace
+
+void TestUxQt::testProjectFilesDialogMarksOversizedFile() {
+  const QString tmpRoot = QString::fromUtf8(TEST_TMP_ROOT);
+
+  QTemporaryDir dir;
+  QVERIFY(dir.isValid());
+  QVERIFY(dir.path().startsWith(tmpRoot));
+  writeBytes(dir.filePath("forged.tif"), test_support::forgedTiff({{100000, 100000, 1, 1, false}}));
+  writeBytes(dir.filePath("two-pages.tif"),
+             test_support::forgedTiff({{64, 64, 8, 1, true}, {100000, 100000, 1, 1, false}}));
+  writeNormalPng(dir.filePath("normal.png"));
+
+  {
+    ProjectFilesDialog dialog;
+    QVERIFY(QMetaObject::invokeMethod(&dialog, "inpDirEdited", Qt::DirectConnection, Q_ARG(QString, dir.path())));
+    auto* selectAll = dialog.findChild<QPushButton*>("offProjectSelectAllBtn");
+    auto* add = dialog.findChild<QToolButton*>("addToProjectBtn");
+    auto* buttons = dialog.findChild<QDialogButtonBox*>("buttonBox");
+    auto* list = dialog.findChild<QListView*>("inProjectList");
+    QVERIFY(selectAll && add && buttons && list);
+    QTest::mouseClick(selectAll, Qt::LeftButton);
+    QTest::mouseClick(add, Qt::LeftButton);
+    QCOMPARE(list->model()->rowCount(), 3);
+
+    BoxCloser closer;
+    QTest::mouseClick(buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
+    QTRY_VERIFY(!closer.texts().isEmpty());
+    QCOMPARE(closer.texts().size(), 1);
+    QVERIFY2(closer.texts().first().contains("Some of the files failed to load."), qPrintable(closer.texts().first()));
+    QVERIFY2(closer.texts().first().contains("65535 px per side"), qPrintable(closer.texts().first()));
+
+    const QString forged = QString::fromUtf8("forged.tif (too large: 100000 \u00d7 100000 px)");
+    const QString twoPages = QString::fromUtf8("two-pages.tif (page 2 too large: 100000 \u00d7 100000 px)");
+    QMap<QString, QColor> colours;
+    for (int row = 0; row < list->model()->rowCount(); ++row) {
+      const QModelIndex index = list->model()->index(row, 0);
+      colours[index.data(Qt::DisplayRole).toString()] = index.data(Qt::ForegroundRole).value<QBrush>().color();
+    }
+    QVERIFY2(colours.contains(forged), qPrintable(QStringList(colours.keys()).join(" | ")));
+    QVERIFY2(colours.contains(twoPages), qPrintable(QStringList(colours.keys()).join(" | ")));
+    QVERIFY2(colours.contains("normal.png"), qPrintable(QStringList(colours.keys()).join(" | ")));
+    QCOMPARE(colours.value(forged), QColor(0xff, 0x00, 0x00));
+    QCOMPARE(colours.value(twoPages), QColor(0xff, 0x00, 0x00));
+    QCOMPARE(colours.value("normal.png"), QColor(0x00, 0xff, 0x00));
+    QVERIFY(dialog.result() != QDialog::Accepted);
+  }
+
+  // Control: a folder of normal files is accepted without any box.
+  QTemporaryDir cleanDir;
+  QVERIFY(cleanDir.isValid());
+  QVERIFY(cleanDir.path().startsWith(tmpRoot));
+  writeNormalPng(cleanDir.filePath("normal.png"));
+
+  ProjectFilesDialog dialog2;
+  QVERIFY(QMetaObject::invokeMethod(&dialog2, "inpDirEdited", Qt::DirectConnection, Q_ARG(QString, cleanDir.path())));
+  auto* selectAll2 = dialog2.findChild<QPushButton*>("offProjectSelectAllBtn");
+  auto* add2 = dialog2.findChild<QToolButton*>("addToProjectBtn");
+  auto* buttons2 = dialog2.findChild<QDialogButtonBox*>("buttonBox");
+  QVERIFY(selectAll2 && add2 && buttons2);
+  QTest::mouseClick(selectAll2, Qt::LeftButton);
+  QTest::mouseClick(add2, Qt::LeftButton);
+
+  BoxCloser closer2;
+  QTest::mouseClick(buttons2->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  QTRY_COMPARE(dialog2.result(), int(QDialog::Accepted));
+  QVERIFY(closer2.texts().isEmpty());
+  QCOMPARE(dialog2.inProjectFiles().size(), size_t(1));
 }
