@@ -9,11 +9,11 @@ findings:
     title: "WR-04 fix still allocates the full coefficient image for non-interleaved baseline JPEGs"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`ImageLoader::load(const ImageId&)` is now unused and is an unlimited reader of source files"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Unlimited read of the output-folder files accepts a forged file as an own file"
   - id: IN-06
     severity: info
@@ -49,13 +49,13 @@ findings:
     title: "Every split translation unit repeats the full include list of the original file"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A 16-bit PNG inside the limit may be refused with the generic \"could not be loaded\" message"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Comments and test names say \"W x H\" where the code prints \"W × H\""
-open: 6
+open: 2
 total: 13
 recorded: 2026-11-17T14:57:05.443Z
 ---
@@ -65,8 +65,8 @@ recorded: 2026-11-17T14:57:05.443Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-07 | warning | fixed | 06-REVIEW-FIX.md |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
+| IN-04 | info | fixed | fixed by 06.1-06 (afcaa7ee): the unused overload is deleted and the own-file readers are named loadOwnFile (D-12) |
+| IN-05 | info | fixed | fixed by 06.1-06 (d9a32fd9): own files are read with a fixed ceiling below 2^30 px and 131070 px per side, checked on the header (D-11); a forged header at the cached output name makes the page regenerate (PipelineSmokeTestSuite, 26451961) and is refused within 64 MB and 1 s at the own-file loader (CoreImageSizeLimitTestSuite); a header inside the ceiling is an accepted residual |
 | IN-06 | info | open | - |
 | WR-01 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
@@ -75,8 +75,8 @@ recorded: 2026-11-17T14:57:05.443Z
 | WR-05 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | IN-01 | info | open | - (not in the current review) |
-| IN-02 | info | open | - (not in the current review) |
-| IN-03 | info | open | - (not in the current review) |
+| IN-02 | info | fixed | fixed by 06.1-06 (d9a32fd9): the 16-bit PNG case of the Qt allocation limit is documented as accepted in ImageSizeLimit.h (the reviewer's first option); not measured |
+| IN-03 | info | fixed | fixed by 06.1-06 (d9a32fd9, afcaa7ee): both comments use the multiplication sign |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
