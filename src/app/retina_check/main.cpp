@@ -1,7 +1,7 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 //
-// Live Retina check for Phase 4 (D-02): shows a page view on the default Cocoa platform, records the device pixel
+// Live Retina check: shows a page view on the default Cocoa platform, records the device pixel
 // ratio of screen, window and view, compares the page view with a device-resolution reference of the same synthetic
 // page at fit, 1:1 and 2:1 zoom, and measures whether the 0.5 mm smoothing switch counts physical millimetres.
 // Further sections measure the thumbnail column and its cache, the picture-zone mask, page badges, deskew handles,
@@ -374,7 +374,7 @@ bool runPageSection(Summary& summary, const QString& outDir) {
   return pass;
 }
 
-// ---- Sections added in plan 04-07 -------------------------------------------------------------------------------
+// ---- Further sections -------------------------------------------------------------------------------------------
 
 // Processes events for the given time.
 void pump(const int ms) {
@@ -1088,7 +1088,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Everything below is set before the application object exists, so no setting is read from the user's account
-  // and the measurement sees bare Cocoa behaviour (D-00c).
+  // and the measurement sees bare Cocoa behaviour.
   qunsetenv("QT_QPA_PLATFORM");
   qunsetenv("QT_SCALE_FACTOR");
   qunsetenv("QT_SCREEN_SCALE_FACTORS");

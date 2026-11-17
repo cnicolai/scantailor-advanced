@@ -225,7 +225,7 @@ void MainWindow::updateProjectActions() {
 }
 
 void MainWindow::setupMacKeys() {
-  // The first sequence is the one a menu draws: the Command digit. The letter keeps the old key (D-01, D-03).
+  // The first sequence is the one a menu draws: the Command digit. The letter keeps its old key.
   actionSwitchFilter1->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_1), QKeySequence(Qt::Key_O)});
   actionSwitchFilter2->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_2), QKeySequence(Qt::Key_E)});
   actionSwitchFilter3->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_3), QKeySequence(Qt::Key_N)});
@@ -233,11 +233,11 @@ void MainWindow::setupMacKeys() {
   actionSwitchFilter5->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_5), QKeySequence(Qt::Key_K)});
   actionSwitchFilter6->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_6), QKeySequence(Qt::Key_P)});
 
-  // Command-plus is drawn in the menu (the key a German keyboard has); Command-equals serves a US layout (D-06).
+  // Command-plus is drawn in the menu (the key a German keyboard has); Command-equals serves a US layout.
   actionZoomIn->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Plus), QKeySequence(Qt::CTRL | Qt::Key_Equal)});
   actionZoomOut->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Minus)});
 
-  // The thumbnail keys sit on the Option-Command group measured on the German layout (D-07).
+  // The thumbnail keys sit on the Option-Command group, as measured on the German layout.
   actionMagnifyThumbnails->setShortcuts(
       {QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Plus), QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Equal)});
   actionDiminishThumbnails->setShortcuts({QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Minus)});

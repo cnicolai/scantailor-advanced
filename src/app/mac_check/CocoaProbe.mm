@@ -1,7 +1,7 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 //
-// Objective-C++ half of mac_check (Phase 5, D-12). See CocoaProbe.h for the contract of every function.
+// Objective-C++ half of mac_check, the live Mac check. See CocoaProbe.h for the contract of every function.
 
 #include "CocoaProbe.h"
 

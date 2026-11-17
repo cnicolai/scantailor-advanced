@@ -1,8 +1,8 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 //
-// Test-only helper of mac_check (Phase 5, D-12). The functions are implemented in Objective-C++ (CocoaProbe.mm), which
-// exists nowhere else in the repository (D-00b). Every event goes to this process's own windows through
+// Test-only helper of mac_check, the live Mac check. The functions are implemented in Objective-C++ (CocoaProbe.mm),
+// so the app itself stays free of Objective-C++. Every event goes to this process's own windows through
 // [NSApp sendEvent:]; nothing is posted system-wide and no event tap is installed, so no Accessibility, Input
 // Monitoring or screen-recording permission is needed and nothing is physically pressed.
 

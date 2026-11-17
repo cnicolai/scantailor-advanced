@@ -1,7 +1,7 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 //
-// Offscreen snapshot of the main window and the Settings dialog for Phase 3 (D-12).
+// Offscreen snapshot of the main window and the Settings dialog.
 // usage: ui_snapshot <output-dir> [--assert-no-language]
 // The output directory must lie strictly below the checkout's build/ directory (symlinks resolved). QSettings and
 // temporary files are kept inside it, so a run never touches the user's real settings or profiles.

@@ -115,7 +115,7 @@ void MainWindow::showInsertFileDialog(BeforeOrAfter beforeOrAfter, const ImageId
     const ImageMetadataLoader::Status status = ImageMetadataLoader::load(
         files.at(i), [&](const ImageMetadata& metadata) { imageFileInfo.imageInfo().push_back(metadata); });
 
-    // The same limit as when a page is loaded (D-04): a file with an oversized page is listed as failed, with its size.
+    // The same size limit as when a page is loaded: a file with an oversized page is listed as failed, with its size.
     const QString tooLargeText = (status == ImageMetadataLoader::LOADED)
                                      ? ImageSizeLimit::oversizedPagesText(imageFileInfo.imageInfo())
                                      : QString();

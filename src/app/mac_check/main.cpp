@@ -1,7 +1,7 @@
 // Copyright (C) 2019  Joseph Artsimovich <joseph.artsimovich@gmail.com>, 4lex4 <4lex49@zoho.com>
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 //
-// Live Mac check for Phase 5 (D-12): shows the real MainWindow on the default Cocoa platform and reads the native
+// Live Mac check: shows the real MainWindow on the default Cocoa platform and reads the native
 // menu bar (application menu, Help menu, application name), sends synthesised key events to a probe window to find
 // which chords fire on the German keyboard layout, and measures the app's storage identity (names and paths) the way
 // src/app/main.cpp sets it up. The sections keys and zone press the window keys of the real MainWindow and the zone and
@@ -595,7 +595,7 @@ bool runLayoutSection(Summary& summary) {
   summary.add("thumbnails_group", thumbnailsGroup);
   summary.add("command_equal_note",
               QString("cmd_equal fired %1 time(s); on the German layout = is Shift-0, so Cmd-= is a US-layout binding "
-                      "(D-06) and not part of the verdict")
+                      "and not part of the verdict")
                   .arg(countOf("cmd_equal")));
 
   const bool pass = layoutId.contains("German") && requiredOk && crossFiresRequired == 0 && outputTabsGroup != "none"
@@ -606,8 +606,9 @@ bool runLayoutSection(Summary& summary) {
 
 // Sections keys and zone ----------------------------------------------------------------------------------------
 
-// Option-Command is the group plan 05-02 measured for the Output tabs and the thumbnail keys (records/layout.md:
-// output_tabs_group and thumbnails_group are option-command).
+// Option-Command is the group the layout section measured for the Output tabs and the thumbnail keys (see
+// .planning/phases/05-mac-menus-and-shortcuts/records/layout.md: output_tabs_group and thumbnails_group are
+// option-command).
 const unsigned kGroupModifiers = cocoaprobe::Command | cocoaprobe::Option;
 
 // Counts the triggers of a set of actions by name. The counters live in a deque so that their addresses stay valid.
@@ -1505,7 +1506,7 @@ bool runContextSection(Summary& summary) {
 
 // True only when HOME and CFFIXED_USER_HOME both name <out>/home and the home directory as Cocoa, Qt and the standard
 // paths see it lies below the checkout's build/ directory. The two sections open native file panels and list the
-// profile folder, which must never reach the user's folders (user rule, D-12).
+// profile folder, which must never reach the user's folders (a live check never touches them).
 bool homeRedirected(const QString& out) {
   const QString expectedHome = QDir::cleanPath(out + "/home");
   const QString root = QDir::cleanPath(QString::fromUtf8(MAC_CHECK_ROOT));
@@ -2000,7 +2001,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Everything below is set before the application object exists, so no setting is read from the user's account and
-  // the measurement sees bare Cocoa behaviour (D-00c).
+  // the measurement sees bare Cocoa behaviour.
   qunsetenv("QT_QPA_PLATFORM");
   qunsetenv("QT_SCALE_FACTOR");
   qunsetenv("QT_SCREEN_SCALE_FACTORS");

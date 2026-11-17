@@ -595,7 +595,7 @@ ProjectFilesDialog::FileList::LoadStatus ProjectFilesDialog::FileList::loadNextF
 
   LoadStatus status;
 
-  // The same limit as when a page is loaded (D-04). A file is admitted or refused as a whole, so one oversized page
+  // The same size limit as when a page is loaded. A file is admitted or refused as a whole, so one oversized page
   // keeps the file out of the project.
   const QString tooLargeText
       = (st == ImageMetadataLoader::LOADED) ? ImageSizeLimit::oversizedPagesText(perPageMetadata) : QString();
