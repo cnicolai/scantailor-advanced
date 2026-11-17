@@ -339,7 +339,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 **Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 8/15 plans executed
+**Plans:** 9/15 plans executed
 
 Plans:
 **Wave 1**
@@ -367,7 +367,7 @@ Plans:
 - [x] 06.1-08-PLAN.md — Include lists of the split OutputGenerator and MainWindow files trimmed, output object code proven unchanged (Phase 6 IN-01)
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 06.1-09-PLAN.md — D-05 comment rewrite, build files and app/harness sources; comment-only proof script; closes Phase 4 IN-04
+- [x] 06.1-09-PLAN.md — D-05 comment rewrite, build files and app/harness sources; comment-only proof script; closes Phase 4 IN-04
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [ ] 06.1-10-PLAN.md — D-05 comment rewrite, core, module tests, qt_tests and scenario tests
