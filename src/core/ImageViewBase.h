@@ -81,7 +81,7 @@ class ImageViewBase : public QAbstractScrollArea {
   const QPixmap& downscaledPixmap() const { return m_pixmap; }
 
   /**
-   * Diagnostics for tests and the live Retina check; the application does not call them.
+   * Diagnostics for tests and the live checks only; the application does not call them.
    * hqPixmap() is the high-quality pixmap at the device pixel ratio of the viewport, hqPixmapPos() its
    * position in logical widget coordinates, and hqPixmapIsCurrent() tells if it is valid and up to date.
    */

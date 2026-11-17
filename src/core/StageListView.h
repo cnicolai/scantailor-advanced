@@ -34,7 +34,8 @@ class StageListView : public QTableView {
                                                          const QColor& headColor,
                                                          const QColor& tailColor);
 
-  /// The frames currently in use, for tests and the live check.
+  /// Diagnostics for tests and the live checks only; the application does not call them.
+  /// The frames currently in use.
   const std::vector<QPixmap>& batchAnimationFrames() const { return m_batchAnimationPixmaps; }
 
  signals:

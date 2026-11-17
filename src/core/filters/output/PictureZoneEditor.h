@@ -46,7 +46,7 @@ class PictureZoneEditor : public ZoneEditorBase {
 
   ~PictureZoneEditor() override;
 
-  // Diagnostics for tests and the live check.
+  // Diagnostics for tests and the live checks only; the application does not call them.
   const QPixmap& screenPictureMask() const { return m_screenPictureMask; }
 
   bool screenPictureMaskIsCurrent() const { return validateScreenPictureMask(); }
