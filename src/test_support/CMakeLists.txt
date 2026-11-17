@@ -8,7 +8,7 @@ target_link_libraries(
 target_include_directories(test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Toolchain facts for MANIFEST.txt (Manifest.cpp).  The golden manifest records them so that a check on a
-# different toolchain can warn (D-09).
+# different toolchain can warn that small differences may come from the toolchain.
 
 # Xcode version; empty or an error (only the Command Line Tools selected) becomes "unknown".  Line breaks become
 # ", " because a ";" in a compile definition would split it.
@@ -24,8 +24,8 @@ else()
   string(REPLACE "\n" ", " st_xcode_version "${st_xcode_version}")
 endif()
 
-# The FP contraction setting is frozen in the top-level CMakeLists.txt (Phase 1, D-03); read it from there
-# instead of repeating the value, and record "unset" if it ever disappears.
+# The FP contraction setting is frozen in the top-level CMakeLists.txt so results do not depend on build type; read it
+# from there instead of repeating the value, and record "unset" if it ever disappears.
 get_directory_property(st_top_compile_options DIRECTORY "${CMAKE_SOURCE_DIR}" COMPILE_OPTIONS)
 string(REGEX MATCH "-ffp-contract=([a-z]+)" st_fp_match "${st_top_compile_options}")
 if (st_fp_match)
