@@ -5,19 +5,19 @@ titles: json
 findings:
   - id: IN-01
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "The header names 150 and 225 dpi as refused values, but 400 and 450 dpi are refused too"
   - id: IN-02
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "The new cache-stability test cannot fail in a normal run"
   - id: IN-03
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "The determinism sweep reuses a truncating `scaled()` helper on non-exact dpi values, and its expected numbers have no regeneration source"
   - id: IN-04
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "Carried over from the previous review, unchanged: wrong arithmetic in the noise-floor comment"
   - id: CR-01
     severity: critical
@@ -49,7 +49,7 @@ findings:
     title: "Test code carries plan and decision identifiers that mean nothing outside `.planning`"
   - id: IN-06
     severity: info
-    disposition: deferred
+    disposition: fixed
     title: "`ExpectedFailure.h` is included but unused"
   - id: IN-07
     severity: info
@@ -64,10 +64,10 @@ recorded: 2026-10-24T15:40:32.710Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-01 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
-| IN-02 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
-| IN-03 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
-| IN-04 | info | deferred | re-review 4db72234: info only, deferred (no effect on results); decided by Claude on the user's instruction to decide, 2026-10-24 |
+| IN-01 | info | fixed | fixed by 06.1-04 (18456d09): test_dpi_support_rule refuses 150, 225, 400 and 450 dpi for SPREAD, MIXED and CURVED (run confirmed) and PageGenerator.h names them |
+| IN-02 | info | fixed | fixed by 06.1-04 (928d2a24): the case adds 17 low-dpi spread pages no other case renders; a mutation run with a std::vector cache turned it red in the normal run, the std::map cache keeps it green (D-04) |
+| IN-03 | info | fixed | fixed by 06.1-04 (18456d09): scaled() rounds like the generator, (base * dpi + 150) / 300, and the comment of test_dpi_support_rule says how to re-pin the counts |
+| IN-04 | info | fixed | fixed by 06.1-04 (928d2a24): the noise-floor comment now reads 0.58 px, twice that 1.16 px, next 0.5 px step 1.5 px |
 | CR-01 | critical | fixed | plan 02-12 (G-02-3) (not in the current review) |
 | WR-01 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
 | WR-02 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
@@ -75,7 +75,7 @@ recorded: 2026-10-24T15:40:32.710Z
 | WR-04 | warning | fixed | plan 02-14 (G-02-3) (not in the current review) |
 | WR-05 | warning | fixed | plan 02-13 (G-02-3) (not in the current review) |
 | IN-05 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) (not in the current review) |
-| IN-06 | info | deferred | UAT 02 test 3: info only, deferred (no effect on results) (not in the current review) |
+| IN-06 | info | fixed | fixed by 06.1-04 (18456d09): the unused ExpectedFailure.h include and the dead HAVE_CONFIG_H block are gone |
 | IN-07 | info | fixed | fixed by 03-02 (c63a74c2): CMake requires Qt 6.5 only, no Qt 5 fallback is advertised |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
