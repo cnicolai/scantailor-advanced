@@ -3,6 +3,22 @@ phase: 06
 review: 06-REVIEW.md
 titles: json
 findings:
+  - id: WR-07
+    severity: warning
+    disposition: open
+    title: "WR-04 fix still allocates the full coefficient image for non-interleaved baseline JPEGs"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "`ImageLoader::load(const ImageId&)` is now unused and is an unlimited reader of source files"
+  - id: IN-05
+    severity: info
+    disposition: open
+    title: "Unlimited read of the output-folder files accepts a forged file as an own file"
+  - id: IN-06
+    severity: info
+    disposition: open
+    title: "`startBatchProcessing()` dereferences the queue it just reset when the sequence is empty"
   - id: WR-01
     severity: warning
     disposition: fixed
@@ -39,24 +55,28 @@ findings:
     severity: info
     disposition: open
     title: "Comments and test names say \"W x H\" where the code prints \"W × H\""
-open: 3
-total: 9
-recorded: 2026-11-17T14:07:59.646Z
+open: 7
+total: 13
+recorded: 2026-11-17T14:50:49.849Z
 ---
 
 # Phase 06: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 06-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 06-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 06-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 06-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 06-REVIEW-FIX.md |
-| WR-06 | warning | fixed | 06-REVIEW-FIX.md |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| WR-07 | warning | open | - |
+| IN-04 | info | open | - |
+| IN-05 | info | open | - |
+| IN-06 | info | open | - |
+| WR-01 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
+| WR-06 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
+| IN-01 | info | open | - (not in the current review) |
+| IN-02 | info | open | - (not in the current review) |
+| IN-03 | info | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
