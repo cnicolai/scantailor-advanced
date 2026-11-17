@@ -33,9 +33,9 @@ findings:
     title: "Planning reference inside a source comment"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`retina_check` output-path guard is lexical"
-open: 2
+open: 1
 total: 8
 recorded: 2026-10-25T17:05:15.963Z
 ---
@@ -51,7 +51,7 @@ recorded: 2026-10-25T17:05:15.963Z
 | IN-02 | info | fixed | fixed by 06.1-05 (076021ab): the tooltips name no display model and no default number |
 | IN-03 | info | fixed | fixed by 06.1-05 (46e8a86b): platform from main() only, scale variables cleared; a run with QT_SCALE_FACTOR=2 in the shell passes |
 | IN-04 | info | open | - |
-| IN-05 | info | open | - |
+| IN-05 | info | fixed | fixed by 06.1-07 (acc893f0): retina_check calls the shared harness::outputDirIsStrictlyInside before any mkpath and before its thumbs-run removeRecursively; guarded by the shared unit tests and a source scan, not run live (D-09) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.

@@ -29,13 +29,13 @@ findings:
     title: "`mac_check` open-panel row waits a fixed 800 ms instead of polling"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Output-directory guard is lexical and allows the build root itself"
   - id: IN-06
     severity: info
     disposition: fixed
     title: "Test brittleness and duplication"
-open: 1
+open: 0
 total: 8
 recorded: 2026-11-15T17:18:11.673Z
 ---
@@ -50,7 +50,7 @@ recorded: 2026-11-15T17:18:11.673Z
 | IN-02 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
 | IN-03 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
 | IN-04 | info | skipped | skipped: needs a live run; verdicts are correct on the one target machine (D-09) |
-| IN-05 | info | open | - |
+| IN-05 | info | fixed | fixed by 06.1-07 (acc893f0): mac_check calls the shared harness::outputDirIsStrictlyInside before any mkpath; isBelow() for the home redirect is a different, intentionally permissive check and stays; guarded by the shared unit tests and a source scan, not run live (D-09) |
 | IN-06 | info | fixed | fixed by 06.1-05 (c2e8f81a): named scan floors with their derivation, whole-identifier system( marker, truthful zoom comment; skipped: autogen path (single-config only, latent) and helper duplication (mac_check does not link test_support, needs a live run) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.

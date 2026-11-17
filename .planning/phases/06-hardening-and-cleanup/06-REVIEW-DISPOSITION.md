@@ -17,7 +17,7 @@ findings:
     title: "Unlimited read of the output-folder files accepts a forged file as an own file"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`startBatchProcessing()` dereferences the queue it just reset when the sequence is empty"
   - id: WR-01
     severity: warning
@@ -55,7 +55,7 @@ findings:
     severity: info
     disposition: fixed
     title: "Comments and test names say \"W x H\" where the code prints \"W × H\""
-open: 2
+open: 1
 total: 13
 recorded: 2026-11-17T14:57:05.443Z
 ---
@@ -67,7 +67,7 @@ recorded: 2026-11-17T14:57:05.443Z
 | WR-07 | warning | fixed | 06-REVIEW-FIX.md |
 | IN-04 | info | fixed | fixed by 06.1-06 (afcaa7ee): the unused overload is deleted and the own-file readers are named loadOwnFile (D-12) |
 | IN-05 | info | fixed | fixed by 06.1-06 (d9a32fd9): own files are read with a fixed ceiling below 2^30 px and 131070 px per side, checked on the header (D-11); a forged header at the cached output name makes the page regenerate (PipelineSmokeTestSuite, 26451961) and is refused within 64 MB and 1 s at the own-file loader (CoreImageSizeLimitTestSuite); a header inside the ceiling is an accepted residual |
-| IN-06 | info | open | - |
+| IN-06 | info | fixed | fixed by 06.1-07 (73b538a5): early return after stopBatchProcessing() in startBatchProcessing(); offscreen test removes the only page through the thumbnail context menu and starts a batch (a project file without pages is refused by the reader); it crashed on the null queue before the fix |
 | WR-01 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 06-REVIEW-FIX.md (not in the current review) |

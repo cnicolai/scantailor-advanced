@@ -25,11 +25,11 @@ findings:
     title: "Windows-specific comments and a dead UNC branch survive in the touched files"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`ui_snapshot` confines output with a lexical prefix check only"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`ui_snapshot` argument parsing accepts unknown options as the output directory"
   - id: IN-06
     severity: info
@@ -39,7 +39,7 @@ findings:
     severity: info
     disposition: fixed
     title: "Windows-DLL leftovers outside the strip's reach, plus stale ignore rules"
-open: 2
+open: 0
 total: 9
 recorded: 2026-10-24T21:54:44.269Z
 ---
@@ -53,8 +53,8 @@ recorded: 2026-10-24T21:54:44.269Z
 | IN-01 | info | fixed | fixed by 06.1-03 (f6ef6bcc): unused Application.h and QLocale includes removed, main.cpp includes QTimer and memory itself |
 | IN-02 | info | fixed | fixed by 06.1-03 (f6ef6bcc): MainWindow::changeEvent deleted, the UI is English only |
 | IN-03 | info | fixed | fixed by 06.1-03 (1f1f21ed, f6ef6bcc): UNC branch proven unreachable by TestRelinkablePath and deleted, the four Windows comments reworded |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
+| IN-04 | info | fixed | fixed by 06.1-07 (db8e618b): ui_snapshot resolves its output directory through symlinks and accepts only a strict descendant of build (harness::outputDirIsStrictlyInside); tests cover inside, the root, a .. escape, a prefix sibling and a symlink out of the root, and a real run with build itself exits 2 without creating anything |
+| IN-05 | info | fixed | fixed by 06.1-07 (acc893f0): harness::parseSnapshotArgs refuses every option except --assert-no-language and anything but exactly one output directory, with a separate counter instead of a doubled flag; unit test and a real run with --bogus (exit 2, nothing created) |
 | IN-06 | info | skipped | skipped: any fix changes the golden manifest, which D-00a forbids (D-02); TESTING.md documents qt_compile as the configure-time Qt version |
 | IN-07 | info | fixed | fixed by 06.1-03 (f6ef6bcc): dead remove_definitions line and packaging and flatpak ignore rules removed |
 
