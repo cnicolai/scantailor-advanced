@@ -36,6 +36,11 @@ QByteArray forgedPng(quint32 width, quint32 height);
 // defect the forged file exists to provoke: never decompress it without a size check first.
 QByteArray forgedJpeg(quint16 width, quint16 height, bool progressive);
 
+// Like forgedJpeg, but a baseline (SOF0) file whose three scans carry one component each. libjpeg treats it as a
+// multi-scan file and allocates the whole coefficient image of the claimed size in jpeg_start_decompress, as it
+// does for a progressive file.
+QByteArray forgedNonInterleavedJpeg(quint16 width, quint16 height);
+
 }  // namespace test_support
 
 #endif  // ifndef SCANTAILOR_TEST_SUPPORT_FORGEDIMAGES_H_

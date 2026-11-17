@@ -212,17 +212,17 @@ ImageMetadataLoader::Status JpegMetadataLoader::loadMetadata(QIODevice& ioDevice
   }
 
   if (ImageSizeLimit::exceeds(size)) {
-    // Report the claimed size without decompressing: for progressive files libjpeg allocates the whole
+    // Report the claimed size without decompressing: for multi-scan files libjpeg allocates the whole
     // coefficient image in jpeg_start_decompress (12.3 GB for a 1 KB forgery), and the caller refuses the file.
     out(ImageMetadata(size, dpi));
     return LOADED;
   }
 
-  // jpeg_read_header has filled the size and the density, which is all the metadata needs. For a progressive
-  // file jpeg_start_decompress allocates the whole coefficient image (about 1.5 GB just inside the limit, a few
-  // KB on disk), once per file for every selected file, so only a baseline file goes through it; it is there
-  // for the "unsupported compression type" check.
-  if (!cinfo->progressive_mode && !jpeg_start_decompress(cinfo.ptr())) {
+  // jpeg_read_header has filled the size and the density, which is all the metadata needs. For a multi-scan
+  // file (progressive, or baseline with one component per scan) jpeg_start_decompress allocates the whole
+  // coefficient image (about 1.5 GB just inside the limit, a few KB on disk), once per file for every selected
+  // file, so only a single-scan file goes through it; it is there for the "unsupported compression type" check.
+  if (!jpeg_has_multiple_scans(cinfo.ptr()) && !jpeg_start_decompress(cinfo.ptr())) {
     // libjpeg doesn't support all compression types.
     return GENERIC_ERROR;
   }

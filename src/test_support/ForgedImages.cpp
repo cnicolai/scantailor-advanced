@@ -165,7 +165,12 @@ QByteArray forgedPng(const quint32 width, const quint32 height) {
   return data;
 }
 
-QByteArray forgedJpeg(const quint16 width, const quint16 height, const bool progressive) {
+namespace {
+
+QByteArray forgedJpegImpl(const quint16 width,
+                          const quint16 height,
+                          const bool progressive,
+                          const bool nonInterleaved) {
   jpeg_compress_struct compress;
   jpeg_error_mgr errorManager;
   compress.err = jpeg_std_error(&errorManager);
@@ -180,6 +185,11 @@ QByteArray forgedJpeg(const quint16 width, const quint16 height, const bool prog
   jpeg_set_defaults(&compress);
   if (progressive) {
     jpeg_simple_progression(&compress);
+  } else if (nonInterleaved) {
+    // Baseline, but one component per scan: libjpeg sets has_multiple_scans for it.
+    static jpeg_scan_info scans[3] = {{1, {0}, 0, 63, 0, 0}, {1, {1}, 0, 63, 0, 0}, {1, {2}, 0, 63, 0, 0}};
+    compress.scan_info = scans;
+    compress.num_scans = 3;
   }
   jpeg_start_compress(&compress, TRUE);
   unsigned char row[64 * 3] = {};
@@ -209,6 +219,16 @@ QByteArray forgedJpeg(const quint16 width, const quint16 height, const bool prog
     pos += 2 + length;
   }
   return QByteArray();
+}
+
+}  // namespace
+
+QByteArray forgedJpeg(const quint16 width, const quint16 height, const bool progressive) {
+  return forgedJpegImpl(width, height, progressive, false);
+}
+
+QByteArray forgedNonInterleavedJpeg(const quint16 width, const quint16 height) {
+  return forgedJpegImpl(width, height, false, true);
 }
 
 }  // namespace test_support
