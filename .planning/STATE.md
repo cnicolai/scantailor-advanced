@@ -1,19 +1,18 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: 06
-status: completed
-stopped_at: Phase 06 complete — all phases complete
-last_updated: "2026-11-17T15:08:10.641Z"
+current_phase: "06.1"
+status: planning
+stopped_at: Phase 06.1 context gathered
+last_updated: "2026-11-17T16:23:08.301Z"
 last_activity: 2026-11-17
-last_activity_desc: Phase 06 complete
-state_head: 8906325893b55aeec7957bd45d5fd807f5e26f6a
+last_activity_desc: Phase 06.1 inserted after Phase 6 (post-audit tech debt)
+state_head: 6cf69f86df5756b12f9dc0237f7bad437d98a675
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
   total_plans: 65
   completed_plans: 65
-  percent: 100
 milestone_name: macOS
 ---
 
@@ -28,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 
 ## Current Position
 
-Phase: 06
+Phase: 06.1
 Plan: Not started
-Status: All phases complete
-Last activity: 2026-11-17 — Phase 06 complete
+Status: Ready to plan
+Last activity: 2026-11-17 — Phase 06.1 inserted after Phase 6 (post-audit tech debt)
 
 Progress: [██████████] 100%
 
@@ -273,8 +272,12 @@ None yet.
 - Live `mac_check` and `retina_check` runs move the pointer and take focus: run them only on the user's go.
 - [Phase 6] Six info findings of the code reviews are open (IN-01 to IN-06 in `06-REVIEW-DISPOSITION.md`). Two have code consequences: IN-04 (`ImageLoader::load(const ImageId&)` is unused and reads source files without the limit; delete it) and IN-06 (`startBatchProcessing()` dereferences the reset queue for a project with no pages; add `return;`). IN-05: output-folder files are read without a size limit, an accepted decision for this fork.
 
+### Roadmap Evolution
+
+- Phase 06.1 inserted after Phase 6: Address tech debt: post-audit cleanup (URGENT)
+
 ## Session Continuity
 
-Last session: 2026-11-17
-Stopped at: Phase 06 complete — all phases complete
-Resume file: None
+Last session: 2026-11-17T16:23:07.697Z
+Stopped at: Phase 06.1 context gathered
+Resume file: .planning/phases/06.1-address-tech-debt-post-audit-cleanup/06.1-CONTEXT.md
