@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`ui_snapshot` recompiles the entire GUI sources and is built by default"
   - id: WR-02
     severity: warning
@@ -39,7 +39,7 @@ findings:
     severity: info
     disposition: open
     title: "Windows-DLL leftovers outside the strip's reach, plus stale ignore rules"
-open: 8
+open: 7
 total: 9
 recorded: 2026-10-24T21:54:44.269Z
 ---
@@ -48,7 +48,7 @@ recorded: 2026-10-24T21:54:44.269Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
+| WR-01 | warning | fixed | fixed by 05-01 (df295683): the GUI sources compile once into the app_gui static library that the app, ui_snapshot, qt_tests and mac_check link; ui_snapshot is still built with the tests but no longer recompiles the GUI |
 | WR-02 | warning | deferred | Kept on purpose: the comment sits in the Clang flag block that D-01 keeps byte-for-byte (Phase 1 D-03, D-08); RESEARCH.md Open Questions resolved to leave it. Revisit when that block is next edited. |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
