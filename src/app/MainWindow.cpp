@@ -40,6 +40,7 @@
 #include "ImageViewBase.h"
 #include "LoadFileTask.h"
 #include "LoadFilesStatusDialog.h"
+#include "MemoryBudget.h"
 #include "NewOpenProjectPanel.h"
 #include "OutOfMemoryDialog.h"
 #include "OutOfMemoryHandler.h"
@@ -1253,6 +1254,9 @@ void MainWindow::startBatchProcessing() {
     }
     m_batchQueue->addProcessingTask(page, createCompositeTask(page, m_curFilter, /*batch=*/true, m_debug));
   }
+
+  // Cap the parallel pages by physical memory and the largest page before the first task is submitted.
+  m_workerThreadPool->setMemoryCap(MemoryBudget::batchMemoryCap(sequence));
 
   focusButton->setChecked(true);
 

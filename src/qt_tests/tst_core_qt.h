@@ -22,6 +22,7 @@ class TestCoreQt : public QObject {
   void testForgedJpegIsRefusedAndLargeJpegLoads();
   void testLargeGreyPngLoads();
   void testForgedPngMetadataReportsClaimedSize();
+  void testWorkerPoolHonoursMemoryCap();
 };
 
 class Emitter : public QObject {

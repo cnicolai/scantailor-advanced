@@ -4,7 +4,9 @@
 #include "WorkerThreadPool.h"
 
 #include <QCoreApplication>
+#include <QThread>
 #include <QThreadPool>
+#include <algorithm>
 #include <utility>
 
 #include "OutOfMemoryHandler.h"
@@ -76,15 +78,17 @@ void WorkerThreadPool::customEvent(QEvent* event) {
   }
 }
 
-void WorkerThreadPool::updateNumberOfThreads() {
-  int maxThreads = QThread::idealThreadCount();
-  // Restricting num of processors for 32-bit due to
-  // address space constraints.
-  if (sizeof(void*) <= 4) {
-    maxThreads = std::min(maxThreads, 2);
-  }
+void WorkerThreadPool::setMemoryCap(const int cap) {
+  m_memoryCap = cap;
+  updateNumberOfThreads();
+}
 
-  int numThreads = m_settings.value("settings/batch_processing_threads", maxThreads).toInt();
-  numThreads = std::min(numThreads, maxThreads);
-  m_pool->setMaxThreadCount(numThreads);
+int WorkerThreadPool::maxThreadCount() const {
+  return m_pool->maxThreadCount();
+}
+
+void WorkerThreadPool::updateNumberOfThreads() {
+  const int ideal = QThread::idealThreadCount();
+  const int slider = std::min(m_settings.value("settings/batch_processing_threads", ideal).toInt(), ideal);
+  m_pool->setMaxThreadCount(MemoryBudget::effectiveThreads(ideal, slider, m_memoryCap));
 }

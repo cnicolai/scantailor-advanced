@@ -10,6 +10,7 @@
 
 #include "BackgroundTask.h"
 #include "FilterResult.h"
+#include "MemoryBudget.h"
 
 class QThreadPool;
 
@@ -30,6 +31,16 @@ class WorkerThreadPool : public QObject {
 
   bool hasSpareCapacity() const;
 
+  /**
+   * \brief Limits the number of tasks that run at once by memory, on top of the thread setting.
+   *
+   * The stored thread setting is never changed. Pass MemoryBudget::kNoCap to lift the cap.
+   */
+  void setMemoryCap(int cap);
+
+  /** The number of tasks that may run at once: the smaller of the processor count, the setting and the cap. */
+  int maxThreadCount() const;
+
   void submitTask(const BackgroundTaskPtr& task);
 
  signals:
@@ -45,6 +56,7 @@ class WorkerThreadPool : public QObject {
 
   QThreadPool* m_pool;
   QSettings m_settings;
+  int m_memoryCap = MemoryBudget::kNoCap;
 };
 
 

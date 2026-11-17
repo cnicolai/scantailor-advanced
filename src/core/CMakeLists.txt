@@ -47,6 +47,7 @@ set(common_sources
     FilterData.cpp FilterData.h
     ImageMetadataLoader.cpp ImageMetadataLoader.h
     ImageSizeLimit.cpp ImageSizeLimit.h
+    MemoryBudget.cpp MemoryBudget.h
     TiffReader.cpp TiffReader.h
     TiffWriter.cpp TiffWriter.h
     PngMetadataLoader.cpp PngMetadataLoader.h

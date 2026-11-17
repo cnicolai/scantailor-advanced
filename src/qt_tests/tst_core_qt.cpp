@@ -8,9 +8,11 @@
 #include <ImageMetadata.h>
 #include <ImageMetadataLoader.h>
 #include <ImageSizeLimit.h>
+#include <MemoryBudget.h>
 #include <ProcessMemory.h>
 #include <SmartFilenameOrdering.h>
 #include <Units.h>
+#include <WorkerThreadPool.h>
 #include <foundation/Utils.h>
 
 #include <QBuffer>
@@ -19,9 +21,12 @@
 #include <QImage>
 #include <QImageReader>
 #include <QImageWriter>
+#include <QSettings>
 #include <QSignalSpy>
 #include <QString>
+#include <QThread>
 #include <QtTest/QtTest>
+#include <algorithm>
 #include <vector>
 
 namespace {
@@ -207,4 +212,29 @@ void TestCoreQt::testForgedPngMetadataReportsClaimedSize() {
   QCOMPARE(headerSize(test_support::forgedPng(2000000, 1), &size), ImageMetadataLoader::LOADED);
   QCOMPARE(size, QSize(2000000, 1));
   QVERIFY(ImageSizeLimit::exceeds(size));
+}
+
+void TestCoreQt::testWorkerPoolHonoursMemoryCap() {
+  const QString key = "settings/batch_processing_threads";
+  const int ideal = QThread::idealThreadCount();
+  const int slider = std::min(3, ideal);
+
+  QSettings().setValue(key, slider);
+  {
+    WorkerThreadPool pool;
+    QCOMPARE(pool.maxThreadCount(), slider);
+
+    pool.setMemoryCap(1);
+    QCOMPARE(pool.maxThreadCount(), 1);
+    // The cap never rewrites the stored setting.
+    QCOMPARE(QSettings().value(key).toInt(), slider);
+
+    pool.setMemoryCap(MemoryBudget::kNoCap);
+    QCOMPARE(pool.maxThreadCount(), slider);
+
+    QSettings().remove(key);
+    pool.setMemoryCap(MemoryBudget::kNoCap);
+    QCOMPARE(pool.maxThreadCount(), ideal);
+  }
+  QSettings().remove(key);
 }

@@ -6,6 +6,7 @@ set(sources
     TestImageId.cpp
     TestImageSizeLimit.cpp
     TestMargins.cpp
+    TestMemoryBudget.cpp
     TestPageId.cpp
     TestPageRange.cpp
     TestPageSequence.cpp
