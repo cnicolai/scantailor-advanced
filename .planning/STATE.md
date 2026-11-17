@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-06-PLAN.md
-last_updated: "2026-11-17T09:41:43.375Z"
+stopped_at: Completed 06-07-PLAN.md
+last_updated: "2026-11-17T09:59:36.434Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: 2e177aa37324c7172d0cd4fbe3389a9454d272d8
+state_head: e14dbc1ff449d899d75be87a254977821743816b
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 55
+  completed_plans: 56
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 7 of 16
+Plan: 8 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -116,6 +116,7 @@ Progress: [████████░░] 83%
 | Phase 06 P04 | 20 min | 2 tasks | 14 files |
 | Phase 06 P05 | 25 min | 1 tasks | 10 files |
 | Phase 06 P06 | 20 min | 2 tasks | 9 files |
+| Phase 06 P07 | 20 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -226,6 +227,8 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-06: a file with one oversized page is refused as a whole in the project file dialog and the insert flow; the existing failure text stays and the limit line is appended only for too-large files
 - [Phase 06]: 06-06: int audit closes A2 (47 candidate lines, no pixel/element/byte count above 2147483647 for an accepted source image); ceiling stays 536870911 px, 2^30 would be possible later but needs Qt limit 4096 MB
 - [Phase 06]: 06-06: seven non-size int products (DetectVertContentBounds.cpp:138, ContentBoxFinder.cpp:60/66, ProjectPages.cpp:208 and others) are recorded in safe-01.md, not changed
+- [Phase 06]: SAFE-02: names with XML-1.0-forbidden characters are written percent-encoded with a <name>Escaped=1 flag; ordinary project files stay byte-identical
+- [Phase 06]: D-10 premise false on Qt 6.12.0: tab, LF, CR, CRLF in names are written as character references and round-trip; backslash round-trips through the project file (999.8 concerns relinking only)
 
 ### Pending Todos
 
@@ -246,6 +249,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T09:41:42.993Z
-Stopped at: Completed 06-06-PLAN.md
+Last session: 2026-11-17T09:59:35.984Z
+Stopped at: Completed 06-07-PLAN.md
 Resume file: None
