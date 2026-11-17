@@ -29,6 +29,8 @@ set(gui_only_sources
     MainWindow.cpp MainWindow.h
     MainWindowActions.cpp
     MainWindowBatch.cpp
+    MainWindowPages.cpp
+    MainWindowProject.cpp
     StatusBarPanel.cpp StatusBarPanel.h
     DefaultParamsDialog.cpp DefaultParamsDialog.h)
 
