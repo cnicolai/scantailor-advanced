@@ -1,0 +1,7 @@
+# Gate log, Phase 06.1 post-audit cleanup commits
+
+Each Phase 06.1 commit that changes a gate input (`src`, `CMakeLists.txt`, `CMakePresets.json`, `cmake`, `config.h.in`, `version.h.in`), or the `.claude/CLAUDE.md` file that `qt_tests` reads at run time, is gated by `gate.sh check <label>` on the committed tree: configure, build and ctest of macos-release and macos-debug, goldens compared with a796c2ae. The command diff compares the sorted build commands of the eight existing targets (plus `ui_snapshot`) with those of the previous commit. Edit-only commits must leave it empty; a commit that adds a source file may change only that file's compile line and its target's link or archive line. Intentional command changes are explained line by line with `records/token_diff.py <ref-cmds.txt> <new-cmds.txt>`. Commits that change only `.planning/`, `TESTING.md`, `README.md` or `.gitignore` keep the input key of their parent and are not gated.
+
+| Label | Commit | Subject | Release ctest | Debug ctest | Goldens | Command diff (release / debug) | Expected diff met |
+|-------|--------|---------|---------------|-------------|---------|--------------------------------|-------------------|
+| t01-opengl-doc | a9c698c0 | test(06.1-01): scan the project instructions for OpenGL | 100% tests passed out of 7 | 100% tests passed out of 7 | unchanged | 0 / 0 | yes: empty (edits only: tst_mac_qt.cpp, .claude/CLAUDE.md and two codebase maps; the build commands do not change; first check of the phase, run against a reference written by gate.sh snapshot on the planning HEAD) |
