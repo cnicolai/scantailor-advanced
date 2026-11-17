@@ -155,6 +155,10 @@ void Filter::loadDefaultSettings(const PageInfo& pageInfo) {
   m_settings->setParams(pageInfo.id(), Utils::buildDefaultParams());
 }
 
+Dpi Filter::outputDpi(const PageId& pageId) const {
+  return m_settings->getParams(pageId).outputDpi();
+}
+
 OptionsWidget* Filter::optionsWidget() {
   return m_optionsWidget.get();
 }

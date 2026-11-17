@@ -24,7 +24,7 @@ qint64 MemoryBudget::physicalMemoryBytes() {
                                                                            : static_cast<qint64>(value);
 }
 
-qint64 MemoryBudget::pagePixelEstimate(const ImageMetadata& metadata) {
+qint64 MemoryBudget::pagePixelEstimate(const ImageMetadata& metadata, const Dpi& outputDpi) {
   const QSize size = metadata.size();
   if (size.isEmpty()) {
     return 0;
@@ -33,10 +33,13 @@ qint64 MemoryBudget::pagePixelEstimate(const ImageMetadata& metadata) {
   const int dpiX = metadata.dpi().horizontal() > 0 ? metadata.dpi().horizontal() : kFallbackSourceDpi;
   const int dpiY = metadata.dpi().vertical() > 0 ? metadata.dpi().vertical() : kFallbackSourceDpi;
 
+  const int outDpiX = outputDpi.horizontal() > 0 ? outputDpi.horizontal() : kAssumedOutputDpi;
+  const int outDpiY = outputDpi.vertical() > 0 ? outputDpi.vertical() : kAssumedOutputDpi;
+
   // Doubles hold every product below 2^53 exactly, and anything above 2^40 is clamped, so nothing overflows.
   const double sourcePixels = static_cast<double>(size.width()) * size.height();
-  const double outputWidth = std::ceil(static_cast<double>(size.width()) * kAssumedOutputDpi / dpiX);
-  const double outputHeight = std::ceil(static_cast<double>(size.height()) * kAssumedOutputDpi / dpiY);
+  const double outputWidth = std::ceil(static_cast<double>(size.width()) * outDpiX / dpiX);
+  const double outputHeight = std::ceil(static_cast<double>(size.height()) * outDpiY / dpiY);
   // The larger of source and output: a page below the output dpi is held at both sizes (RESEARCH Pitfall 7).
   const double pixels = std::max(sourcePixels, outputWidth * outputHeight);
   if (pixels >= static_cast<double>(kMaxEstimatePixels)) {
@@ -45,10 +48,10 @@ qint64 MemoryBudget::pagePixelEstimate(const ImageMetadata& metadata) {
   return static_cast<qint64>(pixels);
 }
 
-qint64 MemoryBudget::largestPagePixels(const PageSequence& pages) {
+qint64 MemoryBudget::largestPagePixels(const PageSequence& pages, const OutputDpiOf& outputDpiOf) {
   qint64 largest = 0;
   for (const PageInfo& page : pages) {
-    largest = std::max(largest, pagePixelEstimate(page.metadata()));
+    largest = std::max(largest, pagePixelEstimate(page.metadata(), outputDpiOf ? outputDpiOf(page) : Dpi()));
   }
   return largest;
 }
@@ -64,8 +67,8 @@ int MemoryBudget::threadsForMemory(const qint64 physicalBytes, const qint64 page
   return static_cast<int>(std::max<qint64>(1, std::min<qint64>(threads, kNoCap)));
 }
 
-int MemoryBudget::batchMemoryCap(const PageSequence& pages) {
-  return threadsForMemory(physicalMemoryBytes(), largestPagePixels(pages));
+int MemoryBudget::batchMemoryCap(const PageSequence& pages, const OutputDpiOf& outputDpiOf) {
+  return threadsForMemory(physicalMemoryBytes(), largestPagePixels(pages, outputDpiOf));
 }
 
 int MemoryBudget::effectiveThreads(const int idealThreads, const int sliderThreads, const int memoryCap) {

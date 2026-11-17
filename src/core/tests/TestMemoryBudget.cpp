@@ -55,6 +55,22 @@ BOOST_AUTO_TEST_CASE(test_page_pixel_estimate) {
                     MemoryBudget::kMaxEstimatePixels);
 }
 
+BOOST_AUTO_TEST_CASE(test_page_pixel_estimate_at_the_output_dpi) {
+  const ImageMetadata a4 = metadata(2480, 3508, 300);
+  // A null Dpi, or a side that is not positive, means the default of 600.
+  BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(a4, Dpi()), MemoryBudget::pagePixelEstimate(a4));
+  BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(a4, Dpi(600, 600)), 34799360);
+  BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(a4, Dpi(0, 1200)), 69598720);
+  // A higher output dpi grows the estimate with its square: 9920 x 14032 px at 1200 dpi.
+  BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(a4, Dpi(1200, 1200)), 139197440);
+  BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(a4, Dpi(1200, 600)), 69598720);
+  // Below the source dpi the source is the larger of the two.
+  BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(a4, Dpi(150, 150)), 2480 * 3508);
+  // The cap follows: 24 pages fit at 600 dpi on 64 GiB, 6 at 1200 dpi.
+  BOOST_CHECK_EQUAL(MemoryBudget::threadsForMemory(k64GiB, MemoryBudget::pagePixelEstimate(a4)), 24);
+  BOOST_CHECK_EQUAL(MemoryBudget::threadsForMemory(k64GiB, MemoryBudget::pagePixelEstimate(a4, Dpi(1200, 1200))), 6);
+}
+
 BOOST_AUTO_TEST_CASE(test_threads_for_memory_table) {
   const Reference rows[] = {
       {2480, 3508, 300, 24, 6},   {4961, 7016, 600, 24, 6},  {7016, 9921, 600, 12, 3},   {9921, 14031, 1200, 6, 1},
@@ -102,6 +118,27 @@ BOOST_AUTO_TEST_CASE(test_largest_page_pixels) {
   sequence.append(page("/a4", metadata(2480, 3508, 300)));
   sequence.append(page("/a3", metadata(7016, 9921, 600)));
   BOOST_CHECK_EQUAL(MemoryBudget::largestPagePixels(sequence), 69605736);
+}
+
+BOOST_AUTO_TEST_CASE(test_largest_page_pixels_uses_the_output_dpi_of_each_page) {
+  PageSequence sequence;
+  sequence.append(page("/a4", metadata(2480, 3508, 300)));
+  sequence.append(page("/small", metadata(1000, 1000, 300)));
+  const auto dpiOf = [](const PageInfo& info) {
+    return info.imageId().filePath() == QString("/a4") ? Dpi(1200, 1200) : Dpi(600, 600);
+  };
+  BOOST_CHECK_EQUAL(MemoryBudget::largestPagePixels(sequence, dpiOf), 139197440);
+  // No callback, or a callback that knows nothing: the default of 600 dpi.
+  BOOST_CHECK_EQUAL(MemoryBudget::largestPagePixels(sequence), 34799360);
+  BOOST_CHECK_EQUAL(MemoryBudget::largestPagePixels(sequence, [](const PageInfo&) { return Dpi(); }), 34799360);
+  // The page's own dpi decides which page is the largest.
+  const auto smallHigh = [](const PageInfo& info) {
+    return info.imageId().filePath() == QString("/small") ? Dpi(2400, 2400) : Dpi(300, 300);
+  };
+  BOOST_CHECK_EQUAL(MemoryBudget::largestPagePixels(sequence, smallHigh), 64000000);
+
+  BOOST_CHECK_EQUAL(MemoryBudget::batchMemoryCap(sequence, dpiOf),
+                    MemoryBudget::threadsForMemory(MemoryBudget::physicalMemoryBytes(), 139197440));
 }
 
 BOOST_AUTO_TEST_CASE(test_batch_memory_cap) {

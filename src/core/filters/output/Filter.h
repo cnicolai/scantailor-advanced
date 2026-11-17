@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "AbstractFilter.h"
+#include "Dpi.h"
 #include "FillZonePropFactory.h"
 #include "FilterResult.h"
 #include "NonCopyable.h"
@@ -59,6 +60,9 @@ class Filter : public AbstractFilter {
   std::shared_ptr<CacheDrivenTask> createCacheDrivenTask(const OutputFileNameGenerator& outFileNameGen);
 
   OptionsWidget* optionsWidget();
+
+  /// The output dpi stored for the page; the default (600) if the page has no parameters yet.
+  Dpi outputDpi(const PageId& pageId) const;
 
   std::vector<PageOrderOption> pageOrderOptions() const override;
 

@@ -5,9 +5,13 @@
 #define SCANTAILOR_CORE_MEMORYBUDGET_H_
 
 #include <QtGlobal>
+#include <functional>
 #include <limits>
 
+#include "Dpi.h"
+
 class ImageMetadata;
+class PageInfo;
 class PageSequence;
 
 /**
@@ -15,14 +19,15 @@ class PageSequence;
  *
  * The budget is half of the physical memory (the rest stays with macOS, the GUI, the thumbnail cache and
  * compressed memory). One page costs kBytesPerPagePixel bytes per pixel of the larger of its source and its
- * estimated output size; the cap is the budget divided by the cost of the largest page of the batch. All
- * functions are pure arithmetic apart from physicalMemoryBytes() and batchMemoryCap(), and never overflow.
+ * estimated output size (at the page's own output dpi where the caller knows it); the cap is the budget divided by the
+ * cost of the largest page of the batch. All functions are pure arithmetic apart from physicalMemoryBytes() and
+ * batchMemoryCap(), and never overflow.
  */
 class MemoryBudget {
  public:
   /// Peak bytes per pixel of one page in flight: 1.2 times the worst measured 33.1 B (bytes per pixel).
   static constexpr qint64 kBytesPerPagePixel = 40;
-  /// The output dpi the estimate assumes, the application's default.
+  /// The output dpi the estimate assumes when the caller gives none, the application's default.
   static constexpr int kAssumedOutputDpi = 600;
   /// Source dpi that counts when a page has none.
   static constexpr int kFallbackSourceDpi = 300;
@@ -34,17 +39,23 @@ class MemoryBudget {
   /// Physical memory in bytes (hw.memsize), 0 if the system does not tell.
   static qint64 physicalMemoryBytes();
 
-  /// Pixels of the larger of the source and the output at kAssumedOutputDpi; 0 for an empty size.
-  static qint64 pagePixelEstimate(const ImageMetadata& metadata);
+  /// The output dpi of a page, as the output stage will use it.
+  using OutputDpiOf = std::function<Dpi(const PageInfo&)>;
 
-  /// The largest pagePixelEstimate of the pages; 0 for none.
-  static qint64 largestPagePixels(const PageSequence& pages);
+  /**
+   * Pixels of the larger of the source and the output; 0 for an empty size. The output is sized at
+   * \p outputDpi; a side of it that is not positive (the default is a null Dpi) counts as kAssumedOutputDpi.
+   */
+  static qint64 pagePixelEstimate(const ImageMetadata& metadata, const Dpi& outputDpi = Dpi());
+
+  /// The largest pagePixelEstimate of the pages; 0 for none. \p outputDpiOf may be empty (every page at the default).
+  static qint64 largestPagePixels(const PageSequence& pages, const OutputDpiOf& outputDpiOf = OutputDpiOf());
 
   /// Pages in flight that fit the budget, in [1, kNoCap]; kNoCap for non-positive input.
   static int threadsForMemory(qint64 physicalBytes, qint64 pagePixels);
 
   /// The one function that turns a page sequence into the batch cap.
-  static int batchMemoryCap(const PageSequence& pages);
+  static int batchMemoryCap(const PageSequence& pages, const OutputDpiOf& outputDpiOf = OutputDpiOf());
 
   /// The threads the pool runs: the smallest of the three, at least 1.
   static int effectiveThreads(int idealThreads, int sliderThreads, int memoryCap);

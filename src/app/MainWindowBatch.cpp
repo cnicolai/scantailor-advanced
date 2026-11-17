@@ -144,7 +144,9 @@ void MainWindow::startBatchProcessing() {
   }
 
   // Cap the parallel pages by physical memory and the largest page before the first task is submitted.
-  const int memoryCap = MemoryBudget::batchMemoryCap(sequence);
+  // Each page's own output dpi sizes its output; the defaults were applied to every page above.
+  const int memoryCap = MemoryBudget::batchMemoryCap(
+      sequence, [this](const PageInfo& page) { return m_stages->outputFilter()->outputDpi(page.id()); });
   m_workerThreadPool->setMemoryCap(memoryCap);
   m_systemLoadWidget->setMemoryCap(memoryCap);
 
