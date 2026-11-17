@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Qt 6 and macOS Only** - Qt 5, Windows, Linux, packaging, CI and translations removed, with baselines unchanged; README documents the Mac build (completed 2026-10-24)
 - [x] **Phase 4: Retina Rendering** - Page view, thumbnails, overlays and colour picker are sharp and correct on Retina displays (completed 2026-10-25)
 - [x] **Phase 5: Mac Menus and Shortcuts** - Standard application menu, Cmd shortcuts, Mac key names, native dialogs and Mac-friendly input (completed 2026-11-15)
-- [ ] **Phase 6: Hardening and Cleanup** - Safety defects fixed, OpenGL viewer removed, oversized files split and dead code removed, with baselines unchanged
+- [x] **Phase 6: Hardening and Cleanup** - Safety defects fixed, OpenGL viewer removed, oversized files split and dead code removed, with baselines unchanged (completed 2026-11-17)
 
 ## Phase Details
 
@@ -256,7 +256,7 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: 16/16 plans executed
+**Plans**: 16/16 plans complete
 
 Plans:
 **Wave 1**
@@ -326,7 +326,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
-| 6. Hardening and Cleanup | 16/16 | In Progress | - |
+| 6. Hardening and Cleanup | 16/16 | Complete    | 2026-11-17 |
 
 ---
 *Roadmap created: 2026-10-18*
