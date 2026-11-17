@@ -42,7 +42,7 @@ Requirement-level map; the planner binds task IDs in the PLAN files.
 
 | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| SAFE-01 | T-06-01, T-06-02 | Forged TIFF/PNG/progressive JPEG headers refused before any pixel or coefficient allocation; boundary cases; multi-page TIFF refuses only the oversized page; the limit applies to source scans only (`loadSource`), not to the app's own files (WR-01); a progressive JPEG inside the limit is not decompressed for metadata (WR-04); refusals measured with the sampled footprint (WR-05) | unit (`core_tests`) | `build/macos-release/core_tests --run_test=CoreImageSizeLimitTestSuite --log_level=test_suite` (16 cases, incl. `test_own_files_are_not_limited_but_source_files_are`, `test_progressive_jpeg_inside_the_limit_is_not_decompressed_for_metadata`) | ✅ `src/core/tests/TestImageSizeLimit.cpp` | ✅ green |
+| SAFE-01 | T-06-01, T-06-02 | Forged TIFF/PNG/progressive JPEG headers refused before any pixel or coefficient allocation; boundary cases; multi-page TIFF refuses only the oversized page; the limit applies to source scans only (`loadSource`), not to the app's own files (WR-01); a multi-scan JPEG (progressive or non-interleaved baseline) inside the limit is not decompressed for metadata (WR-04, WR-07); refusals measured with the sampled footprint (WR-05) | unit (`core_tests`) | `build/macos-release/core_tests --run_test=CoreImageSizeLimitTestSuite --log_level=test_suite` (17 cases, incl. `test_own_files_are_not_limited_but_source_files_are`, `test_progressive_jpeg_inside_the_limit_is_not_decompressed_for_metadata`, `test_non_interleaved_baseline_jpeg_inside_the_limit_is_not_decompressed_for_metadata`) | ✅ `src/core/tests/TestImageSizeLimit.cpp` | ✅ green |
 | SAFE-01 | T-06-01 | "Too large" message in the page view, file-list marking, insert flow, thumbnail refusal, wide real PNGs | Qt Test (`qt_tests`) | `ctest --preset macos-release -R '^qt_tests$' -V`: PASS `testProjectFilesDialogMarksOversizedFile`, `testOversizedThumbnailFails`, `testLargeGreyPngLoads` and the page-view too-large rows | ✅ | ✅ green |
 | SAFE-02 | T-06-04 | Extended name set (control characters, D-10 matrix) round-trips; ordinary files byte-identical and flag-free; backslash round-trips with plain checks (no `XFAIL_CHECK` needed, 999.8 untouched) | `pipeline_tests` | `build/macos-release/pipeline_tests --run_test=ProjectRoundTripTestSuite` (8 cases) and `--run_test=ProjectRoundTripBackslashTestSuite` (1 case) | ✅ | ✅ green |
 | SAFE-02 | T-06-04 | Escape helper: ordinary strings unchanged, invalid characters reversible, flag must be exactly `1` | unit (`foundation_tests`) | `build/macos-release/foundation_tests --run_test=FoundationXmlEscapeTestSuite` (7 cases) | ✅ `src/foundation/tests/TestXmlEscape.cpp` | ✅ green |
@@ -94,7 +94,7 @@ Framework install: none.
 - [x] Feedback latency < 120 s for the quick loop
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** validated 2026-11-17 (validate-phase audit: 13 rows, 0 gaps; re-audit after the WR-01–WR-06 review fixes: 0 gaps, rows SAFE-01/SAFE-03/CLEAN-05 updated, two UAT-covered wiring checks added to Manual-Only)
+**Approval:** validated 2026-11-17 (validate-phase audit: 13 rows, 0 gaps; re-audit after the WR-01–WR-07 review fixes: 0 gaps, rows SAFE-01/SAFE-03/CLEAN-05 updated, two UAT-covered wiring checks added to Manual-Only)
 
 ## Validation Audit 2026-11-17
 
