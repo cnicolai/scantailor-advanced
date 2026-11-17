@@ -18,7 +18,6 @@ set(sources
     TestRastLineFinder.cpp
     Utils.cpp Utils.h)
 
-remove_definitions(-DBUILDING_IMAGEPROC)
 add_executable(imageproc_tests ${sources})
 target_link_libraries(
     imageproc_tests

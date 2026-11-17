@@ -5,7 +5,6 @@
 
 #include <tiff.h>
 
-#include <QLocale>
 #include <QtCore/QSettings>
 
 const QString ApplicationSettings::DEFAULT_COLOR_SCHEME = "dark";

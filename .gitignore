@@ -123,23 +123,11 @@ test_results/
 coverage/
 lcov.info
 
-# Packaging / distribution artifacts
+# Archives
 *.tar
 *.tar.gz
 *.zip
 *.rar
-*.deb
-*.rpm
-*.msi
-*.AppImage
-*.flatpak
-packaging/build/
-
-# flatpak-builder output (local smoke builds / CI)
-.flatpak-builder/
-flatpak/.flatpak-builder/
-repo/
-build-dir/
 
 # Patch / merge leftovers
 *.orig

@@ -13,6 +13,8 @@
 #include <QGuiApplication>
 #include <QSettings>
 #include <QStringList>
+#include <QTimer>
+#include <memory>
 
 #include "MainWindow.h"
 
@@ -40,7 +42,6 @@ int main(int argc, char* argv[]) {
   if (settings.value("mainWindow/maximized") == false) {
     mainWnd->show();
   } else {
-    // mainWnd->showMaximized();  // Doesn't work for Windows.
     QTimer::singleShot(0, mainWnd, &QMainWindow::showMaximized);
   }
 

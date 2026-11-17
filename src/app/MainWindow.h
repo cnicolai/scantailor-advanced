@@ -84,8 +84,6 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
   void timerEvent(QTimerEvent* event) override;
 
-  void changeEvent(QEvent* event) override;
-
  public slots:
 
   void openProject(const QString& projectFile);

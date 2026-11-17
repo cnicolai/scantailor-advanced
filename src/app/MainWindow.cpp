@@ -24,7 +24,6 @@
 #include <memory>
 
 #include "AbstractRelinker.h"
-#include "Application.h"
 #include "AutoRemovingFile.h"
 #include "BasicImageView.h"
 #include "ContentBoxPropagator.h"
@@ -1150,21 +1149,6 @@ void MainWindow::updateDisambiguationRecords(const PageSequence& pages) {
 PageSelectionAccessor MainWindow::newPageSelectionAccessor() {
   auto provider = std::make_shared<PageSelectionProviderImpl>(this);
   return PageSelectionAccessor(provider);
-}
-
-void MainWindow::changeEvent(QEvent* event) {
-  if (event != nullptr) {
-    switch (event->type()) {
-      case QEvent::LanguageChange:
-        retranslateUi(this);
-        setupMacKeys();
-        updateWindowTitle();
-        break;
-      default:
-        QWidget::changeEvent(event);
-        break;
-    }
-  }
 }
 
 void MainWindow::setDockWidgetsVisible(bool state) {

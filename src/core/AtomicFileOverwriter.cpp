@@ -35,9 +35,8 @@ bool AtomicFileOverwriter::commit() {
   const QString tempFilePath(m_tempFile->fileName());
   const QString targetPath(m_tempFile->fileTemplate());
 
-  // Yes, we have to destroy this object here, because:
-  // 1. Under Windows, open files can't be renamed or deleted.
-  // 2. QTemporaryFile::close() doesn't really close it.
+  // Yes, we have to destroy this object here, because
+  // QTemporaryFile::close() doesn't really close the file.
   m_tempFile.reset();
 
   if (!Utils::overwritingRename(tempFilePath, targetPath)) {

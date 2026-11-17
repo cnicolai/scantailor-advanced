@@ -10,7 +10,6 @@
 #include <QtWidgets/QMessageBox>
 #include <cmath>
 
-#include "Application.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   ui.setupUi(this);
