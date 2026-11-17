@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 10 of 15
+Plan: 10 of 12
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 

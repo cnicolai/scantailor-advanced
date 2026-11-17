@@ -339,7 +339,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 **Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 9/15 plans executed
+**Plans:** 9/12 plans executed
 
 Plans:
 **Wave 1**
@@ -370,22 +370,13 @@ Plans:
 - [x] 06.1-09-PLAN.md — D-05 comment rewrite, build files and app/harness sources; comment-only proof script; closes Phase 4 IN-04
 
 **Wave 10** *(blocked on Wave 9 completion)*
-- [ ] 06.1-10-PLAN.md — D-05 comment rewrite, core, module tests, qt_tests and scenario tests
+- [ ] 06.1-10-PLAN.md — D-05 comment rewrite, remaining test-side files (CONTEXT regex only); closes Phase 2 IN-05
 
 **Wave 11** *(blocked on Wave 10 completion)*
-- [ ] 06.1-11-PLAN.md — D-05 comment rewrite, test_support and remaining pipeline tests; closes Phase 2 IN-05
+- [ ] 06.1-11-PLAN.md — UBSan fixes, strict macos-asan and new macos-asan-collect presets (D-10), SANITIZE validation (D-06), small CMake findings (P1 IN-02/IN-04, P3 WR-02); full strict ASan run
 
 **Wave 12** *(blocked on Wave 11 completion)*
-- [ ] 06.1-12-PLAN.md — UBSan reports fixed in code, macos-asan fails on any report, macos-asan-collect keeps the collect run (D-10, Phase 1 WR-01)
-
-**Wave 13** *(blocked on Wave 12 completion)*
-- [ ] 06.1-13-PLAN.md — SANITIZE validated and quoted (D-06), self-standing Clang block comments (Phase 3 WR-02, Phase 1 IN-04), macOS-only presets with typed booleans (Phase 1 IN-02)
-
-**Wave 14** *(blocked on Wave 13 completion)*
-- [ ] 06.1-14-PLAN.md — Boost through its config targets (D-07, Phase 1 WR-04); one-off -ffp-contract=on measurement against every golden (D-13, Phase 1 WR-02)
-
-**Wave 15** *(blocked on Wave 14 completion)*
-- [ ] 06.1-15-PLAN.md — Closing greps (every planning-ID family), gate coverage and input-neutral proof of ungated commits, formatting, final strict sanitizer run, last stale notes corrected
+- [ ] 06.1-12-PLAN.md — fp-contract measurement (D-13), Boost config targets deferred (D-07, user decision 2026-11-17), closing checks and last stale notes
 
 **Cross-cutting constraints:** <!-- gsd:generated -->
 - Both commits pass the gate with empty command diffs and unchanged goldens (D-00a)
