@@ -2075,3 +2075,49 @@ void TestMacQt::testHarnessGuardRefusesSymlinkOut() {
   QVERIFY2(harness::outputDirIsStrictlyInside(fixture.root() + "/real/x", fixture.root(), &resolved, &error),
            qPrintable(error));
 }
+
+void TestMacQt::testSnapshotArgsRejectUnknownOptions() {
+  const harness::SnapshotArgs plain = harness::parseSnapshotArgs({"build/x"});
+  QVERIFY2(plain.ok, qPrintable(plain.error));
+  QCOMPARE(plain.outArg, QString("build/x"));
+  QVERIFY(!plain.assertNoLanguage);
+
+  const harness::SnapshotArgs flagLast = harness::parseSnapshotArgs({"build/x", "--assert-no-language"});
+  QVERIFY2(flagLast.ok, qPrintable(flagLast.error));
+  QCOMPARE(flagLast.outArg, QString("build/x"));
+  QVERIFY(flagLast.assertNoLanguage);
+
+  const harness::SnapshotArgs flagFirst = harness::parseSnapshotArgs({"--assert-no-language", "build/x"});
+  QVERIFY2(flagFirst.ok, qPrintable(flagFirst.error));
+  QCOMPARE(flagFirst.outArg, QString("build/x"));
+  QVERIFY(flagFirst.assertNoLanguage);
+
+  const QList<QStringList> refused = {
+      {"--assert-no-lang", "build/x"}, {"-x", "build/x"}, {"build/x", "build/y"}, {"--assert-no-language"}, {},
+  };
+  for (const QStringList& args : refused) {
+    const harness::SnapshotArgs result = harness::parseSnapshotArgs(args);
+    QVERIFY2(!result.ok, qPrintable(args.join(' ')));
+    QVERIFY2(!result.error.isEmpty(), qPrintable(args.join(' ')));
+  }
+}
+
+void TestMacQt::testHarnessMainsUseTheGuard() {
+  // The old lexical check let a symlink inside build/ and the build directory itself through. A harness that stops
+  // calling the shared guard, or brings the old check back, fails here.
+  const QString oldCheck = QStringLiteral("out.startsWith(root + \"/\")");
+  QVERIFY(QStringLiteral("if (out != root && !%1) {").arg(oldCheck).contains(oldCheck));  // the search finds it
+
+  const QDir root(sourceRoot());
+  const QStringList mains
+      = {"src/app/ui_snapshot/main.cpp", "src/app/retina_check/main.cpp", "src/app/mac_check/main.cpp"};
+  for (const QString& relative : mains) {
+    const QString text = readUtf8(root.filePath(relative));
+    QVERIFY2(!text.isEmpty(), qPrintable(relative + " is empty or unreadable"));
+    QVERIFY2(text.contains("harness::outputDirIsStrictlyInside("), qPrintable(relative + " lacks the shared guard"));
+    QVERIFY2(!text.contains(oldCheck), qPrintable(relative + " keeps the lexical check"));
+  }
+  const QString snapshot = readUtf8(root.filePath("src/app/ui_snapshot/main.cpp"));
+  QVERIFY2(snapshot.contains("harness::parseSnapshotArgs("),
+           "ui_snapshot does not parse its arguments through the helper");
+}

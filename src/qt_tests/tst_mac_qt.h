@@ -50,6 +50,8 @@ class TestMacQt : public QObject {
   void testHarnessGuardAcceptsDirectoryInside();
   void testHarnessGuardRefusesRootAndEscapes();
   void testHarnessGuardRefusesSymlinkOut();
+  void testSnapshotArgsRejectUnknownOptions();
+  void testHarnessMainsUseTheGuard();
 };
 
 #endif

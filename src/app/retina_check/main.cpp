@@ -87,6 +87,8 @@
 #include <set>
 #include <vector>
 
+#include "HarnessGuards.h"
+
 namespace {
 
 const char* const kUsage = "usage: retina_check <output-dir> [--section page|thumbnails|overlays|picker|all]\n";
@@ -1074,11 +1076,10 @@ int main(int argc, char* argv[]) {
     return 2;
   }
 
-  const QString root = QDir::cleanPath(QString::fromUtf8(RETINA_CHECK_ROOT));
-  const QString out = QDir::cleanPath(QDir::current().absoluteFilePath(outArg));
-  if (out != root && !out.startsWith(root + "/")) {
-    std::fprintf(stderr, "retina_check: %s is not under %s\n", out.toLocal8Bit().constData(),
-                 root.toLocal8Bit().constData());
+  QString out;
+  QString guardError;
+  if (!harness::outputDirIsStrictlyInside(outArg, QString::fromUtf8(RETINA_CHECK_ROOT), &out, &guardError)) {
+    std::fprintf(stderr, "retina_check: %s\n", guardError.toLocal8Bit().constData());
     return 2;
   }
   if (!QDir().mkpath(out + "/tmp") || !QDir().mkpath(out + "/settings")) {

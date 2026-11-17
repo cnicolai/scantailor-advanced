@@ -89,6 +89,7 @@
 
 #include "CocoaProbe.h"
 #include "FixDpiDialog.h"
+#include "HarnessGuards.h"
 #include "MainWindow.h"
 #include "ProjectFilesDialog.h"
 #include "RelinkingDialog.h"
@@ -1987,11 +1988,10 @@ int main(int argc, char* argv[]) {
     return 2;
   }
 
-  const QString root = QDir::cleanPath(QString::fromUtf8(MAC_CHECK_ROOT));
-  const QString out = QDir::cleanPath(QDir::current().absoluteFilePath(outArg));
-  if (out != root && !out.startsWith(root + "/")) {
-    std::fprintf(stderr, "mac_check: %s is not under %s\n", out.toLocal8Bit().constData(),
-                 root.toLocal8Bit().constData());
+  QString out;
+  QString guardError;
+  if (!harness::outputDirIsStrictlyInside(outArg, QString::fromUtf8(MAC_CHECK_ROOT), &out, &guardError)) {
+    std::fprintf(stderr, "mac_check: %s\n", guardError.toLocal8Bit().constData());
     return 2;
   }
   if (!QDir().mkpath(out + "/tmp") || !QDir().mkpath(out + "/settings")) {

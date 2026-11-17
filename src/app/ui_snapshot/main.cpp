@@ -25,6 +25,7 @@
 #include <QPixmap>
 #include <QSettings>
 #include <QString>
+#include <QStringList>
 #include <QTextStream>
 #include <cstdio>
 #include <memory>
@@ -93,24 +94,18 @@ bool hasLanguageControl(const SettingsDialog& dialog) {
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  QString outArg;
-  bool assertNoLanguage = false;
-  int positional = 0;
+  QStringList args;
   for (int i = 1; i < argc; ++i) {
-    const QString arg = QString::fromLocal8Bit(argv[i]);
-    if (arg == "--assert-no-language") {
-      assertNoLanguage = true;
-    } else if (positional == 0) {
-      outArg = arg;
-      ++positional;
-    } else {
-      positional = 2;
-    }
+    args.append(QString::fromLocal8Bit(argv[i]));
   }
-  if (positional != 1) {
-    std::fprintf(stderr, "usage: ui_snapshot <output-dir> [--assert-no-language]\n");
+  const harness::SnapshotArgs parsed = harness::parseSnapshotArgs(args);
+  if (!parsed.ok) {
+    std::fprintf(stderr, "ui_snapshot: %s\nusage: ui_snapshot <output-dir> [--assert-no-language]\n",
+                 parsed.error.toLocal8Bit().constData());
     return 2;
   }
+  const QString& outArg = parsed.outArg;
+  const bool assertNoLanguage = parsed.assertNoLanguage;
 
   QString out;
   QString guardError;
