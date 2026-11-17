@@ -339,7 +339,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 **Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 6/15 plans executed
+**Plans:** 7/15 plans executed
 
 Plans:
 **Wave 1**
@@ -361,7 +361,7 @@ Plans:
 - [x] 06.1-06-PLAN.md — Own-file read ceiling (D-11), unused unlimited loader deleted and own-file loader renamed (D-12), forged cached output regenerated in a pipeline test, Phase 6 IN-02/03 docs
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 06.1-07-PLAN.md — Canonical harness output guard and ui_snapshot argument parser (D-08), empty batch stops cleanly (D-14)
+- [x] 06.1-07-PLAN.md — Canonical harness output guard and ui_snapshot argument parser (D-08), empty batch stops cleanly (D-14)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 06.1-08-PLAN.md — Include lists of the split OutputGenerator and MainWindow files trimmed, output object code proven unchanged (Phase 6 IN-01)
