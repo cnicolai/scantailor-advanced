@@ -339,11 +339,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 **Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 15 plans
+**Plans:** 1/15 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 06.1-01-PLAN.md — Gate reference, gate log, conventions and finding ledger; OpenGL lines out of the project instructions, pinned by the scan test (D-15); token comparison script
+- [x] 06.1-01-PLAN.md — Gate reference, gate log, conventions and finding ledger; OpenGL lines out of the project instructions, pinned by the scan test (D-15); token comparison script
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 06.1-02-PLAN.md — Bookkeeping (D-16), moot findings closed with evidence, won't-fix findings with the CONTEXT reasons (D-02, D-09), TESTING.md preset differences (Phase 1 IN-03); disposition checker
