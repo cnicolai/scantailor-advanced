@@ -45,6 +45,7 @@ class TestMacQt : public QObject {
   void testNoOpenGlInSourcesOrBuild();
   void testProjectExtension();
   void testSaveAsFlowFromOutOfMemoryDialog();
+  void testSaveAsFlowRunsTwice();
 };
 
 #endif

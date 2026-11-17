@@ -260,6 +260,14 @@ QStringList recentProjectPaths() {
   return paths;
 }
 
+void seedRecentProjects(const QStringList& paths) {
+  RecentProjects recent;
+  for (auto it = paths.crbegin(); it != paths.crend(); ++it) {
+    recent.setMostRecent(*it);
+  }
+  recent.write();
+}
+
 // True if the file is a project file that ProjectReader accepts, with the given number of pages.
 bool readsAsProject(const QString& path, int expectedPages) {
   QFile file(path);
@@ -1814,4 +1822,58 @@ void TestMacQt::testSaveAsFlowFromOutOfMemoryDialog() {
     QCOMPARE(recentProjectPaths(), recentBefore);
     QCOMPARE(stack->currentWidget(), mainPage);
   }
+}
+
+void TestMacQt::testSaveAsFlowRunsTwice() {
+  const ProjectSettingsGuard settingsGuard;
+  SaveFixture fixture;
+  QVERIFY(fixture.init());
+  const QString other = fixture.path("other.ScanTailor");
+  const QString target = fixture.path("twice.ScanTailor");
+  seedRecentProjects(QStringList{other});
+
+  QWidget parent;
+  int fileDialogs = 0;
+  QStringList boxTexts;
+  const auto saveAs = [&](const QString& answer) {
+    PanelAnswerer answerer(false, answer);
+    const QString result = ProjectSaveFlow::saveAs(&parent, QString(), fixture.pages, fixture.selected, fixture.nameGen,
+                                                   *fixture.stages);
+    fileDialogs = answerer.fileDialogs();
+    boxTexts = answerer.boxTexts();
+    return result;
+  };
+
+  // First save, answered without the extension.
+  QCOMPARE(saveAs(fixture.path("twice")), target);
+  QCOMPARE(fileDialogs, 1);
+  QVERIFY(readsAsProject(target, 1));
+  QCOMPARE(recentProjectPaths(), (QStringList{target, other}));
+
+  // Second save to the same name: the file is overwritten (a stale body is replaced) and listed once.
+  {
+    QFile stale(target);
+    QVERIFY(stale.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QCOMPARE(stale.write("stale"), qint64(5));
+  }
+  QVERIFY(!readsAsProject(target, 1));
+  QCOMPARE(saveAs(fixture.path("twice")), target);
+  QCOMPARE(fileDialogs, 1);
+  QVERIFY(readsAsProject(target, 1));
+  QCOMPARE(recentProjectPaths(), (QStringList{target, other}));
+
+  // Third save, answered with the full name: the file dialog asks before replacing, the answer is Yes.
+  {
+    QFile stale(target);
+    QVERIFY(stale.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QCOMPARE(stale.write("stale"), qint64(5));
+  }
+  QCOMPARE(saveAs(target), target);
+  QCOMPARE(fileDialogs, 1);
+  QCOMPARE(boxTexts.size(), 1);
+  QVERIFY2(boxTexts.first().contains("already exists"), qPrintable(boxTexts.first()));
+  QVERIFY(readsAsProject(target, 1));
+  QCOMPARE(recentProjectPaths(), (QStringList{target, other}));
+  QCOMPARE(QSettings().value("project/lastDir").toString(), fixture.dir.path());
+  QCOMPARE(projectFilesIn(fixture.dir.path()), QStringList{"twice.ScanTailor"});
 }

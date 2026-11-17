@@ -36,7 +36,7 @@ class ProjectSaveFlow {
                         const OutputFileNameGenerator& outFileNameGen,
                         const StageSequence& stages);
 
-  /** Writes the project file; on failure shows the "Error saving the project file!" box and returns false. */
+  /** Writes the project file; on failure shows the save-error box and returns false. */
   static bool writeWithFeedback(QWidget* parent,
                                 const QString& projectFile,
                                 const std::shared_ptr<ProjectPages>& pages,
@@ -44,7 +44,7 @@ class ProjectSaveFlow {
                                 const OutputFileNameGenerator& outFileNameGen,
                                 const StageSequence& stages);
 
-  /** Shows the "Error saving the project file!" box. */
+  /** Shows the box that tells the user the project file could not be saved. */
   static void showSaveError(QWidget* parent);
 
   /** \p path with ".ScanTailor" appended unless it already ends with that (any letter case). */

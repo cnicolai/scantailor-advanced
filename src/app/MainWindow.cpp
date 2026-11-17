@@ -53,6 +53,7 @@
 #include "ProjectOpeningContext.h"
 #include "ProjectPages.h"
 #include "ProjectReader.h"
+#include "ProjectSaveFlow.h"
 #include "ProjectWriter.h"
 #include "RecentProjects.h"
 #include "RelinkingDialog.h"
@@ -1431,39 +1432,15 @@ void MainWindow::saveProjectTriggered() {
 }
 
 void MainWindow::saveProjectAsTriggered() {
-  // XXX: this function is duplicated in OutOfMemoryDialog.
-
-  QString projectDir;
-  if (!m_projectFile.isEmpty()) {
-    projectDir = QFileInfo(m_projectFile).absolutePath();
-  } else {
-    QSettings settings;
-    projectDir = settings.value("project/lastDir").toString();
-  }
-
-  QString projectFile(
-      QFileDialog::getSaveFileName(this, QString(), projectDir, tr("Scan Tailor Projects") + " (*.ScanTailor)"));
+  const QString projectFile
+      = ProjectSaveFlow::saveAs(this, m_projectFile, m_pages, m_selectedPage, m_outFileNameGen, *m_stages);
   if (projectFile.isEmpty()) {
     return;
   }
 
-  if (!projectFile.endsWith(".ScanTailor", Qt::CaseInsensitive)) {
-    projectFile += ".ScanTailor";
-  }
-
-  if (saveProjectWithFeedback(projectFile)) {
-    m_projectFile = projectFile;
-    updateWindowTitle();
-
-    QSettings settings;
-    settings.setValue("project/lastDir", QFileInfo(m_projectFile).absolutePath());
-
-    RecentProjects rp;
-    rp.read();
-    rp.setMostRecent(m_projectFile);
-    rp.write();
-  }
-}  // MainWindow::saveProjectAsTriggered
+  m_projectFile = projectFile;
+  updateWindowTitle();
+}
 
 void MainWindow::newProject() {
   if (!closeProjectInteractive()) {
@@ -1864,7 +1841,7 @@ bool MainWindow::closeProjectInteractive() {
   switch (promptProjectSave()) {
     case SAVE:
       if (!Utils::overwritingRename(backupFilePath, m_projectFile)) {
-        QMessageBox::warning(this, tr("Error"), tr("Error saving the project file!"));
+        ProjectSaveFlow::showSaveError(this);
         return false;
       }
       // fall through
@@ -1885,13 +1862,7 @@ void MainWindow::closeProjectWithoutSaving() {
 }
 
 bool MainWindow::saveProjectWithFeedback(const QString& projectFile) {
-  ProjectWriter writer(m_pages, m_selectedPage, m_outFileNameGen);
-
-  if (!writer.write(projectFile, m_stages->filters())) {
-    QMessageBox::warning(this, tr("Error"), tr("Error saving the project file!"));
-    return false;
-  }
-  return true;
+  return ProjectSaveFlow::writeWithFeedback(this, projectFile, m_pages, m_selectedPage, m_outFileNameGen, *m_stages);
 }
 
 /**
