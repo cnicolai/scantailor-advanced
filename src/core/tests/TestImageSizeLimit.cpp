@@ -18,6 +18,7 @@
 #include <limits>
 #include <vector>
 
+using test_support::forgedJpeg;
 using test_support::forgedTiff;
 using test_support::ForgedTiffPage;
 
@@ -122,6 +123,46 @@ BOOST_AUTO_TEST_CASE(test_largest_accepted_size_fits_int_bytes) {
   BOOST_CHECK_EQUAL(rgb32Bytes, qint64(2147483640));
   BOOST_CHECK_LE(rgb32Bytes, qint64(std::numeric_limits<int>::max()));
   BOOST_CHECK_EQUAL(4 * ImageSizeLimit::kMaxPixels, qint64(2147483644));
+}
+
+BOOST_AUTO_TEST_CASE(test_forged_progressive_jpeg_metadata_is_fast_and_small) {
+  // A progressive forgery is the harmful one: jpeg_start_decompress allocates the whole coefficient image of the
+  // claimed size (12.3 GB for 65500 x 65500). A baseline forgery would prove nothing.
+  const QByteArray bytes = forgedJpeg(65500, 65500, true);
+  BOOST_REQUIRE(!bytes.isEmpty());
+
+  const qint64 peakBefore = test_support::peakPhysFootprintBytes();
+  BOOST_REQUIRE(peakBefore >= 0);
+  QElapsedTimer timer;
+  timer.start();
+  const std::vector<QSize> sizes = pageSizes(bytes);
+  const qint64 elapsedMs = timer.elapsed();
+  const qint64 peakAfter = test_support::peakPhysFootprintBytes();
+
+  BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
+  BOOST_CHECK(sizes[0] == QSize(65500, 65500));
+  BOOST_CHECK(ImageSizeLimit::exceeds(sizes[0]));
+  BOOST_CHECK_LT(peakAfter - peakBefore, kFootprintBoundBytes);
+  BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
+}
+
+BOOST_AUTO_TEST_CASE(test_forged_baseline_jpeg_metadata_reports_claimed_size) {
+  const QByteArray bytes = forgedJpeg(65500, 65500, false);
+  BOOST_REQUIRE(!bytes.isEmpty());
+
+  const std::vector<QSize> sizes = pageSizes(bytes);
+  BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
+  BOOST_CHECK(sizes[0] == QSize(65500, 65500));
+}
+
+BOOST_AUTO_TEST_CASE(test_small_progressive_jpeg_metadata_is_unchanged) {
+  // Inside the limit the loader still decompresses as before and reports the true size.
+  const QByteArray bytes = forgedJpeg(64, 64, true);
+  BOOST_REQUIRE(!bytes.isEmpty());
+
+  const std::vector<QSize> sizes = pageSizes(bytes);
+  BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
+  BOOST_CHECK(sizes[0] == QSize(64, 64));
 }
 
 BOOST_AUTO_TEST_CASE(test_exceeds_table) {

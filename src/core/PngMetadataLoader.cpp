@@ -80,6 +80,10 @@ ImageMetadataLoader::Status PngMetadataLoader::loadMetadata(QIODevice& ioDevice,
   }
 
   png_set_read_fn(png.handle(), &ioDevice, &readFn);
+  // png_read_info reads the header and ancillary chunks only and allocates nothing in proportion to the claimed
+  // size. Lifting libpng's default limit of 1000000 px per side lets the caller see the claimed size of any
+  // file, so ImageSizeLimit gives the same verdict as for TIFF and JPEG instead of "unreadable".
+  png_set_user_limits(png.handle(), PNG_UINT_31_MAX, PNG_UINT_31_MAX);
   png_read_info(png.handle(), png.info());
 
   QSize size;

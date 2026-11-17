@@ -10,6 +10,7 @@
 
 #include "Dpm.h"
 #include "ImageMetadata.h"
+#include "ImageSizeLimit.h"
 #include "NonCopyable.h"
 
 extern "C" {
@@ -200,11 +201,6 @@ ImageMetadataLoader::Status JpegMetadataLoader::loadMetadata(QIODevice& ioDevice
   // The other possible value is JPEG_SUSPENDED, but we never suspend it.
   assert(headerStatus == JPEG_HEADER_OK);
 
-  if (!jpeg_start_decompress(cinfo.ptr())) {
-    // libjpeg doesn't support all compression types.
-    return GENERIC_ERROR;
-  }
-
   const QSize size(cinfo->image_width, cinfo->image_height);
   Dpi dpi;
   if (cinfo->density_unit == 1) {
@@ -213,6 +209,18 @@ ImageMetadataLoader::Status JpegMetadataLoader::loadMetadata(QIODevice& ioDevice
   } else if (cinfo->density_unit == 2) {
     // Dots per centimeter.
     dpi = Dpm(cinfo->X_density * 100, cinfo->Y_density * 100);
+  }
+
+  if (ImageSizeLimit::exceeds(size)) {
+    // Report the claimed size without decompressing: for progressive files libjpeg allocates the whole
+    // coefficient image in jpeg_start_decompress (12.3 GB for a 1 KB forgery), and the caller refuses the file.
+    out(ImageMetadata(size, dpi));
+    return LOADED;
+  }
+
+  if (!jpeg_start_decompress(cinfo.ptr())) {
+    // libjpeg doesn't support all compression types.
+    return GENERIC_ERROR;
   }
 
   out(ImageMetadata(size, dpi));

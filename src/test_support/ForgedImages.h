@@ -26,6 +26,16 @@ struct ForgedTiffPage {
 // A little-endian TIFF file, written with libtiff into memory. Synthetic only; nothing touches the disk.
 QByteArray forgedTiff(const std::vector<ForgedTiffPage>& pages);
 
+// A PNG file whose IHDR claims width x height (the IHDR CRC is recomputed, so libpng accepts the header). The
+// file holds the data of a 1 x 1 image, so it is a few dozen bytes whatever the claimed size; decoding it fails.
+QByteArray forgedPng(quint32 width, quint32 height);
+
+// A JPEG file whose SOF header claims width x height. It is made from a real 64 x 64 RGB image, either baseline or
+// (with progressive true) progressive; only the SOF0 or SOF2 size fields are patched. For a progressive file,
+// libjpeg allocates the whole coefficient image of the claimed size in jpeg_start_decompress, which is the
+// defect the forged file exists to provoke: never decompress it without a size check first.
+QByteArray forgedJpeg(quint16 width, quint16 height, bool progressive);
+
 }  // namespace test_support
 
 #endif  // ifndef SCANTAILOR_TEST_SUPPORT_FORGEDIMAGES_H_

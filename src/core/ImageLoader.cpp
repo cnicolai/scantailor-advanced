@@ -7,9 +7,15 @@
 #include <QFileInfo>
 #include <QImage>
 #include <QtGui/QImageReader>
+#include <mutex>
 
 #include "ImageId.h"
+#include "ImageSizeLimit.h"
 #include "TiffReader.h"
+
+namespace {
+std::once_flag qtReaderLimitFlag;
+}
 
 QImage ImageLoader::load(const ImageId& imageId) {
   return load(imageId.filePath(), imageId.zeroBasedPage());
@@ -24,6 +30,12 @@ QImage ImageLoader::load(const QString& filePath, const int pageNum) {
 }
 
 QImage ImageLoader::load(QIODevice& ioDev, const int pageNum) {
+  // Qt's default limit of 256 MB refuses every image above 64 Mi px. It is raised once to the project ceiling
+  // (ImageSizeLimit checks the claimed size below, so Qt never sees a larger image) and never set to 0, which
+  // would let Qt allocate the claimed size before failing. The thumbnail thread and the worker threads all come
+  // through here.
+  std::call_once(qtReaderLimitFlag, [] { QImageReader::setAllocationLimit(ImageSizeLimit::kQtAllocationLimitMb); });
+
   if (TiffReader::canRead(ioDev)) {
     return TiffReader::readImage(ioDev, pageNum);
   }
@@ -42,6 +54,12 @@ QImage ImageLoader::load(QIODevice& ioDev, const int pageNum) {
     if (ext == QStringLiteral("jpg") || ext == QStringLiteral("jpeg")) {
       reader.setFormat("jpeg");
     }
+  }
+  // The header of a forged file can claim any size; refuse it before the reader allocates it. An invalid size
+  // means the format cannot tell, and the read decides as before.
+  const QSize claimed = reader.size();
+  if (claimed.isValid() && ImageSizeLimit::exceeds(claimed)) {
+    return QImage();
   }
   reader.read(&image);
   return image;

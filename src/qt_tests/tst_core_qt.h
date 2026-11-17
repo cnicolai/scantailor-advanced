@@ -16,6 +16,12 @@ class TestCoreQt : public QObject {
   void testUtilsDoubleToString();
   void testSmartFilenameOrdering();
   void testSignalSpy();
+  // The refusal slots come first: the peak footprint they check is a high-water mark, and the large images of
+  // the loading slots raise it.
+  void testForgedPngIsRefused();
+  void testForgedJpegIsRefusedAndLargeJpegLoads();
+  void testLargeGreyPngLoads();
+  void testForgedPngMetadataReportsClaimedSize();
 };
 
 class Emitter : public QObject {

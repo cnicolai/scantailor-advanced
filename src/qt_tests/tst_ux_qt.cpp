@@ -146,6 +146,13 @@ void TestUxQt::testOversizedImageShowsTooLargeInPageView_data() {
   // A header that claims 100000 x 100000 px in a file of a few hundred bytes.
   QTest::newRow("tiff") << test_support::forgedTiff({{100000, 100000, 1, 1, false}}) << QString("oversized.tif") << true
                         << QString::fromUtf8("100000 \u00d7 100000 px");
+  QTest::newRow("png") << test_support::forgedPng(100000, 100000) << QString("oversized.png") << true
+                       << QString::fromUtf8("100000 \u00d7 100000 px");
+  // Above libpng's default limit of 1000000 px per side: the metadata loader must still report the size.
+  QTest::newRow("png-wide") << test_support::forgedPng(2000000, 1) << QString("wide.png") << true
+                            << QString::fromUtf8("2000000 \u00d7 1 px");
+  QTest::newRow("jpeg") << test_support::forgedJpeg(65500, 65500, true) << QString("oversized.jpg") << true
+                        << QString::fromUtf8("65500 \u00d7 65500 px");
   QTest::newRow("garbage") << QByteArray("not an image") << QString("garbage.tif") << false << QString();
 }
 

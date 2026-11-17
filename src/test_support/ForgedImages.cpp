@@ -4,9 +4,17 @@
 #include "ForgedImages.h"
 
 #include <tiffio.h>
+#include <zlib.h>
 
+#include <QBuffer>
+#include <QImage>
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
+
+extern "C" {
+#include <jpeglib.h>
+}
 
 namespace test_support {
 
@@ -108,6 +116,17 @@ void writePage(TIFF* tif, const ForgedTiffPage& page) {
   TIFFWriteDirectory(tif);
 }
 
+void putBigEndian32(QByteArray& data, const int offset, const quint32 value) {
+  for (int i = 0; i < 4; ++i) {
+    data[offset + i] = char((value >> (24 - 8 * i)) & 0xff);
+  }
+}
+
+void putBigEndian16(QByteArray& data, const int offset, const quint16 value) {
+  data[offset] = char(value >> 8);
+  data[offset + 1] = char(value & 0xff);
+}
+
 }  // namespace
 
 QByteArray forgedTiff(const std::vector<ForgedTiffPage>& pages) {
@@ -122,6 +141,74 @@ QByteArray forgedTiff(const std::vector<ForgedTiffPage>& pages) {
   }
   TIFFClose(tif);
   return file.data;
+}
+
+QByteArray forgedPng(const quint32 width, const quint32 height) {
+  QImage image(1, 1, QImage::Format_Grayscale8);
+  image.fill(0);
+  QByteArray data;
+  QBuffer buffer(&data);
+  if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG")) {
+    return QByteArray();
+  }
+  buffer.close();
+
+  // Signature (8 bytes), IHDR length (4), "IHDR" (4), then width, height at offsets 16 and 20; the CRC at 29
+  // covers the type and the 13 data bytes (offsets 12 to 28).
+  if (data.size() < 33 || data.mid(12, 4) != "IHDR") {
+    return QByteArray();
+  }
+  putBigEndian32(data, 16, width);
+  putBigEndian32(data, 20, height);
+  const uLong crc = crc32(crc32(0L, Z_NULL, 0), reinterpret_cast<const Bytef*>(data.constData()) + 12, 17);
+  putBigEndian32(data, 29, quint32(crc));
+  return data;
+}
+
+QByteArray forgedJpeg(const quint16 width, const quint16 height, const bool progressive) {
+  jpeg_compress_struct compress;
+  jpeg_error_mgr errorManager;
+  compress.err = jpeg_std_error(&errorManager);
+  jpeg_create_compress(&compress);
+  unsigned char* memory = nullptr;
+  unsigned long memorySize = 0;
+  jpeg_mem_dest(&compress, &memory, &memorySize);
+  compress.image_width = 64;
+  compress.image_height = 64;
+  compress.input_components = 3;
+  compress.in_color_space = JCS_RGB;
+  jpeg_set_defaults(&compress);
+  if (progressive) {
+    jpeg_simple_progression(&compress);
+  }
+  jpeg_start_compress(&compress, TRUE);
+  unsigned char row[64 * 3] = {};
+  JSAMPROW rowPointer = row;
+  for (int y = 0; y < 64; ++y) {
+    jpeg_write_scanlines(&compress, &rowPointer, 1);
+  }
+  jpeg_finish_compress(&compress);
+  QByteArray data(reinterpret_cast<const char*>(memory), qsizetype(memorySize));
+  jpeg_destroy_compress(&compress);
+  std::free(memory);
+
+  // Walk the marker segments after SOI; the first SOF0 (baseline) or SOF2 (progressive) holds the precision (1
+  // byte), the height (2) and the width (2) behind its marker (2) and length (2).
+  int pos = 2;
+  while (pos + 4 <= data.size() && static_cast<unsigned char>(data[pos]) == 0xff) {
+    const unsigned char marker = static_cast<unsigned char>(data[pos + 1]);
+    const int length = (static_cast<unsigned char>(data[pos + 2]) << 8) | static_cast<unsigned char>(data[pos + 3]);
+    if (marker == 0xc0 || marker == 0xc2) {
+      if (pos + 9 > data.size()) {
+        break;
+      }
+      putBigEndian16(data, pos + 5, height);
+      putBigEndian16(data, pos + 7, width);
+      return data;
+    }
+    pos += 2 + length;
+  }
+  return QByteArray();
 }
 
 }  // namespace test_support
