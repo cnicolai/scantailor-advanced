@@ -19,6 +19,32 @@ QDomElement XmlMarshaller::string(const QString& str, const QString& name) {
   return el;
 }
 
+// Only the XML-1.0-forbidden characters need this.  QDom already escapes &, <, ", tab, LF and CR in attribute values
+// (as character references) and the parser restores them, but it writes the forbidden characters raw, and the parser
+// rejects those and their character references alike.
+bool XmlMarshaller::needsEscaping(const QString& value) {
+  for (const QChar ch : value) {
+    const char16_t unit = ch.unicode();
+    if ((unit < 0x20 && unit != 0x09 && unit != 0x0a && unit != 0x0d) || unit == 0xfffe || unit == 0xffff) {
+      return true;
+    }
+  }
+  return false;
+}
+
+QString XmlMarshaller::escapeInvalidXmlChars(const QString& value) {
+  return QString::fromLatin1(value.toUtf8().toPercentEncoding());
+}
+
+void XmlMarshaller::setEscapedAttribute(QDomElement& el, const QString& name, const QString& value) {
+  if (needsEscaping(value)) {
+    el.setAttribute(name, escapeInvalidXmlChars(value));
+    el.setAttribute(name + QStringLiteral("Escaped"), QStringLiteral("1"));
+  } else {
+    el.setAttribute(name, value);
+  }
+}
+
 QDomElement XmlMarshaller::size(const QSize& size, const QString& name) {
   if (size.isNull()) {
     return QDomElement();

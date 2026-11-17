@@ -18,6 +18,15 @@ class XmlUnmarshaller {
  public:
   static QString string(const QDomElement& el);
 
+  /** Reverses XmlMarshaller::escapeInvalidXmlChars. */
+  static QString unescapeInvalidXmlChars(const QString& text);
+
+  /**
+   * Reads an attribute written by XmlMarshaller::setEscapedAttribute: decoded if the attribute "<name>Escaped" is
+   * exactly "1", otherwise returned as it is (a literal "%01" in an unflagged value stays literal).
+   */
+  static QString escapedAttribute(const QDomElement& el, const QString& name);
+
   static QSize size(const QDomElement& el);
 
   static QSizeF sizeF(const QDomElement& el);

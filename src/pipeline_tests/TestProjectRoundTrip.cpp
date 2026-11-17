@@ -42,6 +42,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QFile>
+#include <QFileInfo>
 #include <QImage>
 #include <QRgb>
 #include <QSize>
@@ -192,6 +193,19 @@ class RoundTripFixture {
 
   const std::vector<QString>& inputPaths() const { return m_inputPaths; }
 
+  // Writes a 64 x 64 PNG at a path relative to the fixture root, creating its folder, and returns the absolute path.
+  QString writePng(const QString& relativePath) const {
+    const QString path = QDir(root()).filePath(relativePath);
+    BOOST_REQUIRE_MESSAGE(QDir().mkpath(QFileInfo(path).absolutePath()),
+                          "cannot create the folder of " << relativePath.toStdString());
+    QImage image(64, 64, QImage::Format_RGB32);
+    image.fill(qRgb(10, 120, 200));
+    image.setDotsPerMeterX(11811);  // 300 dpi
+    image.setDotsPerMeterY(11811);
+    BOOST_REQUIRE_MESSAGE(image.save(path, "PNG"), "cannot write " << relativePath.toStdString());
+    return path;
+  }
+
  private:
   QTemporaryDir m_tempDir;
   std::unique_ptr<DefaultParams> m_originalParams;
@@ -255,7 +269,8 @@ RoundTripResult roundTrip(const RoundTripFixture& fixture,
                           const std::vector<QString>& files,
                           const bool nonDefault,
                           const QString& firstName,
-                          const QString& secondName) {
+                          const QString& secondName,
+                          const QString& outputDirOverride = QString()) {
   DefaultParamsProvider::getInstance().setParams(
       nonDefault ? makeNonDefaultParams() : std::make_unique<DefaultParams>(),
       nonDefault ? QString(kProfileName) : QString("Default"));
@@ -280,7 +295,8 @@ RoundTripResult roundTrip(const RoundTripFixture& fixture,
   }
 
   const auto disambiguator = std::make_shared<FileNameDisambiguator>();
-  const OutputFileNameGenerator nameGenerator(disambiguator, fixture.outputDir(), Qt::LeftToRight);
+  const QString outDir = outputDirOverride.isEmpty() ? fixture.outputDir() : outputDirOverride;
+  const OutputFileNameGenerator nameGenerator(disambiguator, outDir, Qt::LeftToRight);
   const QString firstPath = fixture.projectPath(firstName);
   const ProjectWriter writer(pages, SelectedPage(sequence.pageAt(0).id(), PAGE_VIEW), nameGenerator);
   BOOST_REQUIRE(writer.write(firstPath, stages.filters()));
@@ -289,6 +305,15 @@ RoundTripResult roundTrip(const RoundTripFixture& fixture,
   result.firstFile = readFile(firstPath);
 
   const QDomDocument doc = parse(result.firstFile);
+  {
+    // The read path of MainWindow::openProject: setContent from a QFile, not from bytes.
+    QFile file(firstPath);
+    BOOST_REQUIRE(file.open(QIODevice::ReadOnly));
+    QDomDocument fromFile;
+    const auto fileResult = fromFile.setContent(&file);
+    BOOST_REQUIRE_MESSAGE(static_cast<bool>(fileResult),
+                          "project file does not load from a QFile: " << fileResult.errorMessage.toStdString());
+  }
   const ProjectReader reader(doc, firstPath);
   result.readSucceeded = reader.success();
   BOOST_REQUIRE(result.readSucceeded);
@@ -460,6 +485,38 @@ BOOST_AUTO_TEST_CASE(test_single_page_round_trip) {
                           << result.firstFile.size() << " vs " << result.secondFile.size() << " bytes");
   BOOST_REQUIRE_EQUAL(result.readPagePaths.size(), 1u);
   BOOST_CHECK(result.readPagePaths.front() == onePage.front());
+}
+
+BOOST_AUTO_TEST_CASE(test_control_characters_survive) {
+  // XML 1.0 forbids these characters; QDom writes them raw and the file then no longer loads (SAFE-02).
+  const QString inDir = QStringLiteral("in") + QChar(0x0001) + QStringLiteral("dir");
+  const QString outDir = QStringLiteral("out") + QChar(0x001f) + QStringLiteral("dir");
+  const QString nameOne = QStringLiteral("ctrl") + QChar(0x0001) + QStringLiteral("one.png");
+  const QString nameUnit = QStringLiteral("ctrl") + QChar(0x001f) + QStringLiteral("unit.png");
+
+  const std::vector<QString> files{writePng(inDir + "/" + nameOne), writePng(inDir + "/" + nameUnit)};
+  const QString outputPath = QDir(root()).filePath(outDir);
+  BOOST_REQUIRE(QDir().mkpath(outputPath));
+
+  const RoundTripResult result
+      = roundTrip(*this, files, true, "control.ScanTailor", "control_2.ScanTailor", outputPath);
+
+  BOOST_REQUIRE_EQUAL(result.readPagePaths.size(), files.size());
+  for (size_t i = 0; i < files.size(); ++i) {
+    BOOST_CHECK_MESSAGE(result.readPagePaths[i] == files[i], "page " << i << " did not come back unchanged");
+  }
+  BOOST_CHECK_MESSAGE(result.readOutputDirectory == outputPath, "the output folder did not come back unchanged");
+  BOOST_CHECK_MESSAGE(result.firstFile == result.secondFile,
+                      "written, read and written again differ: " << result.firstFile.size() << " vs "
+                                                                 << result.secondFile.size() << " bytes");
+  BOOST_CHECK(result.firstFile.contains("nameEscaped=\"1\""));
+  BOOST_CHECK(result.firstFile.contains("pathEscaped=\"1\""));
+  BOOST_CHECK(result.firstFile.contains("outputDirectoryEscaped=\"1\""));
+}
+
+BOOST_AUTO_TEST_CASE(test_ordinary_projects_carry_no_escape_flag) {
+  const RoundTripResult result = roundTrip(*this, inputPaths(), true, "plain.ScanTailor", "plain_2.ScanTailor");
+  BOOST_CHECK_MESSAGE(!result.firstFile.contains("Escaped=\""), "an ordinary project carries an escape flag");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

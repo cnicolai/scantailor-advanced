@@ -17,6 +17,7 @@
 #include "PageInfo.h"
 #include "PageView.h"
 #include "ProjectPages.h"
+#include "XmlMarshaller.h"
 #include "version.h"
 
 #ifndef Q_MOC_RUN
@@ -84,7 +85,8 @@ bool ProjectWriter::write(const QString& filePath, const std::vector<FilterPtr>&
   QDomElement rootEl(doc.createElement("project"));
   doc.appendChild(rootEl);
   rootEl.setAttribute("version", PROJECT_VERSION);
-  rootEl.setAttribute("outputDirectory", toRelativeIfPossible(projectDirPath, m_outFileNameGen.outDir()));
+  XmlMarshaller::setEscapedAttribute(rootEl, "outputDirectory",
+                                     toRelativeIfPossible(projectDirPath, m_outFileNameGen.outDir()));
   rootEl.setAttribute("layoutDirection", m_layoutDirection == Qt::LeftToRight ? "LTR" : "RTL");
 
   rootEl.appendChild(processDirectories(doc, projectDirPath));
@@ -117,7 +119,7 @@ QDomElement ProjectWriter::processDirectories(QDomDocument& doc, const QString& 
   for (const Directory& dir : m_dirs.get<Sequenced>()) {
     QDomElement dirEl(doc.createElement("directory"));
     dirEl.setAttribute("id", dir.numericId);
-    dirEl.setAttribute("path", toRelativeIfPossible(projectDirPath, dir.path));
+    XmlMarshaller::setEscapedAttribute(dirEl, "path", toRelativeIfPossible(projectDirPath, dir.path));
     dirsEl.appendChild(dirEl);
   }
   return dirsEl;
@@ -132,7 +134,7 @@ QDomElement ProjectWriter::processFiles(QDomDocument& doc) const {
     QDomElement fileEl(doc.createElement("file"));
     fileEl.setAttribute("id", file.numericId);
     fileEl.setAttribute("dirId", dirId(dirPath));
-    fileEl.setAttribute("name", fileInfo.fileName());
+    XmlMarshaller::setEscapedAttribute(fileEl, "name", fileInfo.fileName());
     filesEl.appendChild(fileEl);
   }
   return filesEl;

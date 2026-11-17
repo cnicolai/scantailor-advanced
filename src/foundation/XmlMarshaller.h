@@ -36,6 +36,22 @@ class XmlMarshaller {
 
   QDomElement polygonF(const QPolygonF& poly, const QString& name);
 
+  /**
+   * True if the value contains a character that XML 1.0 forbids: a code unit below U+0020 other than tab, LF and CR,
+   * or U+FFFE or U+FFFF.  QDom writes such characters raw and the parser then rejects the file.
+   */
+  static bool needsEscaping(const QString& value);
+
+  /** Percent-encodes the UTF-8 bytes of the value.  The result is printable ASCII. */
+  static QString escapeInvalidXmlChars(const QString& value);
+
+  /**
+   * Sets an attribute.  A value that needs escaping is written percent-encoded and the attribute "<name>Escaped" is set
+   * to "1", so the reader knows to decode it.  Any other value is written as it is, with no flag, so the files of
+   * ordinary projects do not change.
+   */
+  static void setEscapedAttribute(QDomElement& el, const QString& name, const QString& value);
+
  private:
   QDomDocument m_doc;
 };

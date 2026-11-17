@@ -3,6 +3,7 @@
 
 #include "XmlUnmarshaller.h"
 
+#include <QByteArray>
 #include <QDomElement>
 #include <QLineF>
 #include <QPointF>
@@ -11,7 +12,20 @@
 #include <QString>
 
 QString XmlUnmarshaller::string(const QDomElement& el) {
-  return el.text();  // FIXME: this needs unescaping, but Qt doesn't provide such functionality
+  // QDomElement::text() already returns unescaped text: the parser resolves character and entity references.
+  return el.text();
+}
+
+QString XmlUnmarshaller::unescapeInvalidXmlChars(const QString& text) {
+  return QString::fromUtf8(QByteArray::fromPercentEncoding(text.toUtf8()));
+}
+
+QString XmlUnmarshaller::escapedAttribute(const QDomElement& el, const QString& name) {
+  const QString text = el.attribute(name);
+  if (el.attribute(name + QStringLiteral("Escaped")) == QLatin1String("1")) {
+    return unescapeInvalidXmlChars(text);
+  }
+  return text;
 }
 
 QSize XmlUnmarshaller::size(const QDomElement& el) {

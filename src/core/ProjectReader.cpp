@@ -26,7 +26,7 @@ ProjectReader::ProjectReader(const QDomDocument& doc, const QString& projectFile
     return;
   }
 
-  m_outDir = resolvePath(projectEl.attribute("outputDirectory"));
+  m_outDir = resolvePath(XmlUnmarshaller::escapedAttribute(projectEl, "outputDirectory"));
 
   Qt::LayoutDirection layoutDirection = Qt::LeftToRight;
   if (projectEl.attribute("layoutDirection") == "RTL") {
@@ -104,7 +104,7 @@ void ProjectReader::processDirectories(const QDomElement& dirsEl) {
       continue;
     }
 
-    QString path(el.attribute("path"));
+    QString path(XmlUnmarshaller::escapedAttribute(el, "path"));
     if (path.isEmpty()) {
       continue;
     }
@@ -137,7 +137,7 @@ void ProjectReader::processFiles(const QDomElement& filesEl) {
       continue;
     }
 
-    const QString name(el.attribute("name"));
+    const QString name(XmlUnmarshaller::escapedAttribute(el, "name"));
     if (name.isEmpty()) {
       continue;
     }
