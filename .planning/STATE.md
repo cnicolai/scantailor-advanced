@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-11-16T22:58:59.298Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-11-17T09:20:25.747Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: c9149cbc16d12d8977697dd48efb061fae0388be
+state_head: a2ffc1f9ce6f0dfe7fe03fb1f6e96050fa33b196
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 53
+  completed_plans: 54
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 5 of 16
+Plan: 6 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -114,6 +114,7 @@ Progress: [████████░░] 83%
 | Phase 06 P02 | 15 min | 1 tasks | 13 files |
 | Phase 06 P03 | 20 min | 1 tasks | 13 files |
 | Phase 06 P04 | 20 min | 2 tasks | 14 files |
+| Phase 06 P05 | 25 min | 1 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -219,6 +220,8 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-01: preprocessor equivalence (records/pp_equiv.py) is the proof for edits that must not change object code; SavGolFilter keeps its existing comment instead of a new line
 - [Phase 06]: 06-04: image size limit is fewer than 2^29 px in total (kMaxPixels = 2^29 - 1) and 65535 px per side; RGB32 bytes of the largest accepted image (2147483644) fit in int, pinned by static_assert; kQtAllocationLimitMb = 2048
 - [Phase 06]: 06-04: forged header-only test pages are one raw strip (no scanline buffer of the claimed width); every reader call in tests uses a fresh QBuffer because the TIFF reader closes its device
+- [Phase 06]: 06-05: the ImageLoader size check is pinned by a real 65536 x 1 grey PNG, because Qt's raised 2048 MB limit already refuses a forged 100000 x 100000 PNG
+- [Phase 06]: 06-05: PngMetadataLoader lifts libpng's per-side user limit and reports the claimed size, so PNG, JPEG and TIFF share one verdict
 
 ### Pending Todos
 
@@ -239,6 +242,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-16T22:58:58.899Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-11-17T09:20:25.357Z
+Stopped at: Completed 06-05-PLAN.md
 Resume file: None

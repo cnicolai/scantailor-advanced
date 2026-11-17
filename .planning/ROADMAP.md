@@ -256,7 +256,7 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: 4/16 plans executed
+**Plans**: 5/16 plans executed
 
 Plans:
 **Wave 1**
@@ -272,7 +272,7 @@ Plans:
 - [x] 06-04-PLAN.md — ImageSizeLimit (fewer than 2^29 px so RGB32 byte counts fit in int, at most 65535 px per side): forged TIFF refused before allocation, "too large" in the page view, exclusive TIFF boundaries incl. an RGB header at exactly 2^29 px, multi-page rule and no-allocation proof (SAFE-01)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 06-05-PLAN.md — Same limit for PNG and JPEG, Qt reader limit raised once, JPEG metadata stops before decompression, PNG metadata reports every claimed size (SAFE-01)
+- [x] 06-05-PLAN.md — Same limit for PNG and JPEG, Qt reader limit raised once, JPEG metadata stops before decompression, PNG metadata reports every claimed size (SAFE-01)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 06-06-PLAN.md — Oversized files marked in the project file dialog and the insert flow, thumbnails refuse, sanitizer run, int-arithmetic audit, SAFE-01 record with the ceiling choice against D-01's 1 GP example (SAFE-01)
@@ -326,7 +326,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
-| 6. Hardening and Cleanup | 4/16 | In Progress | - |
+| 6. Hardening and Cleanup | 5/16 | In Progress | - |
 
 ---
 *Roadmap created: 2026-10-18*
