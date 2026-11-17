@@ -52,6 +52,7 @@ class TestMacQt : public QObject {
   void testHarnessGuardRefusesSymlinkOut();
   void testSnapshotArgsRejectUnknownOptions();
   void testHarnessMainsUseTheGuard();
+  void testEmptyBatchStopsCleanly();
 };
 
 #endif

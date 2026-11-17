@@ -165,7 +165,9 @@ void MainWindow::startBatchProcessing() {
       }
     } while ((task = m_batchQueue->takeForProcessing()));
   } else {
+    // stopBatchProcessing() has reset the queue and brought the main area back.
     stopBatchProcessing();
+    return;
   }
 
   PageInfo selectedPage(m_batchQueue->selectedPage());

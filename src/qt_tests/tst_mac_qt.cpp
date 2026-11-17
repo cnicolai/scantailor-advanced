@@ -2121,3 +2121,77 @@ void TestMacQt::testHarnessMainsUseTheGuard() {
   QVERIFY2(snapshot.contains("harness::parseSnapshotArgs("),
            "ui_snapshot does not parse its arguments through the helper");
 }
+
+namespace {
+
+// Drives "Remove from project ..." of the thumbnail context menu: the popup menu gets its remove entry activated, the
+// confirmation dialog that follows is accepted. One timer, because the menu and the dialog both run nested event
+// loops.
+class RemovePageAnswerer {
+ public:
+  RemovePageAnswerer() {
+    m_timer.setInterval(50);
+    QObject::connect(&m_timer, &QTimer::timeout, [this]() {
+      if (auto* const menu = qobject_cast<QMenu*>(QApplication::activePopupWidget())) {
+        for (QAction* const action : menu->actions()) {
+          if (action->text().startsWith("Remove from project")) {
+            ++m_menus;
+            menu->setActiveAction(action);
+            QTest::keyClick(menu, Qt::Key_Return);
+            return;
+          }
+        }
+        menu->hide();
+      } else if (auto* const dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget())) {
+        ++m_dialogs;
+        dialog->accept();
+      }
+    });
+    m_timer.start();
+  }
+
+  int menus() const { return m_menus; }
+
+  int dialogs() const { return m_dialogs; }
+
+ private:
+  QTimer m_timer;
+  int m_menus = 0;
+  int m_dialogs = 0;
+};
+
+}  // namespace
+
+void TestMacQt::testEmptyBatchStopsCleanly() {
+  // A project file without pages is refused by the reader, so the project loses its only page through the thumbnail
+  // context menu. A project without pages still counts as loaded, and starting a batch on it used to read the queue
+  // that stopBatchProcessing() had just reset.
+  const ProjectSettingsGuard settingsGuard;
+  SaveFixture fixture;
+  QVERIFY(fixture.init());
+  const QString projectFile = fixture.path("empty.ScanTailor");
+  QVERIFY(ProjectSaveFlow::writeWithFeedback(nullptr, projectFile, fixture.pages, fixture.selected, fixture.nameGen,
+                                             *fixture.stages));
+
+  const std::unique_ptr<MainWindow> window = makeShownMainWindow();
+  window->openProject(projectFile);
+  QVERIFY2(window->windowTitle().contains("empty"), qPrintable(window->windowTitle()));
+  const QWidget* const filterList = window->findChild<QWidget*>("filterList");
+  QVERIFY(filterList != nullptr);
+  QVERIFY(filterList->isEnabled());
+
+  const PageInfo page = fixture.pages->toPageSequence(PAGE_VIEW).pageAt(0);
+  {
+    RemovePageAnswerer answerer;
+    QVERIFY(QMetaObject::invokeMethod(window.get(), "pageContextMenuRequested", Q_ARG(PageInfo, page),
+                                      Q_ARG(QPoint, QPoint(20, 20)), Q_ARG(bool, true)));
+    QCOMPARE(answerer.menus(), 1);
+    QCOMPARE(answerer.dialogs(), 1);
+  }
+
+  QVERIFY(QMetaObject::invokeMethod(window.get(), "startBatchProcessing"));
+  QCoreApplication::processEvents();
+  // The batch ended at once: the filter list is usable again and the window still answers.
+  QVERIFY(filterList->isEnabled());
+  QVERIFY(window->isVisible());
+}
