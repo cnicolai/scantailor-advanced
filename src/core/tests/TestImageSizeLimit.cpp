@@ -153,6 +153,28 @@ BOOST_AUTO_TEST_CASE(test_forged_progressive_jpeg_metadata_is_fast_and_small) {
   BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
 }
 
+BOOST_AUTO_TEST_CASE(test_progressive_jpeg_inside_the_limit_is_not_decompressed_for_metadata) {
+  // 65500 x 8191 px is 536,500,000 px, just inside the limit (65500 is libjpeg's largest side). The header
+  // alone gives the size and the density, so reading the metadata must not run jpeg_start_decompress, which
+  // would allocate the whole coefficient image (1.5 GB, measured) of a file that is a few KB on disk.
+  const QByteArray bytes = forgedJpeg(65500, 8191, true);
+  BOOST_REQUIRE(!bytes.isEmpty());
+
+  test_support::FootprintSampler sampler;
+  BOOST_REQUIRE(sampler.valid());
+  QElapsedTimer timer;
+  timer.start();
+  const std::vector<QSize> sizes = pageSizes(bytes);
+  const qint64 elapsedMs = timer.elapsed();
+  const qint64 growth = sampler.stop();
+
+  BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
+  BOOST_CHECK(sizes[0] == QSize(65500, 8191));
+  BOOST_CHECK(!ImageSizeLimit::exceeds(sizes[0]));
+  BOOST_CHECK_LT(growth, kFootprintBoundBytes);
+  BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
+}
+
 BOOST_AUTO_TEST_CASE(test_forged_baseline_jpeg_metadata_reports_claimed_size) {
   const QByteArray bytes = forgedJpeg(65500, 65500, false);
   BOOST_REQUIRE(!bytes.isEmpty());

@@ -218,7 +218,11 @@ ImageMetadataLoader::Status JpegMetadataLoader::loadMetadata(QIODevice& ioDevice
     return LOADED;
   }
 
-  if (!jpeg_start_decompress(cinfo.ptr())) {
+  // jpeg_read_header has filled the size and the density, which is all the metadata needs. For a progressive
+  // file jpeg_start_decompress allocates the whole coefficient image (about 1.5 GB just inside the limit, a few
+  // KB on disk), once per file for every selected file, so only a baseline file goes through it; it is there
+  // for the "unsupported compression type" check.
+  if (!cinfo->progressive_mode && !jpeg_start_decompress(cinfo.ptr())) {
     // libjpeg doesn't support all compression types.
     return GENERIC_ERROR;
   }
