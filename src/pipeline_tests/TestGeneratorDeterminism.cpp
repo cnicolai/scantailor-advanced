@@ -70,9 +70,9 @@ QSize basePageSize(const PageKind kind) {
   return kind == PageKind::SPREAD ? QSize(1654, 1181) : QSize(1000, 1150);
 }
 
-// Base units of 1/300 in scaled to the dpi (exact at 300 and 600).
+// Base units of 1/300 in scaled to the dpi, rounded to whole pixels like the generator (exact at 300 and 600).
 int scaled(const int base, const int dpi) {
-  return base * dpi / 300;
+  return (base * dpi + 150) / 300;
 }
 
 // Rendering is slow in a Debug build, so pages that tests only read are rendered once per spec.  The determinism
@@ -527,9 +527,10 @@ BOOST_AUTO_TEST_CASE(test_dpi_sweep_gives_valid_or_null_page) {
 }
 
 BOOST_AUTO_TEST_CASE(test_dpi_support_rule) {
-  // The expected numbers come from a reproduction of the geometry computation (script, every dpi 75..1200).  1200
-  // dpi is checked here and not rendered: one page is four times a 600 dpi page and would add minutes to a Debug
-  // or ASan run.
+  // The expected numbers were cross-checked against an independent reproduction of the geometry computation (every
+  // dpi 75..1200) when the rule was written.  After an intended geometry change, re-pin the accepted counts from the
+  // failure message (it prints the count) and re-check the overflow ranges by rendering.  1200 dpi is checked here
+  // and not rendered: one page is four times a 600 dpi page and would add minutes to a Debug or ASan run.
   struct Range {
     int first;
     int last;
@@ -558,7 +559,7 @@ BOOST_AUTO_TEST_CASE(test_dpi_support_rule) {
       }
     }
     if (kind != PageKind::FLAT) {
-      for (const int dpi : {150, 225}) {
+      for (const int dpi : {150, 225, 400, 450}) {
         BOOST_CHECK_MESSAGE(!test_support::dpiSupported(kind, dpi), kindName(kind)
                                                                         << ": " << dpi << " dpi is supported");
       }

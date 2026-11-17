@@ -2,7 +2,6 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include <CylindricalSurfaceDewarper.h>
-#include <ExpectedFailure.h>
 #include <RasterDewarper.h>
 #include <TruthMetrics.h>
 

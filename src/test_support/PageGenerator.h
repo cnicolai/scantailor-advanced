@@ -18,8 +18,8 @@ namespace test_support {
 // Fixture designs.  Geometry is given in base units of 1/300 in and scaled by dpi / 300 (rounded to whole
 // pixels one length at a time, exact at 300 and 600 dpi).  All text is drawn from a 5x7 dot font: one glyph dot
 // is 5 base px, a glyph cell is 6 dots wide (one dot of letter spacing), a text line pitch is 11 dots.  Where
-// the 5 base px dot rounds up, a block outgrows its frame or the page, so such dpi values are refused; see
-// dpiSupported.
+// the 5 base px dot rounds up, a block outgrows its frame or the page, so such dpi values are refused (150,
+// 225, 400 and 450 dpi, for SPREAD, MIXED and CURVED, are examples); see dpiSupported.
 //
 //   FLAT    1000 x 1150.  13 lines of 20 glyph cells with word gaps, block centred on the page.
 //   SPREAD  1654 x 1181.  Two text blocks of 21 cells x 15 lines (frames 640 x 860) with their top-left
@@ -56,9 +56,10 @@ struct PageSpec {
 /**
  * Whether the generator renders a page of the kind at the dpi.  True only for 75 <= dpi <= 1200 where, with every
  * length rounded to whole pixels, each text block lies inside the page and inside its documented frame (FLAT has
- * no frame) and the MIXED picture lies inside the page.  Rounding the 5 base px glyph dot up (at 150 and 225 dpi,
- * for one) makes a block outgrow its frame, so such dpi values are refused rather than drawn with a wrong ground
- * truth or a write outside the raster.  75, 300, 600 and 1200 dpi are always supported.
+ * no frame) and the MIXED picture lies inside the page.  Rounding the 5 base px glyph dot up (at 150, 225, 400 and
+ * 450 dpi, for example, for SPREAD, MIXED and CURVED) makes a block outgrow its frame, so such dpi values are refused
+ * rather than drawn with a wrong ground truth or a write outside the raster.  75, 300, 600 and 1200 dpi are always
+ * supported.
  */
 bool dpiSupported(PageKind kind, int dpi);
 
