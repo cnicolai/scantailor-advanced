@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Completed 06.1-09-PLAN.md
-last_updated: "2026-11-17T22:19:12.781Z"
+stopped_at: Completed 06.1-10-PLAN.md
+last_updated: "2026-11-17T22:53:16.833Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: 273c6748edb7bfb9340f4881d025ff5f218710a9
+state_head: e1e8d985810e71937bf5484cc918071dfc0acd07
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 80
-  completed_plans: 74
+  total_plans: 77
+  completed_plans: 75
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 10 of 12
+Plan: 11 of 12
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -136,6 +136,7 @@ Progress: [██████████] 100%
 | Phase 06.1 P07 | 40 min | 3 tasks | 13 files |
 | Phase 06.1 P08 | 20 min | 2 tasks | 13 files |
 | Phase 06.1 P09 | 25 min | 2 tasks | 12 files |
+| Phase 06.1 P10 | 18min | 2 tasks | 26 files |
 
 ## Accumulated Context
 
@@ -272,6 +273,7 @@ Recent decisions affecting current work:
 - [Phase 06.1]: 06.1-07: harness output guard is one header-only function (harness::outputDirIsStrictlyInside) resolving symlinks before anything is created; empty-batch test removes the only page through the thumbnail context menu because the project reader refuses a project without pages
 - [Phase 06.1]: 06.1-08: include lists of eleven split files pruned by a Release and Debug syntax-only rule; OutputGenerator object code (otool -tV, objdump -s, nm) identical before and after; Phase 6 IN-01 fixed, Phase 6 open 0
 - [Phase 06.1]: 06.1-09: comment-only edits are proven by records/comment_only.py (token streams without comments equal; --strings for the one changed literal), plus gates with diff_lines 0
+- [Phase 06.1]: 06.1-10: only the CONTEXT D-05 regex is checked; bare records pointers in rewritten comments became full .planning paths; HeadlessPipeline.h keeps the PipelineOptions::configure guarantee, the process note is gone
 
 ### Pending Todos
 
@@ -296,6 +298,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T22:19:12.101Z
-Stopped at: Completed 06.1-09-PLAN.md
+Last session: 2026-11-17T22:53:16.213Z
+Stopped at: Completed 06.1-10-PLAN.md
 Resume file: None
