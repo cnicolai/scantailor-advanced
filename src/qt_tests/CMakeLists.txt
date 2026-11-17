@@ -20,7 +20,7 @@ target_link_libraries(
     PRIVATE app_gui core dewarping foundation test_support Qt6::Test Qt6::Core Qt6::Gui Qt6::Widgets)
 target_include_directories(qt_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_SOURCE_DIR}/src")
 # Settings files and temporary files of the tests live in the build tree, as for pipeline_tests.
-# SOURCE_ROOT: the Phase 5 scans (key names, dialog parent flags) read the source tree.
+# SOURCE_ROOT: the source scans of the Mac tests (key names, dialog parent flags) read the source tree.
 target_compile_definitions(
     qt_tests PRIVATE TEST_TMP_ROOT="${CMAKE_BINARY_DIR}/test-tmp" SOURCE_ROOT="${CMAKE_SOURCE_DIR}")
 
@@ -28,4 +28,4 @@ file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test-tmp")
 
 add_test(NAME qt_tests COMMAND qt_tests)
 set_tests_properties(qt_tests PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;LC_ALL=en_US.UTF-8;TMPDIR=${CMAKE_BINARY_DIR}/test-tmp")
+    ENVIRONMENT "LC_ALL=en_US.UTF-8;TMPDIR=${CMAKE_BINARY_DIR}/test-tmp")

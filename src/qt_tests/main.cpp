@@ -23,8 +23,9 @@ int main(int argc, char* argv[]) {
   const QString tmpRoot = QString::fromUtf8(TEST_TMP_ROOT);
   QDir().mkpath(tmpRoot);
 
-  // Two offscreen screens with device pixel ratio 1 and 2 for the Retina tests; a test aid only (D-00c). The
-  // per-screen factors set the window ratio; the "dpr" key of the JSON file would not.
+  // Two offscreen screens with device pixel ratio 1 and 2 for the Retina tests. They are a test aid only: the
+  // application never sets a scale factor. The per-screen factors set the window ratio; the "dpr" key of the
+  // JSON file would not.
   const QString screensFile = tmpRoot + "/offscreen-screens.json";
   {
     const QByteArray screens = R"({"screens":[{"name":"OneX","x":0,"y":0,"width":800,"height":600},)"
@@ -35,6 +36,11 @@ int main(int argc, char* argv[]) {
       return 2;
     }
   }
+  // A scale setting in the developer's shell would multiply the device pixel ratios the tests assert.
+  qunsetenv("QT_SCALE_FACTOR");
+  qunsetenv("QT_ENABLE_HIGHDPI_SCALING");
+  qunsetenv("QT_SCALE_FACTOR_ROUNDING_POLICY");
+  qunsetenv("QT_USE_PHYSICAL_DPI");
   qputenv("QT_QPA_PLATFORM", ("offscreen:configfile=" + screensFile).toUtf8());
   qputenv("QT_SCREEN_SCALE_FACTORS", "OneX=1;TwoX=2");
   qputenv("LC_ALL", "en_US.UTF-8");
