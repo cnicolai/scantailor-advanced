@@ -32,10 +32,10 @@ last_mapped_at: 2026-10-18
 ## Frameworks
 
 **Core:**
-- Qt 6 only (Qt 5 support removed in Phase 3): `find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)`; targets link `Qt6::<Component>` directly.
-  - Modules used: Core, Gui, Widgets, Xml, Network, OpenGL, OpenGLWidgets, Svg, Test. The OpenGL modules stay until Phase 6 (STRIP-07).
+- Qt 6 only (Qt 5 support removed in Phase 3): `find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network Svg Test CONFIG REQUIRED)`; targets link `Qt6::<Component>` directly.
+  - Modules used: Core, Gui, Widgets, Xml, Network, Svg, Test.
   - No LinguistTools: the translation catalogues and their CMake support were removed in Phase 3. `tr()` markers and `.ui` strings stay (D-06).
-- Boost 1.60+ - Header-heavy use: `boost/multi_index`, `boost/function`, `boost/bind`, `boost/lambda`, `boost/intrusive`, `boost/foreach`, `boost/scoped_array`. The `unit_test_framework` component is required when `BUILD_TESTS` is on and links dynamically (`BOOST_TEST_DYN_LINK`).
+- Boost 1.60+ - Header-heavy use: `boost/multi_index`, `boost/function`, `boost/bind`, `boost/lambda`, `boost/intrusive`, `boost/scoped_array`. The `unit_test_framework` component is required when `BUILD_TESTS` is on and links dynamically (`BOOST_TEST_DYN_LINK`).
 
 **Testing:**
 - Boost.Test (`unit_test_framework`) - Seven ctest suites: `foundation_tests`, `math_tests`, `imageproc_tests`, `core_tests`, `qt_tests`, `pipeline_tests`, `dewarping_tests`. Test sources live in `src/*/tests/`, `src/qt_tests/` and `src/pipeline_tests/`; the synthetic page generator and golden store are in `src/test_support/`; goldens are in `src/pipeline_tests/golden/{flat,book,mixed}/`.
@@ -59,7 +59,7 @@ last_mapped_at: 2026-10-18
 - Boost - Containers and utility libraries described above.
 
 **Critical (UI):**
-- Qt 6 (Core, Gui, Widgets, Xml, Svg, OpenGL, OpenGLWidgets, Network) - Application framework. `QSettings` persists preferences and recent projects (`src/core/ApplicationSettings.cpp`, `src/core/RecentProjects.cpp`). `QDomDocument` handles XML project files (`src/core/` uses `QtXml`).
+- Qt 6 (Core, Gui, Widgets, Xml, Svg, Network) - Application framework. `QSettings` persists preferences and recent projects (`src/core/ApplicationSettings.cpp`, `src/core/RecentProjects.cpp`). `QDomDocument` handles XML project files (`src/core/` uses `QtXml`).
 
 **In-tree libraries (not external dependencies):**
 - `src/math/` (including `src/math/spfit/` and `src/math/adiff/` automatic differentiation) - numeric and spline fitting code.
@@ -69,7 +69,6 @@ last_mapped_at: 2026-10-18
 - `src/test_support/` - test-only library: page generator, image comparison, truth metrics, golden store and manifest.
 
 **Infrastructure:**
-- `src/core/OpenGLSupport.cpp` - optional OpenGL context probing, used for the viewer (until Phase 6).
 
 ## Configuration
 

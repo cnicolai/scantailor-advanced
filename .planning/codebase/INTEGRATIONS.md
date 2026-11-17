@@ -22,7 +22,6 @@ ScanTailor Advanced is a desktop application that runs entirely locally. It has 
 
 **Desktop and OS services (via Qt 6):**
 - Qt Svg - Renders SVG icons from `src/resources/light_scheme/icons/` and `src/resources/dark_scheme/icons/`.
-- Qt OpenGL / OpenGLWidgets - Optional accelerated viewer. Probed in `src/core/OpenGLSupport.cpp`. Stays until Phase 6 (STRIP-07).
 - Qt platform plugin - The macOS `cocoa` plugin. The X11/Wayland fallback in `main.cpp` and the `SCANTAILOR_NO_XCB_FALLBACK` variable were removed in Phase 3. The tests select the `offscreen` plugin themselves.
 
 ## Data Storage

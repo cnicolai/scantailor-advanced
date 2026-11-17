@@ -41,8 +41,8 @@ A personal fork (`cnicolai/scantailor-advanced`) of ScanTailor Advanced 1.2.1, t
 
 ## Frameworks
 
-- Qt 6 only (Qt 5 support removed in Phase 3): `find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network OpenGL Svg OpenGLWidgets Test CONFIG REQUIRED)`; targets link `Qt6::<Component>` directly.
-- Boost 1.60+ - Header-heavy use: `boost/multi_index`, `boost/function`, `boost/bind`, `boost/lambda`, `boost/intrusive`, `boost/foreach`, `boost/scoped_array`. The `unit_test_framework` component is required when `BUILD_TESTS` is on and links dynamically (`BOOST_TEST_DYN_LINK`).
+- Qt 6 only (Qt 5 support removed in Phase 3): `find_package(Qt6 6.5 COMPONENTS Core Gui Widgets Xml Network Svg Test CONFIG REQUIRED)`; targets link `Qt6::<Component>` directly.
+- Boost 1.60+ - Header-heavy use: `boost/multi_index`, `boost/function`, `boost/bind`, `boost/lambda`, `boost/intrusive`, `boost/scoped_array`. The `unit_test_framework` component is required when `BUILD_TESTS` is on and links dynamically (`BOOST_TEST_DYN_LINK`).
 - Boost.Test (`unit_test_framework`) - Seven ctest suites: `foundation_tests`, `math_tests`, `imageproc_tests`, `core_tests`, `qt_tests`, `pipeline_tests`, `dewarping_tests`. Test sources live in `src/*/tests/`, `src/qt_tests/` and `src/pipeline_tests/`; the synthetic page generator and golden store are in `src/test_support/`; goldens are in `src/pipeline_tests/golden/{flat,book,mixed}/`.
 - CTest - Test runner, enabled through the `BUILD_TESTS` option (default ON) in `CMakeLists.txt`.
 - `src/app/ui_snapshot` - offscreen UI snapshot tool, built with the tests, not registered with ctest.
@@ -59,13 +59,12 @@ A personal fork (`cnicolai/scantailor-advanced`) of ScanTailor Advanced 1.2.1, t
 - libtiff - TIFF read/write, including multi-page output. `find_package(TIFF REQUIRED)`; `tiffio.h` is included directly in source.
 - zlib - Compression dependency for PNG and TIFF. `find_package(ZLIB REQUIRED)`.
 - Boost - Containers and utility libraries described above.
-- Qt 6 (Core, Gui, Widgets, Xml, Svg, OpenGL, OpenGLWidgets, Network) - Application framework. `QSettings` persists preferences and recent projects (`src/core/ApplicationSettings.cpp`, `src/core/RecentProjects.cpp`). `QDomDocument` handles XML project files (`src/core/` uses `QtXml`).
+- Qt 6 (Core, Gui, Widgets, Xml, Svg, Network) - Application framework. `QSettings` persists preferences and recent projects (`src/core/ApplicationSettings.cpp`, `src/core/RecentProjects.cpp`). `QDomDocument` handles XML project files (`src/core/` uses `QtXml`).
 - `src/math/` (including `src/math/spfit/` and `src/math/adiff/` automatic differentiation) - numeric and spline fitting code.
 - `src/imageproc/` - image processing primitives, including connected components (`ConnComp.h`, `Connectivity.h`) and the binarizer and eraser code.
 - `src/dewarping/` - page dewarping.
 - `src/foundation/` - base types and utilities.
 - `src/test_support/` - test-only library: page generator, image comparison, truth metrics, golden store and manifest.
-- `src/core/OpenGLSupport.cpp` - optional OpenGL context probing, used for the viewer (until Phase 6).
 
 ## Configuration
 

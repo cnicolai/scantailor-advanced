@@ -1727,7 +1727,7 @@ void TestMacQt::testNoDontUseNativeDialog() {
 
 void TestMacQt::testNoOpenGlInSourcesOrBuild() {
   // The Qt OpenGL modules and OpenGLSupport are gone from the sources and the build. The controls prove the search
-  // finds them.
+  // finds them. The project instructions are scanned too, so a stale stack list cannot return.
   const QStringList forbidden{"QOpenGL", "QtOpenGL", "OpenGLSupport", "isOpenGlEnabled", "setOpenGlEnabled"};
   const auto firstForbidden = [&forbidden](const QString& text) {
     for (const QString& word : forbidden) {
@@ -1766,6 +1766,11 @@ void TestMacQt::testNoOpenGlInSourcesOrBuild() {
     QVERIFY2(!cmake.isEmpty(), qPrintable(relative + " is empty or unreadable"));
     QVERIFY2(!cmake.contains(QStringLiteral("OpenGL")), qPrintable(relative + " names OpenGL"));
   }
+
+  const QString instructions = readUtf8(root.filePath(QStringLiteral(".claude/CLAUDE.md")));
+  QVERIFY2(!instructions.isEmpty(), qPrintable(QStringLiteral(".claude/CLAUDE.md is empty or unreadable")));
+  QVERIFY2(!instructions.contains(QStringLiteral("OpenGL"), Qt::CaseInsensitive),
+           qPrintable(QStringLiteral(".claude/CLAUDE.md names OpenGL")));
 
   const QString settingsUi = readUtf8(root.filePath("src/app/SettingsDialog.ui"));
   QVERIFY(!settingsUi.isEmpty());
