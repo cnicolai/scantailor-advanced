@@ -35,9 +35,9 @@
     }
   ],
   "next": {
-    "command": "/gsd-new-milestone",
-    "label": "Start a new milestone",
-    "reason": "All phases complete — start a new milestone"
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 7 of 7 · executing"
   },
-  "updated_at": "2026-11-17T16:04:55.452Z"
+  "updated_at": "2026-11-17T19:39:19.753Z"
 }

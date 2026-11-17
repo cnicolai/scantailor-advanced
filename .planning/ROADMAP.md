@@ -336,13 +336,61 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ### Phase 06.1: Address tech debt: post-audit cleanup (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
+**Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 0 plans
+**Plans:** 15 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 06.1 to break down)
+**Wave 1**
+- [ ] 06.1-01-PLAN.md — Gate reference, gate log, conventions and finding ledger; OpenGL lines out of the project instructions, pinned by the scan test (D-15); token comparison script
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 06.1-02-PLAN.md — Bookkeeping (D-16), moot findings closed with evidence, won't-fix findings with the CONTEXT reasons (D-02, D-09), TESTING.md preset differences (Phase 1 IN-03); disposition checker
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 06.1-03-PLAN.md — Phase 3 IN-01/02/03/07: unused includes, dead LanguageChange handler, Windows comments, unreachable UNC branch pinned by TestRelinkablePath (D-03), dead remove_definitions and ignore rules
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 06.1-04-PLAN.md — Phase 2 IN-01/02/03/04/06: cache test that fails for a reallocating container (D-04), refused dpi values, rounding helper, unused include
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 06.1-05-PLAN.md — Phase 4 IN-01/02/03 and Phase 5 IN-01/06: qt_tests environment, diagnostics wording, tooltips, polled zone-menu test, named scan floors
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 06.1-06-PLAN.md — Own-file read ceiling (D-11), unused unlimited loader deleted and own-file loader renamed (D-12), forged cached output regenerated in a pipeline test, Phase 6 IN-02/03 docs
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 06.1-07-PLAN.md — Canonical harness output guard and ui_snapshot argument parser (D-08), empty batch stops cleanly (D-14)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 06.1-08-PLAN.md — Include lists of the split OutputGenerator and MainWindow files trimmed, output object code proven unchanged (Phase 6 IN-01)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 06.1-09-PLAN.md — D-05 comment rewrite, build files and app/harness sources; comment-only proof script; closes Phase 4 IN-04
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 06.1-10-PLAN.md — D-05 comment rewrite, core, module tests, qt_tests and scenario tests
+
+**Wave 11** *(blocked on Wave 10 completion)*
+- [ ] 06.1-11-PLAN.md — D-05 comment rewrite, test_support and remaining pipeline tests; closes Phase 2 IN-05
+
+**Wave 12** *(blocked on Wave 11 completion)*
+- [ ] 06.1-12-PLAN.md — UBSan reports fixed in code, macos-asan fails on any report, macos-asan-collect keeps the collect run (D-10, Phase 1 WR-01)
+
+**Wave 13** *(blocked on Wave 12 completion)*
+- [ ] 06.1-13-PLAN.md — SANITIZE validated and quoted (D-06), self-standing Clang block comments (Phase 3 WR-02, Phase 1 IN-04), macOS-only presets with typed booleans (Phase 1 IN-02)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+- [ ] 06.1-14-PLAN.md — Boost through its config targets (D-07, Phase 1 WR-04); one-off -ffp-contract=on measurement against every golden (D-13, Phase 1 WR-02)
+
+**Wave 15** *(blocked on Wave 14 completion)*
+- [ ] 06.1-15-PLAN.md — Closing greps (every planning-ID family), gate coverage and input-neutral proof of ungated commits, formatting, final strict sanitizer run, last stale notes corrected
+
+**Cross-cutting constraints:** <!-- gsd:generated -->
+- Both commits pass the gate with empty command diffs and unchanged goldens (D-00a)
+- Each of the three commits passes the gate with an empty command diff and unchanged goldens (D-00a)
+- Both commits pass the gate with diff_lines=0 and unchanged goldens (D-00a)
 
 ### Phase 999.1: Global binarizers reject Format_Grayscale8 input (BACKLOG)
 
