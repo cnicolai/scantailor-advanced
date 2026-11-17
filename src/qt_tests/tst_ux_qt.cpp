@@ -352,17 +352,19 @@ class RecordingThumbnailHandler : public ThumbnailPixmapCache::CompletionHandler
 };
 
 // Requests the thumbnail of one file through the cache (a background thread loads the source image) and waits for
-// the completion handler. The peak footprint growth is measured around the whole request.
+// the completion handler. The footprint growth is sampled during the whole request (current footprint, not the
+// process peak, which an earlier test may have left high), including the thumbnail thread.
 void requestThumbnail(const QString& filePath,
                       const QString& thumbDir,
                       ThumbnailLoadResult::Status* status,
-                      qint64* peakGrowthBytes) {
+                      qint64* footprintGrowthBytes) {
   QVERIFY(QDir().mkpath(thumbDir));
   ThumbnailPixmapCache cache(thumbDir, QSize(100, 100), 5, 3);
   const auto handler = std::make_shared<RecordingThumbnailHandler>();
   QPixmap pixmap;
 
-  const qint64 peakBefore = test_support::peakPhysFootprintBytes();
+  test_support::FootprintSampler sampler;
+  QVERIFY(sampler.valid());
   const ThumbnailPixmapCache::Status requested
       = cache.loadRequest(ImageId(filePath), pixmap, std::weak_ptr<ThumbnailPixmapCache::CompletionHandler>(handler));
   if (requested == ThumbnailPixmapCache::QUEUED) {
@@ -372,7 +374,7 @@ void requestThumbnail(const QString& filePath,
     *status
         = (requested == ThumbnailPixmapCache::LOADED) ? ThumbnailLoadResult::LOADED : ThumbnailLoadResult::LOAD_FAILED;
   }
-  *peakGrowthBytes = test_support::peakPhysFootprintBytes() - peakBefore;
+  *footprintGrowthBytes = sampler.stop();
 }
 
 }  // namespace
@@ -394,7 +396,7 @@ void TestUxQt::testOversizedThumbnailFails() {
   QCOMPARE(int(status), int(ThumbnailLoadResult::LOAD_FAILED));
   QVERIFY2(QDir(forgedThumbs).entryList(QDir::Files | QDir::NoDotAndDotDot).isEmpty(),
            "a refused source image must leave no thumbnail file");
-  QVERIFY2(growth < kBoundBytes, qPrintable(QString("peak footprint grew by %1 bytes").arg(growth)));
+  QVERIFY2(growth < kBoundBytes, qPrintable(QString("footprint grew by %1 bytes").arg(growth)));
 
   // Control: a normal file gives a thumbnail and a file.
   const QString normalThumbs = dir.filePath("thumbs-normal");

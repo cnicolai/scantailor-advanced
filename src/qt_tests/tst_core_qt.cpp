@@ -44,20 +44,21 @@ QImage loadFrom(const QByteArray& bytes) {
   return ImageLoader::loadSource(buffer, 0);
 }
 
-// Refusing the forged file must return a null image quickly and without growing the peak footprint.
+// Refusing the forged file must return a null image quickly and without growing the footprint. The current
+// footprint is sampled during the call; the process peak would stay above any regression after an earlier test.
 void verifyRefusedWithoutAllocating(const QByteArray& bytes) {
   QVERIFY(!bytes.isEmpty());
-  const qint64 peakBefore = test_support::peakPhysFootprintBytes();
-  QVERIFY(peakBefore >= 0);
+  test_support::FootprintSampler sampler;
+  QVERIFY(sampler.valid());
   QElapsedTimer timer;
   timer.start();
   const QImage image = loadFrom(bytes);
   const qint64 elapsedMs = timer.elapsed();
-  const qint64 peakAfter = test_support::peakPhysFootprintBytes();
+  const qint64 growth = sampler.stop();
 
   QVERIFY(image.isNull());
   QVERIFY2(elapsedMs < kTimeBoundMs, qPrintable(QString::number(elapsedMs) + " ms"));
-  QVERIFY2(peakAfter - peakBefore < kFootprintBoundBytes, qPrintable(QString::number(peakAfter - peakBefore)));
+  QVERIFY2(growth < kFootprintBoundBytes, qPrintable(QString::number(growth)));
 }
 
 // Header-only metadata of a file, with the loader status.

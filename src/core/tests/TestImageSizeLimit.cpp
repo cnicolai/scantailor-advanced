@@ -63,7 +63,7 @@ QImage loadOwnFile(const QByteArray& bytes, const int page) {
 }
 
 // The forgery must parse (so libtiff accepts it and the claimed size is what the reader sees), and the reader
-// must refuse it with a null image, quickly and without growing the peak footprint.
+// must refuse it with a null image, quickly and without growing the footprint.
 void checkRefusedWithoutAllocating(const ForgedTiffPage& page) {
   const QByteArray bytes = forgedTiff({page});
   BOOST_REQUIRE(!bytes.isEmpty());
@@ -72,16 +72,18 @@ void checkRefusedWithoutAllocating(const ForgedTiffPage& page) {
   BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
   BOOST_CHECK(sizes[0] == QSize(int(page.width), int(page.height)));
 
-  const qint64 peakBefore = test_support::peakPhysFootprintBytes();
-  BOOST_REQUIRE(peakBefore >= 0);
+  // The current footprint is sampled during the call, not the process peak, which an earlier test case may have
+  // left above anything a regression would allocate here.
+  test_support::FootprintSampler sampler;
+  BOOST_REQUIRE(sampler.valid());
   QElapsedTimer timer;
   timer.start();
   const QImage image = readPage(bytes, 0);
   const qint64 elapsedMs = timer.elapsed();
-  const qint64 peakAfter = test_support::peakPhysFootprintBytes();
+  const qint64 growth = sampler.stop();
 
   BOOST_CHECK(image.isNull());
-  BOOST_CHECK_LT(peakAfter - peakBefore, kFootprintBoundBytes);
+  BOOST_CHECK_LT(growth, kFootprintBoundBytes);
   BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
 }
 
@@ -95,8 +97,6 @@ QImage readFirstPage(const ForgedTiffPage& page) {
 
 BOOST_AUTO_TEST_SUITE(CoreImageSizeLimitTestSuite)
 
-// The refusal cases come first: the peak footprint is a high-water mark, and the boundary loads below allocate
-// up to 64 MB.
 BOOST_AUTO_TEST_CASE(test_forged_mono_tiff_is_refused_without_allocating) {
   checkRefusedWithoutAllocating({100000, 100000, 1, 1, false});
 }
@@ -138,18 +138,18 @@ BOOST_AUTO_TEST_CASE(test_forged_progressive_jpeg_metadata_is_fast_and_small) {
   const QByteArray bytes = forgedJpeg(65500, 65500, true);
   BOOST_REQUIRE(!bytes.isEmpty());
 
-  const qint64 peakBefore = test_support::peakPhysFootprintBytes();
-  BOOST_REQUIRE(peakBefore >= 0);
+  test_support::FootprintSampler sampler;
+  BOOST_REQUIRE(sampler.valid());
   QElapsedTimer timer;
   timer.start();
   const std::vector<QSize> sizes = pageSizes(bytes);
   const qint64 elapsedMs = timer.elapsed();
-  const qint64 peakAfter = test_support::peakPhysFootprintBytes();
+  const qint64 growth = sampler.stop();
 
   BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
   BOOST_CHECK(sizes[0] == QSize(65500, 65500));
   BOOST_CHECK(ImageSizeLimit::exceeds(sizes[0]));
-  BOOST_CHECK_LT(peakAfter - peakBefore, kFootprintBoundBytes);
+  BOOST_CHECK_LT(growth, kFootprintBoundBytes);
   BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
 }
 
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(test_forged_baseline_jpeg_metadata_reports_claimed_size) {
 }
 
 BOOST_AUTO_TEST_CASE(test_small_progressive_jpeg_metadata_is_unchanged) {
-  // Inside the limit the loader still decompresses as before and reports the true size.
+  // Inside the limit the loader reports the true size.
   const QByteArray bytes = forgedJpeg(64, 64, true);
   BOOST_REQUIRE(!bytes.isEmpty());
 
