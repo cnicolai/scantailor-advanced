@@ -247,7 +247,12 @@ PipelineResult runPipeline(const QImage& input, const PipelineOptions& options) 
     if (options.configure) {
       options.configure(ctx.settings, pageId);
     }
-    runChain(ctx, PageInfo(pageId, ctx.metadata, numSubPages, false, false), end);
+    const PageInfo pageInfo(pageId, ctx.metadata, numSubPages, false, false);
+    runChain(ctx, pageInfo, end);
+    if (end == ChainEnd::OUTPUT && options.beforeOutputRerun) {
+      options.beforeOutputRerun(ctx.settings, pageId, ctx.outFileNameGen.filePathFor(pageId));
+      runChain(ctx, pageInfo, end);
+    }
     result.pages.push_back(readResults(ctx, pageId, end));
   }
   return result;

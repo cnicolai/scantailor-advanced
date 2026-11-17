@@ -2,12 +2,21 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 
 #include <Dpi.h>
+#include <ForgedImages.h>
+#include <ImageLoader.h>
 #include <PageGenerator.h>
+#include <TiffWriter.h>
 #include <TruthMetrics.h>
 #include <filters/output/DewarpingOptions.h>
+#include <filters/output/OutputFileParams.h>
+#include <filters/output/OutputParams.h>
 #include <filters/output/Params.h>
 #include <filters/page_split/LayoutType.h>
 
+#include <QBuffer>
+#include <QByteArray>
+#include <QFile>
+#include <QFileInfo>
 #include <QImage>
 #include <QRgb>
 #include <QString>
@@ -54,6 +63,29 @@ long colourfulPixels(const QImage& image) {
     }
   }
   return count;
+}
+
+// Replaces the file by \p bytes and pads it with zero bytes up to its old size. The output stage's cache check
+// compares the stored byte size only, and TIFF readers ignore bytes after the last directory, so the replaced file
+// reaches the loader instead of being rejected by the cache check.
+void replaceKeepingSize(const QString& path, const QByteArray& bytes) {
+  const qint64 oldSize = QFileInfo(path).size();
+  BOOST_REQUIRE_MESSAGE(QFileInfo::exists(path), "the output file does not exist");
+  BOOST_REQUIRE_LT(qint64(bytes.size()), oldSize);
+
+  QFile file(path);
+  BOOST_REQUIRE(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+  BOOST_REQUIRE_EQUAL(file.write(bytes), qint64(bytes.size()));
+  BOOST_REQUIRE_EQUAL(file.write(QByteArray(int(oldSize) - bytes.size(), '\0')), oldSize - bytes.size());
+  file.close();
+  BOOST_REQUIRE_EQUAL(QFileInfo(path).size(), oldSize);
+}
+
+// The replaced file must pass the cache check, so that the second run gets as far as reading it.
+void requireCacheAccepts(StageSettings& settings, const PageId& pageId, const QString& path) {
+  const std::unique_ptr<output::OutputParams> stored = settings.output->getOutputParams(pageId);
+  BOOST_REQUIRE(stored != nullptr);
+  BOOST_REQUIRE(stored->outputFileParams().matches(output::OutputFileParams(QFileInfo(path))));
 }
 
 }  // namespace
@@ -143,6 +175,62 @@ BOOST_AUTO_TEST_CASE(test_configure_hook_runs) {
   BOOST_REQUIRE_EQUAL(result.pages.size(), 1u);
   BOOST_CHECK_EQUAL(result.pages.front().outputDpiX, 400);
   BOOST_CHECK_EQUAL(result.pages.front().outputDpiY, 400);
+}
+
+BOOST_AUTO_TEST_CASE(test_forged_cached_output_is_regenerated) {
+  // The second run reads the forged file through the own-file loader, the own-file ceiling refuses its header, and
+  // the null image makes the output stage write the page again. runPipeline reads the output back with the same
+  // loader and would throw on the forged file, so a normal return with the first output means the page was
+  // regenerated. This case carries no footprint bound on purpose: the loader-level cases of the size-limit suite
+  // measure the allocation, and a run without the ceiling would decode a 1.25 GB image here.
+  const test_support::GeneratedPage page = generate(test_support::PageKind::FLAT, 1.5);
+
+  int calls = 0;
+  QImage firstOutput;
+  PipelineOptions options;
+  options.outputDpi = 300;
+  options.beforeOutputRerun
+      = [&calls, &firstOutput](StageSettings& settings, const PageId& pageId, const QString& path) {
+          ++calls;
+          firstOutput = ImageLoader::loadOwnFile(path, 0);
+          BOOST_REQUIRE(!firstOutput.isNull());
+          replaceKeepingSize(path, test_support::forgedTiff({{100000, 100000, 1, 1, false}}));
+          requireCacheAccepts(settings, pageId, path);
+        };
+  const PipelineResult result = runPipeline(page.image, options);
+
+  BOOST_CHECK_EQUAL(calls, 1);
+  BOOST_REQUIRE_EQUAL(result.pages.size(), 1u);
+  BOOST_CHECK(result.pages.front().output == firstOutput);
+}
+
+BOOST_AUTO_TEST_CASE(test_valid_cached_output_is_read_back) {
+  // The second run takes the cached file when the loader accepts it, so the regeneration in the forged case comes
+  // from the refused load and not from a mismatch in the cache check.
+  const test_support::GeneratedPage page = generate(test_support::PageKind::FLAT, 1.5);
+
+  QImage tiny(16, 16, QImage::Format_Mono);
+  tiny.fill(1);
+  QByteArray tinyTiff;
+  {
+    QBuffer buffer(&tinyTiff);
+    BOOST_REQUIRE(buffer.open(QIODevice::WriteOnly));
+    BOOST_REQUIRE(TiffWriter::writeImage(buffer, tiny));
+  }
+
+  int calls = 0;
+  PipelineOptions options;
+  options.outputDpi = 300;
+  options.beforeOutputRerun = [&calls, &tinyTiff](StageSettings& settings, const PageId& pageId, const QString& path) {
+    ++calls;
+    replaceKeepingSize(path, tinyTiff);
+    requireCacheAccepts(settings, pageId, path);
+  };
+  const PipelineResult result = runPipeline(page.image, options);
+
+  BOOST_CHECK_EQUAL(calls, 1);
+  BOOST_REQUIRE_EQUAL(result.pages.size(), 1u);
+  BOOST_CHECK(result.pages.front().outputSize == QSize(16, 16));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -19,6 +19,7 @@
 #include <QRect>
 #include <QRectF>
 #include <QSize>
+#include <QString>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -43,6 +44,10 @@ struct PipelineOptions {
   int outputDpi = 600;  // app default, set explicitly
   LastStage lastStage = LastStage::OUTPUT;
   std::function<void(StageSettings&, const PageId&)> configure;  // called after defaults, before processing
+  // When set, called per sub-page after the output stage wrote its file, with that file's path. The chain then runs
+  // once more on the same project, as when the page is opened again in the application, and the results are read
+  // after that second run. When it is not set, nothing changes.
+  std::function<void(StageSettings&, const PageId&, const QString&)> beforeOutputRerun;
 };
 
 struct SubPageResult {
