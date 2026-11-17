@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-11-17T09:20:25.747Z"
+stopped_at: Completed 06-06-PLAN.md
+last_updated: "2026-11-17T09:41:43.375Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: a2ffc1f9ce6f0dfe7fe03fb1f6e96050fa33b196
+state_head: 2e177aa37324c7172d0cd4fbe3389a9454d272d8
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 54
+  completed_plans: 55
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 6 of 16
+Plan: 7 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -115,6 +115,7 @@ Progress: [████████░░] 83%
 | Phase 06 P03 | 20 min | 1 tasks | 13 files |
 | Phase 06 P04 | 20 min | 2 tasks | 14 files |
 | Phase 06 P05 | 25 min | 1 tasks | 10 files |
+| Phase 06 P06 | 20 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -222,6 +223,9 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-04: forged header-only test pages are one raw strip (no scanline buffer of the claimed width); every reader call in tests uses a fresh QBuffer because the TIFF reader closes its device
 - [Phase 06]: 06-05: the ImageLoader size check is pinned by a real 65536 x 1 grey PNG, because Qt's raised 2048 MB limit already refuses a forged 100000 x 100000 PNG
 - [Phase 06]: 06-05: PngMetadataLoader lifts libpng's per-side user limit and reports the claimed size, so PNG, JPEG and TIFF share one verdict
+- [Phase 06]: 06-06: a file with one oversized page is refused as a whole in the project file dialog and the insert flow; the existing failure text stays and the limit line is appended only for too-large files
+- [Phase 06]: 06-06: int audit closes A2 (47 candidate lines, no pixel/element/byte count above 2147483647 for an accepted source image); ceiling stays 536870911 px, 2^30 would be possible later but needs Qt limit 4096 MB
+- [Phase 06]: 06-06: seven non-size int products (DetectVertContentBounds.cpp:138, ContentBoxFinder.cpp:60/66, ProjectPages.cpp:208 and others) are recorded in safe-01.md, not changed
 
 ### Pending Todos
 
@@ -242,6 +246,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T09:20:25.357Z
-Stopped at: Completed 06-05-PLAN.md
+Last session: 2026-11-17T09:41:42.993Z
+Stopped at: Completed 06-06-PLAN.md
 Resume file: None
