@@ -12,6 +12,8 @@ ctest --preset macos-asan
 
 Each preset needs its own build first (`cmake --preset <preset>` and `cmake --build --preset <preset>`). A run is good when ctest prints `100% tests passed out of 7`. Release and Debug must both pass before a code change is committed; Debug is the slow one, mostly because of `pipeline_tests`.
 
+`macos-debug` and `macos-asan` are Debug builds. They are not optimised, keep assertions active and define `ENABLE_DEBUG_FEATURES`, because the `DEVELOPER_VERSION` option defaults to on for Debug; that adds the Debug Mode entry to the Tools menu and the part of the menu test that expects it. `macos-asan` also sets `SANITIZE=address,undefined`. The goldens are recorded from `macos-release` and must pass unchanged under Debug as well, which is why both presets gate a commit.
+
 Two suites create a Qt application, `pipeline_tests` and `qt_tests`. `pipeline_tests` runs on the single-screen offscreen platform. `qt_tests` runs offscreen with two screens, `OneX` at device pixel ratio 1 and `TwoX` at ratio 2: it writes the screen layout to `build/<preset>/test-tmp/offscreen-screens.json` and scales the screens with `QT_SCREEN_SCALE_FACTORS="OneX=1;TwoX=2"`. That variable is a test aid only; the app never sets a scale factor. Both suites set `LC_ALL=en_US.UTF-8` and `TMPDIR` themselves, and they keep their settings and temporary files in `build/<preset>/test-tmp`. No test touches the settings or profiles of the installed application.
 
 A single suite runs with ctest's regular filter, for example `ctest --preset macos-release -R core_tests`, or directly from the build directory, for example `build/macos-release/core_tests --log_level=message`.
