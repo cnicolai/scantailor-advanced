@@ -256,7 +256,7 @@ Plans:
   4. The OpenGL option is gone from Settings, the build no longer links the Qt OpenGL modules, and the colour-picker test still passes
   5. `OutputGenerator.cpp` and `MainWindow.cpp` are split into smaller files, "Save project as" exists as one shared flow, and no dead `#if 0` blocks or unused `boost/foreach.hpp` includes remain. The full `ctest` suite passes with baselines unchanged, and the Phase 5 menus and shortcuts behave exactly as before
 
-**Plans**: 7/16 plans executed
+**Plans**: 8/16 plans executed
 
 Plans:
 **Wave 1**
@@ -281,7 +281,7 @@ Plans:
 - [x] 06-07-PLAN.md — Control characters in names escaped only when needed, unusual-name matrix, backslash per D-10, FIXME resolved (SAFE-02)
 
 **Wave 8** *(blocked on Wave 7 completion)*
-- [ ] 06-08-PLAN.md — Worker threads capped by RAM and the largest page through one cap function (batchMemoryCap) at batch start; cap arithmetic incl. the D-08 page pinned (SAFE-03)
+- [x] 06-08-PLAN.md — Worker threads capped by RAM and the largest page through one cap function (batchMemoryCap) at batch start; cap arithmetic incl. the D-08 page pinned (SAFE-03)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 - [ ] 06-09-PLAN.md — Slider tooltip with the memory limit, shared setting reader, opt-in peak and batch memory probes on the real batch path (SAFE-03)
@@ -326,7 +326,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Qt 6 and macOS Only | 9/9 | Complete    | 2026-10-24 |
 | 4. Retina Rendering | 8/8 | Complete    | 2026-10-25 |
 | 5. Mac Menus and Shortcuts | 11/11 | Complete    | 2026-11-15 |
-| 6. Hardening and Cleanup | 7/16 | In Progress | - |
+| 6. Hardening and Cleanup | 8/16 | In Progress | - |
 
 ---
 *Roadmap created: 2026-10-18*
