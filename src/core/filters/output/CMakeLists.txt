@@ -21,6 +21,8 @@ set(sources
     Task.cpp Task.h
     CacheDrivenTask.cpp CacheDrivenTask.h
     OutputGenerator.cpp OutputGenerator.h
+    OutputGeneratorBinarize.cpp
+    OutputGeneratorDewarp.cpp
     OutputGeneratorNoDewarp.cpp
     OutputGeneratorPixelOps.h
     OutputGeneratorProcessor.h
