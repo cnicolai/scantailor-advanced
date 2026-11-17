@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Completed 06.1-05-PLAN.md
-last_updated: "2026-11-17T20:47:18.265Z"
+stopped_at: Completed 06.1-06-PLAN.md
+last_updated: "2026-11-17T21:11:26.451Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: d004d6e322df3928c1bac45a67b73bb899b05746
+state_head: 734609ca98d17dc4d53969c4efd94aa4e1890aee
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 80
-  completed_plans: 70
+  completed_plans: 71
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 6 of 15
+Plan: 7 of 15
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -132,6 +132,7 @@ Progress: [██████████] 100%
 | Phase 06.1 P03 | 14 min | 2 tasks | 13 files |
 | Phase 06.1 P04 | 25 min | 2 tasks | 5 files |
 | Phase 06.1 P05 | 25 min | 3 tasks | 11 files |
+| Phase 06.1 P06 | 45 min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -264,6 +265,7 @@ Recent decisions affecting current work:
 - [Phase 06.1]: 06.1-03: UNC branch of RelinkablePathVisualization deleted after TestRelinkablePath pinned that // and backslash host paths normalise to one slash; MainWindow::changeEvent deleted
 - [Phase 06.1]: 06.1-04: cache test adds 17 low-dpi spread pages and was shown red with a vector cache; refused dpi 150/225/400/450 pinned; scaled() rounds like the generator
 - [Phase 06.1]: 06.1-05: IN-01 closed by one shared diagnostics wording, no friend accessor; after a popup closes offscreen a test re-activates the window before checking keyboard focus
+- [Phase 06.1]: 06.1-06: own files use a constant read ceiling (fewer than 2^30 px, 131070 px per side); ImageLoader::load renamed loadOwnFile, load(const ImageId&) deleted; in-ceiling forged header accepted as residual (T-06.1-08)
 
 ### Pending Todos
 
@@ -288,6 +290,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T20:47:17.571Z
-Stopped at: Completed 06.1-05-PLAN.md
+Last session: 2026-11-17T21:11:25.872Z
+Stopped at: Completed 06.1-06-PLAN.md
 Resume file: None
