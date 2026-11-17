@@ -242,7 +242,7 @@ static void convertAbgrToArgb(const uint32_t* src, uint32_t* dst, int count) {
   }
 }
 
-QImage TiffReader::readImage(QIODevice& device, const int pageNum) {
+QImage TiffReader::readImage(QIODevice& device, const int pageNum, const bool enforceSizeLimit) {
   if (!device.isReadable()) {
     return QImage();
   }
@@ -272,8 +272,9 @@ QImage TiffReader::readImage(QIODevice& device, const int pageNum) {
 
   // Header values are checked before any pixel buffer exists. A null image, not std::bad_alloc, is the failure
   // contract here, so the out-of-memory handler does not fire for a forged header. Negative sides are header
-  // values of 2^31 or more.
-  if (metadata.size().width() <= 0 || metadata.size().height() <= 0 || ImageSizeLimit::exceeds(metadata.size())) {
+  // values of 2^31 or more. The limit is for source scans only: the application's own output may exceed it.
+  if (metadata.size().width() <= 0 || metadata.size().height() <= 0
+      || (enforceSizeLimit && ImageSizeLimit::exceeds(metadata.size()))) {
     return QImage();
   }
 

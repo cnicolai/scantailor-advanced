@@ -26,9 +26,11 @@ class TiffReader {
    *        opened for reading and must be seekable.
    * \param pageNum A zero-based page number within a multi-page
    *        TIFF file.
+   * \param enforceSizeLimit Refuse a page whose header claims more than ImageSizeLimit allows. True for the
+   *        user's source scans; false for files the application wrote itself, which may be larger.
    * \return The resulting image, or a null image in case of failure.
    */
-  static QImage readImage(QIODevice& device, int pageNum = 0);
+  static QImage readImage(QIODevice& device, int pageNum = 0, bool enforceSizeLimit = true);
 
  private:
   class TiffHeader;

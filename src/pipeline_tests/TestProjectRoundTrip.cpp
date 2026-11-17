@@ -253,7 +253,7 @@ void runPageSplit(StageSequence& stages, const PageSequence& sequence) {
         = stages.pageSplitFilter()->createTask(page, nullptr, /*batchProcessing=*/true, /*debug=*/false);
     const auto fixOrientationTask
         = stages.fixOrientationFilter()->createTask(page.id(), pageSplitTask, /*batchProcessing=*/true);
-    fixOrientationTask->process(NullTaskStatus(), FilterData(ImageLoader::load(page.id().imageId())));
+    fixOrientationTask->process(NullTaskStatus(), FilterData(ImageLoader::loadSource(page.id().imageId())));
   }
 }
 

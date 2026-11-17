@@ -194,7 +194,7 @@ PipelineResult runPipeline(const QImage& input, const PipelineOptions& options) 
   RunContext ctx;
   ctx.imageId = ImageId(inputPath);
   // Read the input back the way the application does, which also takes the dpi from the file metadata.
-  ctx.image = ImageLoader::load(ctx.imageId);
+  ctx.image = ImageLoader::loadSource(ctx.imageId);
   if (ctx.image.isNull() || ctx.image.size() != input.size()) {
     fail("cannot read back " + inputPath);
   }

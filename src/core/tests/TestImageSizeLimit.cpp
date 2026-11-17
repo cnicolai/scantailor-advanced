@@ -12,6 +12,7 @@
 #include <QBuffer>
 #include <QElapsedTimer>
 #include <QImage>
+#include <QImageWriter>
 #include <QSize>
 #include <QString>
 #include <boost/test/unit_test.hpp>
@@ -51,6 +52,12 @@ QImage readPage(const QByteArray& bytes, const int page) {
 }
 
 QImage loadPage(const QByteArray& bytes, const int page) {
+  QBuffer buffer;
+  return ImageLoader::loadSource(*openBuffer(buffer, bytes), page);
+}
+
+// The loader for files the application wrote itself: no size limit.
+QImage loadOwnFile(const QByteArray& bytes, const int page) {
   QBuffer buffer;
   return ImageLoader::load(*openBuffer(buffer, bytes), page);
 }
@@ -218,6 +225,36 @@ BOOST_AUTO_TEST_CASE(test_tiff_side_boundary) {
 
   // Refused on the header alone, whatever the page holds.
   BOOST_CHECK(readFirstPage({65536, 1, 1, 1, false}).isNull());
+}
+
+BOOST_AUTO_TEST_CASE(test_own_files_are_not_limited_but_source_files_are) {
+  // The application's own output may be larger than its source (an output at a high dpi), so the loader for
+  // such files must not apply the limit; the loader for source scans must. The files are real and tiny: a
+  // 65536 px wide line is one over the limit per side and costs 8 KB as a bilevel TIFF. A forged header is
+  // never read without the limit, because that read would allocate the claimed size.
+  const QByteArray tiff = forgedTiff({{65536, 1, 1, 1, true}});
+  BOOST_REQUIRE(!tiff.isEmpty());
+  BOOST_REQUIRE(ImageSizeLimit::exceeds(QSize(65536, 1)));
+
+  BOOST_CHECK(loadPage(tiff, 0).isNull());
+  const QImage own = loadOwnFile(tiff, 0);
+  BOOST_REQUIRE(!own.isNull());
+  BOOST_CHECK(own.size() == QSize(65536, 1));
+
+  // The same through the general loader for a format Qt reads.
+  QImage line(QSize(65536, 1), QImage::Format_Grayscale8);
+  line.fill(Qt::white);
+  QByteArray png;
+  {
+    QBuffer writeBuffer(&png);
+    BOOST_REQUIRE(writeBuffer.open(QIODevice::WriteOnly));
+    QImageWriter writer(&writeBuffer, "PNG");
+    BOOST_REQUIRE(writer.write(line));
+  }
+  BOOST_CHECK(loadPage(png, 0).isNull());
+  const QImage ownPng = loadOwnFile(png, 0);
+  BOOST_REQUIRE(!ownPng.isNull());
+  BOOST_CHECK(ownPng.size() == QSize(65536, 1));
 }
 
 BOOST_AUTO_TEST_CASE(test_tiff_total_boundary) {

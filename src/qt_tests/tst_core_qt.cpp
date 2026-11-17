@@ -41,7 +41,7 @@ QImage loadFrom(const QByteArray& bytes) {
   if (!buffer.open(QIODevice::ReadOnly)) {
     return QImage();
   }
-  return ImageLoader::load(buffer, 0);
+  return ImageLoader::loadSource(buffer, 0);
 }
 
 // Refusing the forged file must return a null image quickly and without growing the peak footprint.

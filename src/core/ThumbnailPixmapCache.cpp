@@ -692,7 +692,7 @@ QImage ThumbnailPixmapCache::Impl::loadSaveThumbnail(const ImageId& imageId,
     return image;
   }
 
-  image = ImageLoader::load(imageId);
+  image = ImageLoader::loadSource(imageId);
   if (image.isNull()) {
     return QImage();
   }

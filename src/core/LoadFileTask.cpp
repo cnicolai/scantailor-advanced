@@ -58,7 +58,7 @@ LoadFileTask::LoadFileTask(Type type,
 LoadFileTask::~LoadFileTask() = default;
 
 FilterResultPtr LoadFileTask::operator()() {
-  QImage image = ImageLoader::load(m_imageId);
+  QImage image = ImageLoader::loadSource(m_imageId);
 
   try {
     throwIfCancelled();
