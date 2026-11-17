@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 06
 current_phase_name: Hardening and Cleanup
 status: executing
-stopped_at: Completed 06-09-PLAN.md
-last_updated: "2026-11-17T10:27:30.531Z"
+stopped_at: Completed 06-10-PLAN.md
+last_updated: "2026-11-17T10:37:46.478Z"
 last_activity: 2026-11-16
 last_activity_desc: Phase 06 execution resumed (wave continue)
-state_head: 8ebe010a717dd0e9f667409fc6a0f2ed814df7fa
+state_head: e38bd1feb2b54fe72ac23610ef1eb6e66e27360b
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 65
-  completed_plans: 58
+  completed_plans: 59
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 06 (Hardening and Cleanup) — EXECUTING
-Plan: 10 of 16
+Plan: 11 of 16
 Status: Ready to execute
 Last activity: 2026-11-16 — Phase 06 execution resumed (wave continue)
 
@@ -119,6 +119,7 @@ Progress: [████████░░] 83%
 | Phase 06 P07 | 20 min | 2 tasks | 11 files |
 | Phase 06 P08 | 25 min | 1 tasks | 11 files |
 | Phase 06 P09 | 95min | 2 tasks | 13 files |
+| Phase 06 P10 | 35 min | 1 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -234,6 +235,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-08: memory cap = half of hw.memsize / (40 B x largest page pixels at max(source, 600 dpi output)); one function MemoryBudget::batchMemoryCap shared by the app and the batch probe; cap set at every startBatchProcessing
 - [Phase 06]: Tooltip wording is "<n>/<max>, limited to <cap> by memory", English only; the cap changes the tooltip only and never the slider range or the stored setting (D-00c, D-07)
 - [Phase 06]: The D-08 memory proof runs on the real batch path: a batch probe drives LoadFileTask-wrapped stage chains through a real WorkerThreadPool capped by MemoryBudget::batchMemoryCap; the large run waits for the user go in plan 06-16
+- [Phase 06]: 06-10: the OpenGL viewer option is removed from Settings, ApplicationSettings, ImageViewBase and the colour picker; a stored enable_opengl value stays untouched (D-00c); OpenGLSupport and the Qt OpenGL modules go in 06-11
 
 ### Pending Todos
 
@@ -254,6 +256,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T10:27:30.074Z
-Stopped at: Completed 06-09-PLAN.md
+Last session: 2026-11-17T10:37:46.026Z
+Stopped at: Completed 06-10-PLAN.md
 Resume file: None
