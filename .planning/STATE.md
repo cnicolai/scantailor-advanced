@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Completed 06.1-01-PLAN.md
-last_updated: "2026-11-17T19:49:45.759Z"
+stopped_at: Completed 06.1-02-PLAN.md
+last_updated: "2026-11-17T19:53:05.715Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: c8e0eab3d13ccdc861ab4bc0b8018640f1e69551
+state_head: c89a9b3222736a3bae83555b06d05cac9aca5ac5
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 80
-  completed_plans: 66
+  completed_plans: 67
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 2 of 15
+Plan: 3 of 15
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -128,6 +128,7 @@ Progress: [██████████] 100%
 | Phase 06 P15 | 40 min | 3 tasks | 14 files |
 | Phase 06 P16 | 65 min | 3 tasks | 4 files |
 | Phase 06.1 P01 | 25 min | 2 tasks | 6 files |
+| Phase 06.1 P02 | 1 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -256,6 +257,7 @@ Recent decisions affecting current work:
 - [Phase 06]: Memory estimate of 40 B per pixel kept after the D-08 run: one 165.6 MP page peaked at 4909 MiB of 6317, the capped batch (cap 5 of 10 threads) at 17737 MiB of 32768, swap 0
 - [Phase 06]: Review fixes after verification: the size limit applies to source scans only (WR-01); the memory cap is sized per page's output dpi and reset on stop and project switch (WR-02/03); every multi-scan JPEG skips jpeg_start_decompress in the metadata load (WR-04/07); re-verified passed 5/5
 - [Phase 06.1]: 06.1-01: testNoOpenGlInSourcesOrBuild scans .claude/CLAUDE.md case-insensitively; qt_tests now reads that file at run time, so changes to it are gated
+- [Phase 06.1]: 06.1-02: Phase 1 IN-03 closed by a TESTING.md paragraph on the Debug-only differences (DEVELOPER_VERSION stays on for Debug); Phase 3 IN-06 and Phase 5 IN-02 to IN-04 skipped with the CONTEXT reasons; disposition_state.py checks every later closure
 
 ### Pending Todos
 
@@ -264,7 +266,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 2] Four info findings of the re-review are deferred (IN-01 to IN-04 in `02-REVIEW-DISPOSITION.md`). IN-01 matters if a later phase adds a scan resolution: the generator refuses 400 and 450 dpi for SPREAD, MIXED and CURVED, not only 150 and 225 (`dpiSupported`).
-- [Phase 3] Code review WR-01 (`ui_snapshot` recompiling the GUI sources) was fixed by plan 05-01: the GUI sources compile once into the `app_gui` static library. The seven info findings of that review are still open and are closed in Phase 06.1 (finding ledger in `06.1-01-PLAN.md`); WR-02 is deferred.
+- [Phase 3] Code review WR-01 (`ui_snapshot` recompiling the GUI sources) was fixed by plan 05-01: the GUI sources compile once into the `app_gui` static library. Six info findings of that review are still open (IN-06 is skipped) and are closed in Phase 06.1 (finding ledger in `06.1-01-PLAN.md`); WR-02 is deferred.
 - [Phase 3] Existing build directories still hold stale untracked `.qm`, `.desktop` and CPack files from before the strip; nothing produces them any more. `cmake --fresh --preset <name>` or deleting `build/<preset>` clears them.
 - Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
 - [Phase 4] Review warnings WR-01 to WR-03 were fixed after the review (`04-REVIEW-FIX.md`), so the dangling-iterator risk in `ThumbnailPixmapCache::removeLoadedItemsLocked()` is gone.
@@ -280,6 +282,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T19:49:45.120Z
-Stopped at: Completed 06.1-01-PLAN.md
+Last session: 2026-11-17T19:53:05.050Z
+Stopped at: Completed 06.1-02-PLAN.md
 Resume file: None
