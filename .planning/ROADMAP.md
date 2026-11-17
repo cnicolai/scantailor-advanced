@@ -339,7 +339,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 **Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 3/15 plans executed
+**Plans:** 4/15 plans executed
 
 Plans:
 **Wave 1**
@@ -352,7 +352,7 @@ Plans:
 - [x] 06.1-03-PLAN.md — Phase 3 IN-01/02/03/07: unused includes, dead LanguageChange handler, Windows comments, unreachable UNC branch pinned by TestRelinkablePath (D-03), dead remove_definitions and ignore rules
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 06.1-04-PLAN.md — Phase 2 IN-01/02/03/04/06: cache test that fails for a reallocating container (D-04), refused dpi values, rounding helper, unused include
+- [x] 06.1-04-PLAN.md — Phase 2 IN-01/02/03/04/06: cache test that fails for a reallocating container (D-04), refused dpi values, rounding helper, unused include
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 06.1-05-PLAN.md — Phase 4 IN-01/02/03 and Phase 5 IN-01/06: qt_tests environment, diagnostics wording, tooltips, polled zone-menu test, named scan floors

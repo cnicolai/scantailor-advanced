@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Completed 06.1-03-PLAN.md
-last_updated: "2026-11-17T20:08:46.097Z"
+stopped_at: Completed 06.1-04-PLAN.md
+last_updated: "2026-11-17T20:22:58.462Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: 7d4682e77c1bc9938c9735338f1ef9dfc5dd4532
+state_head: e3ce5c0722d1b8557187cc2fc0de0f12150d35d5
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 80
-  completed_plans: 68
+  completed_plans: 69
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 4 of 15
+Plan: 5 of 15
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -130,6 +130,7 @@ Progress: [██████████] 100%
 | Phase 06.1 P01 | 25 min | 2 tasks | 6 files |
 | Phase 06.1 P02 | 1 min | 3 tasks | 10 files |
 | Phase 06.1 P03 | 14 min | 2 tasks | 13 files |
+| Phase 06.1 P04 | 25 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -260,6 +261,7 @@ Recent decisions affecting current work:
 - [Phase 06.1]: 06.1-01: testNoOpenGlInSourcesOrBuild scans .claude/CLAUDE.md case-insensitively; qt_tests now reads that file at run time, so changes to it are gated
 - [Phase 06.1]: 06.1-02: Phase 1 IN-03 closed by a TESTING.md paragraph on the Debug-only differences (DEVELOPER_VERSION stays on for Debug); Phase 3 IN-06 and Phase 5 IN-02 to IN-04 skipped with the CONTEXT reasons; disposition_state.py checks every later closure
 - [Phase 06.1]: 06.1-03: UNC branch of RelinkablePathVisualization deleted after TestRelinkablePath pinned that // and backslash host paths normalise to one slash; MainWindow::changeEvent deleted
+- [Phase 06.1]: 06.1-04: cache test adds 17 low-dpi spread pages and was shown red with a vector cache; refused dpi 150/225/400/450 pinned; scaled() rounds like the generator
 
 ### Pending Todos
 
@@ -284,6 +286,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T20:08:45.406Z
-Stopped at: Completed 06.1-03-PLAN.md
+Last session: 2026-11-17T20:22:57.777Z
+Stopped at: Completed 06.1-04-PLAN.md
 Resume file: None
