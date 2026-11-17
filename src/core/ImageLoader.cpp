@@ -30,7 +30,7 @@ QImage ImageLoader::load(const QString& filePath, const int pageNum) {
 }
 
 QImage ImageLoader::load(QIODevice& ioDev, const int pageNum) {
-  return loadImpl(ioDev, pageNum, false);
+  return loadImpl(ioDev, pageNum, ImageSizeLimit::LimitKind::OWN_FILE);
 }
 
 QImage ImageLoader::loadSource(const ImageId& imageId) {
@@ -42,10 +42,10 @@ QImage ImageLoader::loadSource(const ImageId& imageId) {
 }
 
 QImage ImageLoader::loadSource(QIODevice& ioDev, const int pageNum) {
-  return loadImpl(ioDev, pageNum, true);
+  return loadImpl(ioDev, pageNum, ImageSizeLimit::LimitKind::SOURCE);
 }
 
-QImage ImageLoader::loadImpl(QIODevice& ioDev, const int pageNum, const bool enforceSizeLimit) {
+QImage ImageLoader::loadImpl(QIODevice& ioDev, const int pageNum, const ImageSizeLimit::LimitKind limit) {
   // Qt's default limit of 256 MB refuses every image above 64 Mi px. It is raised once to the project ceiling
   // (the source path checks the claimed size below, so Qt never sees a larger source image) and never set to 0, which
   // would let Qt allocate the claimed size before failing. The thumbnail thread and the worker threads all come
@@ -53,7 +53,7 @@ QImage ImageLoader::loadImpl(QIODevice& ioDev, const int pageNum, const bool enf
   std::call_once(qtReaderLimitFlag, [] { QImageReader::setAllocationLimit(ImageSizeLimit::kQtAllocationLimitMb); });
 
   if (TiffReader::canRead(ioDev)) {
-    return TiffReader::readImage(ioDev, pageNum, enforceSizeLimit);
+    return TiffReader::readImage(ioDev, pageNum, limit);
   }
 
   if (pageNum != 0) {
@@ -74,7 +74,7 @@ QImage ImageLoader::loadImpl(QIODevice& ioDev, const int pageNum, const bool enf
   // The header of a forged file can claim any size; refuse it before the reader allocates it. An invalid size
   // means the format cannot tell, and the read decides as before.
   const QSize claimed = reader.size();
-  if (enforceSizeLimit && claimed.isValid() && ImageSizeLimit::exceeds(claimed)) {
+  if (claimed.isValid() && ImageSizeLimit::exceeds(claimed, limit)) {
     return QImage();
   }
   reader.read(&image);

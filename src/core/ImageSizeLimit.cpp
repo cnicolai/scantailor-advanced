@@ -19,6 +19,19 @@ bool ImageSizeLimit::exceeds(const QSize& size) {
   return width > kMaxSide || height > kMaxSide || qint64(width) * height > kMaxPixels;
 }
 
+bool ImageSizeLimit::exceedsOwnFile(const QSize& size) {
+  const int width = size.width();
+  const int height = size.height();
+  if (width < 0 || height < 0) {
+    return true;
+  }
+  return width > kMaxOwnFileSide || height > kMaxOwnFileSide || qint64(width) * height > kMaxOwnFilePixels;
+}
+
+bool ImageSizeLimit::exceeds(const QSize& size, const LimitKind kind) {
+  return kind == LimitKind::OWN_FILE ? exceedsOwnFile(size) : exceeds(size);
+}
+
 QString ImageSizeLimit::sizeText(const QSize& size) {
   return tr("%1 × %2 px").arg(QString::number(quint32(size.width()))).arg(QString::number(quint32(size.height())));
 }

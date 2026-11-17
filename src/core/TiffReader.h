@@ -5,6 +5,7 @@
 #define SCANTAILOR_CORE_TIFFREADER_H_
 
 #include "ImageMetadataLoader.h"
+#include "ImageSizeLimit.h"
 #include "VirtualFunction.h"
 
 class QIODevice;
@@ -26,11 +27,13 @@ class TiffReader {
    *        opened for reading and must be seekable.
    * \param pageNum A zero-based page number within a multi-page
    *        TIFF file.
-   * \param enforceSizeLimit Refuse a page whose header claims more than ImageSizeLimit allows. True for the
-   *        user's source scans; false for files the application wrote itself, which may be larger.
+   * \param limit Which ceiling of ImageSizeLimit a page header is checked against before any pixel buffer
+   *        exists: SOURCE for the user's scans, OWN_FILE for files the application wrote itself.
    * \return The resulting image, or a null image in case of failure.
    */
-  static QImage readImage(QIODevice& device, int pageNum = 0, bool enforceSizeLimit = true);
+  static QImage readImage(QIODevice& device,
+                          int pageNum = 0,
+                          ImageSizeLimit::LimitKind limit = ImageSizeLimit::LimitKind::SOURCE);
 
  private:
   class TiffHeader;

@@ -57,7 +57,7 @@ QImage loadPage(const QByteArray& bytes, const int page) {
   return ImageLoader::loadSource(*openBuffer(buffer, bytes), page);
 }
 
-// The loader for files the application wrote itself: no size limit.
+// The loader for files the application wrote itself: the own-file ceiling.
 QImage loadOwnFile(const QByteArray& bytes, const int page) {
   QBuffer buffer;
   return ImageLoader::load(*openBuffer(buffer, bytes), page);
@@ -88,6 +88,30 @@ void checkRefusedWithoutAllocating(const ForgedTiffPage& page) {
   BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
 }
 
+// Like checkRefusedWithoutAllocating, through the loader the output stage uses for its cached files. A refusal
+// is a null image, which makes the page regenerate.
+void checkOwnFileRefusedWithoutAllocating(const ForgedTiffPage& page) {
+  const QByteArray bytes = forgedTiff({page});
+  BOOST_REQUIRE(!bytes.isEmpty());
+
+  const std::vector<QSize> sizes = pageSizes(bytes);
+  BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
+  BOOST_CHECK(sizes[0] == QSize(int(page.width), int(page.height)));
+  BOOST_CHECK(ImageSizeLimit::exceedsOwnFile(sizes[0]));
+
+  test_support::FootprintSampler sampler;
+  BOOST_REQUIRE(sampler.valid());
+  QElapsedTimer timer;
+  timer.start();
+  const QImage image = loadOwnFile(bytes, 0);
+  const qint64 elapsedMs = timer.elapsed();
+  const qint64 growth = sampler.stop();
+
+  BOOST_CHECK(image.isNull());
+  BOOST_CHECK_LT(growth, kFootprintBoundBytes);
+  BOOST_CHECK_LT(elapsedMs, kTimeBoundMs);
+}
+
 QImage readFirstPage(const ForgedTiffPage& page) {
   const QByteArray bytes = forgedTiff({page});
   BOOST_REQUIRE(!bytes.isEmpty());
@@ -104,6 +128,51 @@ BOOST_AUTO_TEST_CASE(test_forged_mono_tiff_is_refused_without_allocating) {
 
 BOOST_AUTO_TEST_CASE(test_forged_rgb_tiff_is_refused_without_allocating) {
   checkRefusedWithoutAllocating({40000, 40000, 8, 3, false});
+}
+
+BOOST_AUTO_TEST_CASE(test_forged_own_tiff_is_refused_without_allocating) {
+  // 10^10 px, above the own-file ceiling of 2^30 px.
+  checkOwnFileRefusedWithoutAllocating({100000, 100000, 1, 1, false});
+}
+
+BOOST_AUTO_TEST_CASE(test_forged_own_rgb_tiff_is_refused_without_allocating) {
+  // 1.6 * 10^9 px, above the own-file ceiling; as RGB32 the claimed size would be 6.4 GB.
+  checkOwnFileRefusedWithoutAllocating({40000, 40000, 8, 3, false});
+}
+
+BOOST_AUTO_TEST_CASE(test_own_file_inside_the_own_ceiling_parses) {
+  // 131070 x 8192 = 1073725440 px: inside the own-file ceiling, above the source limit. Only parsed: decoding
+  // it would allocate 128 MB as a bilevel image and gigabytes in any other form.
+  const QByteArray bytes = forgedTiff({{131070, 8192, 1, 1, false}});
+  BOOST_REQUIRE(!bytes.isEmpty());
+
+  const std::vector<QSize> sizes = pageSizes(bytes);
+  BOOST_REQUIRE_EQUAL(sizes.size(), size_t(1));
+  BOOST_CHECK(sizes[0] == QSize(131070, 8192));
+  BOOST_CHECK_EQUAL(qint64(sizes[0].width()) * sizes[0].height(), qint64(1073725440));
+  BOOST_CHECK(!ImageSizeLimit::exceedsOwnFile(sizes[0]));
+  BOOST_CHECK(ImageSizeLimit::exceeds(sizes[0]));
+  BOOST_CHECK(ImageSizeLimit::exceeds(sizes[0], ImageSizeLimit::LimitKind::SOURCE));
+  BOOST_CHECK(!ImageSizeLimit::exceeds(sizes[0], ImageSizeLimit::LimitKind::OWN_FILE));
+
+  struct Row {
+    int width;
+    int height;
+    bool exceedsOwn;
+  };
+  const Row rows[] = {
+      {131070, 1, false},    {131071, 1, true},  // one over the own side ceiling
+      {32768, 32768, true},                      // exactly 2^30 px
+      {32767, 32767, false},                     // 2^30 - 65535 px, the forged case accepted as a residual
+      {23622, 23622, false},                     // 500 mm at 1200 dpi
+      {-1, 10, true},        {10, int(3000000000u), true},
+      {0, 10, false},
+  };
+  for (const Row& row : rows) {
+    BOOST_TEST_CONTEXT(row.width << " x " << row.height) {
+      BOOST_CHECK_EQUAL(ImageSizeLimit::exceedsOwnFile(QSize(row.width, row.height)), row.exceedsOwn);
+    }
+  }
 }
 
 BOOST_AUTO_TEST_CASE(test_forged_wide_tiff_is_refused_without_allocating) {
@@ -271,11 +340,12 @@ BOOST_AUTO_TEST_CASE(test_tiff_side_boundary) {
   BOOST_CHECK(readFirstPage({65536, 1, 1, 1, false}).isNull());
 }
 
-BOOST_AUTO_TEST_CASE(test_own_files_are_not_limited_but_source_files_are) {
+BOOST_AUTO_TEST_CASE(test_own_files_use_the_own_ceiling_and_source_files_the_source_limit) {
   // The application's own output may be larger than its source (an output at a high dpi), so the loader for
-  // such files must not apply the limit; the loader for source scans must. The files are real and tiny: a
-  // 65536 px wide line is one over the limit per side and costs 8 KB as a bilevel TIFF. A forged header is
-  // never read without the limit, because that read would allocate the claimed size.
+  // such files applies the higher own-file ceiling; the loader for source scans applies the source limit. The
+  // files are real and tiny: a 65536 px wide line is one over the source limit per side and costs 8 KB as a
+  // bilevel TIFF. A forged header is never read without a limit, because that read would allocate the claimed
+  // size.
   const QByteArray tiff = forgedTiff({{65536, 1, 1, 1, true}});
   BOOST_REQUIRE(!tiff.isEmpty());
   BOOST_REQUIRE(ImageSizeLimit::exceeds(QSize(65536, 1)));

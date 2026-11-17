@@ -4,6 +4,8 @@
 #ifndef SCANTAILOR_CORE_IMAGELOADER_H_
 #define SCANTAILOR_CORE_IMAGELOADER_H_
 
+#include "ImageSizeLimit.h"
+
 class ImageId;
 class QImage;
 class QString;
@@ -13,9 +15,9 @@ class ImageLoader {
  public:
   /**
    * Loads an image the application wrote itself: its cached output, the foreground and background layers, the
-   * automask and speckles files, the thumbnail files. These can legitimately exceed ImageSizeLimit (an output at
-   * a high dpi is larger than its source), so the limit is not applied; a refusal here would make the page
-   * regenerate on every visit. Qt's own allocation limit still applies to formats other than TIFF.
+   * automask and speckles files, the thumbnail files. These are read with the own-file ceiling of ImageSizeLimit,
+   * which is far above anything the application writes, so a refusal only happens for a forged file and makes the
+   * page regenerate. Qt's own allocation limit still applies to formats other than TIFF.
    */
   static QImage load(const QString& filePath, int pageNum = 0);
 
@@ -32,7 +34,7 @@ class ImageLoader {
   static QImage loadSource(QIODevice& ioDev, int pageNum);
 
  private:
-  static QImage loadImpl(QIODevice& ioDev, int pageNum, bool enforceSizeLimit);
+  static QImage loadImpl(QIODevice& ioDev, int pageNum, ImageSizeLimit::LimitKind limit);
 };
 
 
