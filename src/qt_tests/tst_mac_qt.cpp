@@ -1627,10 +1627,22 @@ void TestMacQt::testBatchAlarmUsesBeep() {
            QStringLiteral("external_alarm_cmd"));
   QCOMPARE(firstForbidden(QStringLiteral("QApplication::beep();")), QString());
 
+  // MainWindow is split into same-class translation units (MainWindow.cpp, MainWindowBatch.cpp, ...). Every one of
+  // them is checked for shell-command words; the control is that more than one file is found and none is empty.
   const QDir root(sourceRoot());
-  const QString text = readUtf8(root.filePath("src/app/MainWindow.cpp"));
+  const QStringList mainWindowFiles = QDir(root.filePath("src/app")).entryList({"MainWindow*.cpp"}, QDir::Files);
+  QVERIFY2(mainWindowFiles.size() >= 2,
+           qPrintable(QStringLiteral("only %1 MainWindow*.cpp files").arg(mainWindowFiles.size())));
+  for (const QString& name : mainWindowFiles) {
+    const QString source = readUtf8(root.filePath("src/app/" + name));
+    QVERIFY2(!source.isEmpty(), qPrintable(name + " is empty or unreadable"));
+    QVERIFY2(firstForbidden(source).isEmpty(), qPrintable(name + ": " + firstForbidden(source)));
+  }
+
+  // The batch-finished block is in the file that defines filterResult.
+  const QString text = readUtf8(root.filePath("src/app/MainWindowBatch.cpp"));
   QVERIFY(!text.isEmpty());
-  QCOMPARE(firstForbidden(text), QString());
+  QVERIFY(text.contains(QStringLiteral("void MainWindow::filterResult(")));
 
   // The batch-finished block: from the "all processed" test to the return that ends it.
   const int start = text.indexOf("m_batchQueue->allProcessed()");
