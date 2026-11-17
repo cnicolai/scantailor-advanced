@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-07
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "WR-04 fix still allocates the full coefficient image for non-interleaved baseline JPEGs"
   - id: IN-04
     severity: info
@@ -55,16 +55,16 @@ findings:
     severity: info
     disposition: open
     title: "Comments and test names say \"W x H\" where the code prints \"W × H\""
-open: 7
+open: 6
 total: 13
-recorded: 2026-11-17T14:50:49.849Z
+recorded: 2026-11-17T14:57:05.443Z
 ---
 
 # Phase 06: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-07 | warning | open | - |
+| WR-07 | warning | fixed | 06-REVIEW-FIX.md |
 | IN-04 | info | open | - |
 | IN-05 | info | open | - |
 | IN-06 | info | open | - |
