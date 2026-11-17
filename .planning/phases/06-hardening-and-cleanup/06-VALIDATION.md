@@ -3,9 +3,9 @@ phase: "06"
 slug: "hardening-and-cleanup"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-11-16"
 ---
 
@@ -42,19 +42,19 @@ Requirement-level map; the planner binds task IDs in the PLAN files.
 
 | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| SAFE-01 | T-06-01, T-06-02 | Forged TIFF/PNG/progressive JPEG headers refused before any pixel or coefficient allocation; boundary cases; multi-page TIFF refuses only the oversized page | unit (`core_tests`) | `build/macos-release/core_tests --run_test=ImageSizeLimitTestSuite --log_level=message` | ❌ W0 `src/core/tests/TestImageSizeLimit.cpp` | ⬜ pending |
-| SAFE-01 | T-06-01 | "Too large" message in the page view and file-list marking | Qt Test (`qt_tests`) | `build/macos-release/qt_tests` + PASS-line grep | ❌ W0 new slots | ⬜ pending |
-| SAFE-02 | T-06-04 | Extended name set round-trips; ordinary files byte-identical; backslash `XFAIL_CHECK` (999.8) | `pipeline_tests` | `build/macos-release/pipeline_tests --run_test=ProjectRoundTripTestSuite --log_level=message` | ✅ file, ❌ W0 cases | ⬜ pending |
-| SAFE-02 | T-06-04 | Escape helper: ordinary strings unchanged, invalid characters reversible | unit (`foundation_tests`) | `build/macos-release/foundation_tests --log_level=message` | ❌ W0 | ⬜ pending |
-| SAFE-03 | T-06-03 | Cap arithmetic; pool count = min(ideal, slider, cap) | unit (`core_tests`) | `build/macos-release/core_tests --run_test=MemoryBudgetTestSuite` | ❌ W0 `src/core/tests/TestMemoryBudget.cpp` | ⬜ pending |
-| STRIP-07 | — | Settings dialog has no OpenGL control | Qt Test | `qt_tests` PASS line of the new slot | ❌ W0 | ⬜ pending |
-| STRIP-07 | — | Colour picker unchanged | Qt Test | PASS `TestHiDpiQt::testMedianColorRatioInvariant()`, `TestHiDpiQt::testColorPickerGrabAtRatio2()` | ✅ | ⬜ pending |
-| STRIP-07 | — | No Qt OpenGL linkage | shell | `for b in scantailor-advanced qt_tests mac_check retina_check; do otool -L build/macos-release/$b \| grep -e QtOpenGL; done` prints nothing | n/a | ⬜ pending |
-| CLEAN-01 | — | Pure move: goldens, output digests, chunk multiset | gate + script | `gate.sh check …`; digest table equal; chunk script exit 0 | ❌ W0 script | ⬜ pending |
-| CLEAN-02 | — | Menus, shortcuts unchanged | Qt Test | all `TestMacQt` PASS lines (with `testBatchAlarmUsesBeep` updated for the new file) | ✅ | ⬜ pending |
-| CLEAN-03 | — | No `#if 0`; preprocessed text unchanged | grep + `c++ -E -P` diff | `grep -rn -e '^[[:space:]]*#[[:space:]]*if[[:space:]]*0' src` empty | n/a | ⬜ pending |
-| CLEAN-04 | — | No foreach includes | grep + gate | `grep -rn 'boost/foreach' src` empty | n/a | ⬜ pending |
-| CLEAN-05 | — | One save-as flow: extension, last dir, recent list, write | Qt Test | new `qt_tests` slots | ❌ W0 | ⬜ pending |
+| SAFE-01 | T-06-01, T-06-02 | Forged TIFF/PNG/progressive JPEG headers refused before any pixel or coefficient allocation; boundary cases; multi-page TIFF refuses only the oversized page | unit (`core_tests`) | `build/macos-release/core_tests --run_test=CoreImageSizeLimitTestSuite --log_level=test_suite` (14 cases) | ✅ `src/core/tests/TestImageSizeLimit.cpp` | ✅ green |
+| SAFE-01 | T-06-01 | "Too large" message in the page view, file-list marking, insert flow, thumbnail refusal, wide real PNGs | Qt Test (`qt_tests`) | `ctest --preset macos-release -R '^qt_tests$' -V`: PASS `testProjectFilesDialogMarksOversizedFile`, `testOversizedThumbnailFails`, `testLargeGreyPngLoads` and the page-view too-large rows | ✅ | ✅ green |
+| SAFE-02 | T-06-04 | Extended name set (control characters, D-10 matrix) round-trips; ordinary files byte-identical and flag-free; backslash round-trips with plain checks (no `XFAIL_CHECK` needed, 999.8 untouched) | `pipeline_tests` | `build/macos-release/pipeline_tests --run_test=ProjectRoundTripTestSuite` (8 cases) and `--run_test=ProjectRoundTripBackslashTestSuite` (1 case) | ✅ | ✅ green |
+| SAFE-02 | T-06-04 | Escape helper: ordinary strings unchanged, invalid characters reversible, flag must be exactly `1` | unit (`foundation_tests`) | `build/macos-release/foundation_tests --run_test=FoundationXmlEscapeTestSuite` (7 cases) | ✅ `src/foundation/tests/TestXmlEscape.cpp` | ✅ green |
+| SAFE-03 | T-06-03 | Cap arithmetic; pool count = min(ideal, slider, cap); slider tooltip; clamped shared setting reader | unit (`core_tests`) + Qt Test | `core_tests --run_test=CoreMemoryBudgetTestSuite` (8 cases); PASS `testWorkerPoolHonoursMemoryCap`, `testStoredThreadCountClamps`, `testSystemLoadToolTipShowsMemoryLimit` | ✅ `src/core/tests/TestMemoryBudget.cpp` | ✅ green |
+| STRIP-07 | — | Settings dialog has no OpenGL control; no OpenGL in sources or CMake | Qt Test | PASS `TestMacQt::testSettingsHasNoOpenGlControl()`, `TestMacQt::testNoOpenGlInSourcesOrBuild()` | ✅ | ✅ green |
+| STRIP-07 | — | Colour picker unchanged | Qt Test | PASS `TestHiDpiQt::testMedianColorRatioInvariant()`, `TestHiDpiQt::testColorPickerGrabAtRatio2()` | ✅ | ✅ green |
+| STRIP-07 | — | No Qt OpenGL linkage | shell | `for b in scantailor-advanced qt_tests mac_check retina_check; do otool -L build/macos-release/$b \| grep -e QtOpenGL; done` prints nothing | n/a | ✅ green |
+| CLEAN-01 | — | Pure move: goldens, output digests, chunk multiset | gate + script | gates s17–s19 PASS; seven `DIGEST` lines equal before/after (`records/output-digests.md`); `python3 -I records/move_check.py --base e5319cd9 …` over all six files gives `RESULT: PASS` (79/79) | ✅ `records/move_check.py` | ✅ green |
+| CLEAN-02 | — | Menus, shortcuts unchanged | Qt Test + script | all `TestMacQt` PASS lines (`testBatchAlarmUsesBeep` reads `MainWindowBatch.cpp`); move check against 590e751f PASS; gates s20–s22 PASS | ✅ | ✅ green |
+| CLEAN-03 | — | No `#if 0`; preprocessed text unchanged | grep + `records/pp_equiv.py` | `grep -rn -e '^[[:space:]]*#[[:space:]]*if[[:space:]]*0' src` empty (7 files at e5319cd9 as positive control) | n/a | ✅ green |
+| CLEAN-04 | — | No foreach includes | grep + gate | `grep -rn 'boost/foreach' src` empty (26 files at e5319cd9) | n/a | ✅ green |
+| CLEAN-05 | — | One save-as flow: extension, last dir, recent list, write, cancel, save twice | Qt Test | PASS `testProjectExtension`, `testSaveAsFlowFromOutOfMemoryDialog`, `testSaveAsFlowRunsTwice` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -62,12 +62,12 @@ Requirement-level map; the planner binds task IDs in the PLAN files.
 
 ## Wave 0 Requirements
 
-- [ ] `src/core/tests/TestImageSizeLimit.cpp` — SAFE-01 (+ `sources` entry; link `TIFF::TIFF`/`ZLIB::ZLIB` if forging needs it)
-- [ ] `src/core/tests/TestMemoryBudget.cpp` — SAFE-03
-- [ ] Extended cases in `src/pipeline_tests/TestProjectRoundTrip.cpp` — SAFE-02
-- [ ] Escape-helper tests in `src/foundation/tests/` — SAFE-02
-- [ ] New `qt_tests` slots: Settings without OpenGL, too-large `ErrorResult` message, shared save-as flow — STRIP-07, SAFE-01, CLEAN-05
-- [ ] `records/` scripts: chunk-multiset script, digest harness, `gate-log.md` — CLEAN-01
+- [x] `src/core/tests/TestImageSizeLimit.cpp` — SAFE-01 (+ `sources` entry; link `TIFF::TIFF`/`ZLIB::ZLIB` if forging needs it)
+- [x] `src/core/tests/TestMemoryBudget.cpp` — SAFE-03
+- [x] Extended cases in `src/pipeline_tests/TestProjectRoundTrip.cpp` — SAFE-02
+- [x] Escape-helper tests in `src/foundation/tests/` — SAFE-02
+- [x] New `qt_tests` slots: Settings without OpenGL, too-large `ErrorResult` message, shared save-as flow — STRIP-07, SAFE-01, CLEAN-05
+- [x] `records/` scripts: chunk-multiset script, digest harness, `gate-log.md` — CLEAN-01
 
 Framework install: none.
 
@@ -77,19 +77,27 @@ Framework install: none.
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| No swap growth during a batch of large pages | SAFE-03 | Uses a lot of RAM on the user's Mac (D-08); runs only on the user's go | `sysctl vm.swapusage` before/after plus peak footprint of the headless run; record in `records/memory-run.md` |
-| Live menus and shortcuts as in Phase 5 | CLEAN-02 | `mac_check` moves the pointer and takes focus (D-00b) | `build/macos-release/mac_check build/scratch/mac/all --section all -ApplePersistenceIgnoreState YES` exit 0, on the user's go |
+| No swap growth during a batch of large pages | SAFE-03 | Uses a lot of RAM on the user's Mac (D-08); runs only on the user's go | Done 2026-11-17 on the user's go: cap 5 of 10, peak 17737 MiB of 32768, swap 0 throughout (`records/memory-run.md`). Original instructions: `sysctl vm.swapusage` before/after plus peak footprint of the headless run; record in `records/memory-run.md` |
+| Live menus and shortcuts as in Phase 5 | CLEAN-02 | `mac_check` moves the pointer and takes focus (D-00b) | Done 2026-11-17 on the user's go: both runs `verdict: PASS`, section verdicts equal to Phase 5 (`records/closing-check.md`). Original instructions: `build/macos-release/mac_check build/scratch/mac/all --section all -ApplePersistenceIgnoreState YES` exit 0, on the user's go |
 | Activity Monitor on real scans | SAFE-03 | Real scans are personal material | Optional UAT item; does not block the phase |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120 s for the quick loop
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120 s for the quick loop
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-11-17 (validate-phase audit: 13 rows, 0 gaps)
+
+## Validation Audit 2026-11-17
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
