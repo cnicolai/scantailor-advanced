@@ -21,10 +21,10 @@ milestone_name: macOS
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-15)
+See: .planning/PROJECT.md (updated 2026-11-17)
 
 **Core value:** The app builds from source and works reliably for daily scanning work on a current Apple Silicon Mac, with a test suite that makes later changes safe.
-**Current focus:** Phase 06 — Hardening and Cleanup
+**Current focus:** Milestone v1.0 (macOS) complete — next: milestone audit and archive
 
 ## Current Position
 
@@ -253,6 +253,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-14: OutputGenerator.cpp is 268 lines and includes only OutputGeneratorProcessor.h; Dewarp and Binarize include both internal headers; the 79-chunk move check over six files, seven digests and gate s19 prove the pure move
 - [Phase 06]: 06-15: setupActions() takes the constructor block only up to the sortOptions connect because later lambdas capture the local settings; switchToNewProject and showNewOpenProjectPanel moved with the project flow to keep MainWindow.cpp below 1300 lines (1237)
 - [Phase 06]: Memory estimate of 40 B per pixel kept after the D-08 run: one 165.6 MP page peaked at 4909 MiB of 6317, the capped batch (cap 5 of 10 threads) at 17737 MiB of 32768, swap 0
+- [Phase 06]: Review fixes after verification: the size limit applies to source scans only (WR-01); the memory cap is sized per page's output dpi and reset on stop and project switch (WR-02/03); every multi-scan JPEG skips jpeg_start_decompress in the metadata load (WR-04/07); re-verified passed 5/5
 
 ### Pending Todos
 
@@ -269,10 +270,11 @@ None yet.
 - [Phase 4] A real drag between a 1x and a 2x display is unverified (one display attached; criterion 4 rests on the offscreen two-screen simulation). Thumbnails depend on the `DevicePixelRatioChange` event alone. Re-check procedure: `phases/04-retina-rendering/records/closing-check.md`.
 - [Phase 5] Six info findings of the code review are open (IN-01 to IN-06 in `05-REVIEW-DISPOSITION.md`); none touches a must-have.
 - [Phase 5] At the Filters dock's minimum width (274 pt) the Margins options panel (minimum 316 pt) is cut on the right. Older layout limit, not a Phase 5 change; noted in `05-UAT.md` test 3.
-- Live `mac_check` and `retina_check` runs move the pointer and take focus: Phase 6 plans that include one must stop at a checkpoint until the user says go.
+- Live `mac_check` and `retina_check` runs move the pointer and take focus: run them only on the user's go.
+- [Phase 6] Six info findings of the code reviews are open (IN-01 to IN-06 in `06-REVIEW-DISPOSITION.md`). Two have code consequences: IN-04 (`ImageLoader::load(const ImageId&)` is unused and reads source files without the limit; delete it) and IN-06 (`startBatchProcessing()` dereferences the reset queue for a project with no pages; add `return;`). IN-05: output-folder files are read without a size limit, an accepted decision for this fork.
 
 ## Session Continuity
 
-Last session: 2026-11-17T13:05:58.533Z
+Last session: 2026-11-17
 Stopped at: Phase 06 complete — all phases complete
 Resume file: None

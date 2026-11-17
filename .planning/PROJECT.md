@@ -31,11 +31,14 @@ The app builds from source and works reliably for daily scanning work on a curre
 - ✓ README documents the macOS build and test commands — Phase 3 (proven by a fresh clone that ran only README lines)
 - ✓ Page views, thumbnails and icons render sharply on Retina (HiDPI) displays — Phase 4 (DPR 2 measured on the Studio Display without an `Info.plist`; page view pixel-exact against a device-resolution reference at fit/100%/200%; thumbnails, zone mask, badges, handles, stage animation and colour picker checked live; output files and goldens unchanged)
 - ✓ Mac-conventional shortcuts and menus (Cmd-based shortcuts, standard app menu, native menu bar) — Phase 5 (application menu named ScanTailor Advanced with About, Preferences and Quit; Cmd shortcuts, Cmd+1..6 stages, Option-Command Output tabs and thumbnail keys measured on a German layout; Mac key glyphs in the UI text; Delete/Backspace on zones; right-click, Control-click and two-finger click menus; native file panels including relinking; menu bar kept during dialogs; batch-finished alarm is the system beep. Verified 8/8, the beep source-verified only)
+- ✓ Builds on current macOS (Apple Silicon, arm64) with Homebrew dependencies and runs from the build directory — Phase 1 (re-proven by every later phase's Release and Debug gate)
+- ✓ Known safety defects fixed: forged image headers refused before allocation, unusual file names round-trip through the project file, batch threads capped by physical memory — Phase 6 (SAFE-01..03; limit 2^29 − 1 px for source scans only, own output files unlimited; multi-scan JPEGs never decompressed for metadata; D-08 run: swap 0)
+- ✓ OpenGL viewer and every OpenGL dependency removed — Phase 6 (STRIP-07; `otool -L` shows no QtOpenGL; colour picker unchanged)
+- ✓ Known-debt cleanup that makes later feature work safe: `OutputGenerator.cpp` and `MainWindow.cpp` split by pure moves, `#if 0` blocks and `boost/foreach` removed, one save-as flow — Phase 6 (CLEAN-01..05; move checks PASS, output digests and goldens unchanged, live `mac_check` PASS)
 
 ### Active
 
-- [ ] Builds on current macOS (Apple Silicon, arm64) with Homebrew dependencies and runs from the build directory
-- [ ] Known-debt cleanup that makes later feature work safe (e.g. disabled tests, dead `#if 0` blocks, oversized files where touched)
+(none: every v1 requirement is validated; new work starts with the next milestone)
 
 ### Out of Scope
 
@@ -81,7 +84,7 @@ The app builds from source and works reliably for daily scanning work on a curre
 | Synthetic test images | Keeps personal material out of the repo; deterministic fixtures | ✓ Good — Phase 2: a seeded in-memory page generator (flat, spread, mixed, curved) feeds every golden; no scan is committed |
 | No upstream compatibility | Changes are for personal use only | — Pending |
 | Baselines before strip: first macOS build with compile fixes only, golden images from that unmodified code, then remove Qt 5/Windows/Linux | Proves the strip and later refactors changed no output | ✓ Good — Phase 3: twelve strip commits each passed Release and Debug `ctest` 7/7 with every golden byte-identical to `a796c2ae`; ASan/UBSan findings unchanged |
-| Remove OpenGL viewer | Off by default, deprecated by Apple, no Metal path | — Pending |
+| Remove OpenGL viewer | Off by default, deprecated by Apple, no Metal path | ✓ Good — Phase 6: module, setting control and sampling branch removed; only OpenGL items left the build commands |
 | English-only UI, translations removed | User doesn't need them; less to maintain | ✓ Good — Phase 3: translator code and the Language row removed in one commit; `tr()` calls kept, an existing `language` setting is left untouched |
 | Horizontal-layer phases | Port/hardening where each step protects the next | — Pending |
 | Gate every strip commit (`gate.sh`): Release and Debug `ctest`, goldens, build-command diff | Deletions must not change output; the command diff catches CMake edits that tests would miss | ✓ Good — Phase 3: 12 of 12 commits passed; reused for all 13 Phase 4 code commits |
@@ -92,6 +95,9 @@ The app builds from source and works reliably for daily scanning work on a curre
 | Option-Command for the Output tabs and thumbnail keys | Measured on the user's German layout: Option-Command digits and plus/minus fire once each | ✓ Good — Phase 5: live keys run PASS |
 | Batch-finished alarm is `QApplication::beep()`; the old alarm command setting is no longer read | Removes the `std::system` call on a settings string | ✓ Good — Phase 5: test-pinned; the user waived hearing the sound |
 | Live Cocoa checks (`mac_check`) run only on the user's go | They move the pointer and take focus while the user works | ✓ Good — Phase 5: offscreen tests carry the automated gate |
+| Image size limit applies to source scans only (`ImageLoader::loadSource`), checked on header values before any allocation | Header bombs cost 6–12 GB from a few KB; the app's own output files may legitimately exceed the source limit | ✓ Good — Phase 6: forged TIFF/PNG/JPEG tests with sampled-footprint bounds and mutation runs; review fixes WR-01/WR-04/WR-07 |
+| Cap parallel batch pages by physical memory and each page's output dpi | Large pages in parallel pushed the Mac into swap | ✓ Good — Phase 6: D-08 run capped at 5 of 10 threads, peak 17.7 of 32 GiB, swap 0 |
+| Split oversized files only by verified pure moves (chunk-multiset check, output digests) | Refactoring the output stage must not change a pixel | ✓ Good — Phase 6: move checks PASS (79/79), seven output digests equal before and after |
 
 ## Evolution
 
@@ -111,4 +117,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-11-15 after Phase 5*
+*Last updated: 2026-11-17 after Phase 6*
