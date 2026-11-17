@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Completed 06.1-07-PLAN.md
-last_updated: "2026-11-17T21:40:48.678Z"
+stopped_at: Completed 06.1-08-PLAN.md
+last_updated: "2026-11-17T22:02:37.464Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: 35e587bbaf1e76065797dac1fba0e4f3cabecfc5
+state_head: 34b25238d5bf3502442bbcf0fe65ab4cc8056edc
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 80
-  completed_plans: 72
+  completed_plans: 73
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 8 of 15
+Plan: 9 of 15
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -134,6 +134,7 @@ Progress: [██████████] 100%
 | Phase 06.1 P05 | 25 min | 3 tasks | 11 files |
 | Phase 06.1 P06 | 45 min | 3 tasks | 13 files |
 | Phase 06.1 P07 | 40 min | 3 tasks | 13 files |
+| Phase 06.1 P08 | 20 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -268,6 +269,7 @@ Recent decisions affecting current work:
 - [Phase 06.1]: 06.1-05: IN-01 closed by one shared diagnostics wording, no friend accessor; after a popup closes offscreen a test re-activates the window before checking keyboard focus
 - [Phase 06.1]: 06.1-06: own files use a constant read ceiling (fewer than 2^30 px, 131070 px per side); ImageLoader::load renamed loadOwnFile, load(const ImageId&) deleted; in-ceiling forged header accepted as residual (T-06.1-08)
 - [Phase 06.1]: 06.1-07: harness output guard is one header-only function (harness::outputDirIsStrictlyInside) resolving symlinks before anything is created; empty-batch test removes the only page through the thumbnail context menu because the project reader refuses a project without pages
+- [Phase 06.1]: 06.1-08: include lists of eleven split files pruned by a Release and Debug syntax-only rule; OutputGenerator object code (otool -tV, objdump -s, nm) identical before and after; Phase 6 IN-01 fixed, Phase 6 open 0
 
 ### Pending Todos
 
@@ -292,6 +294,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T21:40:48.101Z
-Stopped at: Completed 06.1-07-PLAN.md
+Last session: 2026-11-17T22:02:36.883Z
+Stopped at: Completed 06.1-08-PLAN.md
 Resume file: None
