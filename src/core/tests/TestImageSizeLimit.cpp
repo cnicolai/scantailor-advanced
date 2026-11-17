@@ -60,7 +60,7 @@ QImage loadPage(const QByteArray& bytes, const int page) {
 // The loader for files the application wrote itself: the own-file ceiling.
 QImage loadOwnFile(const QByteArray& bytes, const int page) {
   QBuffer buffer;
-  return ImageLoader::load(*openBuffer(buffer, bytes), page);
+  return ImageLoader::loadOwnFile(*openBuffer(buffer, bytes), page);
 }
 
 // The forgery must parse (so libtiff accepts it and the claimed size is what the reader sees), and the reader

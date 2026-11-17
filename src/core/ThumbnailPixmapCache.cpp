@@ -687,7 +687,7 @@ QImage ThumbnailPixmapCache::Impl::loadSaveThumbnail(const ImageId& imageId,
                                                      const QSize& effectiveSize) {
   const QString thumbFilePath(getThumbFilePath(imageId, thumbDir, effectiveSize));
 
-  QImage image(ImageLoader::load(thumbFilePath, 0));
+  QImage image(ImageLoader::loadOwnFile(thumbFilePath, 0));
   if (!image.isNull()) {
     return image;
   }

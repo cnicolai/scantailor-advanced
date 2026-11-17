@@ -17,19 +17,15 @@ namespace {
 std::once_flag qtReaderLimitFlag;
 }
 
-QImage ImageLoader::load(const ImageId& imageId) {
-  return load(imageId.filePath(), imageId.zeroBasedPage());
-}
-
-QImage ImageLoader::load(const QString& filePath, const int pageNum) {
+QImage ImageLoader::loadOwnFile(const QString& filePath, const int pageNum) {
   QFile file(filePath);
   if (!file.open(QIODevice::ReadOnly)) {
     return QImage();
   }
-  return load(file, pageNum);
+  return loadOwnFile(file, pageNum);
 }
 
-QImage ImageLoader::load(QIODevice& ioDev, const int pageNum) {
+QImage ImageLoader::loadOwnFile(QIODevice& ioDev, const int pageNum) {
   return loadImpl(ioDev, pageNum, ImageSizeLimit::LimitKind::OWN_FILE);
 }
 

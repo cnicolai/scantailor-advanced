@@ -258,22 +258,22 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data, 
   if (!needReprocess) {
     QFile outFile(outFilePath);
     if (outFile.open(QIODevice::ReadOnly)) {
-      outImg = ImageLoader::load(outFile, 0);
+      outImg = ImageLoader::loadOwnFile(outFile, 0);
     }
     if (outImg.isNull() && renderParams.splitOutput()) {
       OutputImageBuilder imageBuilder;
       QFile foregroundFile(foregroundFilePath);
       if (foregroundFile.open(QIODevice::ReadOnly)) {
-        imageBuilder.setForegroundImage(ImageLoader::load(foregroundFile, 0));
+        imageBuilder.setForegroundImage(ImageLoader::loadOwnFile(foregroundFile, 0));
       }
       QFile backgroundFile(backgroundFilePath);
       if (backgroundFile.open(QIODevice::ReadOnly)) {
-        imageBuilder.setBackgroundImage(ImageLoader::load(backgroundFile, 0));
+        imageBuilder.setBackgroundImage(ImageLoader::loadOwnFile(backgroundFile, 0));
       }
       if (renderParams.originalBackground()) {
         QFile originalBackgroundFile(originalBackgroundFilePath);
         if (originalBackgroundFile.open(QIODevice::ReadOnly)) {
-          imageBuilder.setOriginalBackgroundImage(ImageLoader::load(originalBackgroundFile, 0));
+          imageBuilder.setOriginalBackgroundImage(ImageLoader::loadOwnFile(originalBackgroundFile, 0));
         }
       }
       outImg = *imageBuilder.build();
@@ -283,7 +283,7 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data, 
     if (needPictureEditor && !needReprocess) {
       QFile automaskFile(automaskFilePath);
       if (automaskFile.open(QIODevice::ReadOnly)) {
-        automaskImg = BinaryImage(ImageLoader::load(automaskFile, 0));
+        automaskImg = BinaryImage(ImageLoader::loadOwnFile(automaskFile, 0));
       }
       needReprocess = automaskImg.isNull() || automaskImg.size() != outImg.size();
     }
@@ -291,7 +291,7 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data, 
     if (needSpecklesImage && !needReprocess) {
       QFile specklesFile(specklesFilePath);
       if (specklesFile.open(QIODevice::ReadOnly)) {
-        specklesImg = BinaryImage(ImageLoader::load(specklesFile, 0));
+        specklesImg = BinaryImage(ImageLoader::loadOwnFile(specklesFile, 0));
       }
       needReprocess = specklesImg.isNull();
     }

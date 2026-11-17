@@ -157,7 +157,7 @@ SubPageResult readResults(const RunContext& ctx, const PageId& pageId, const Cha
   result.hardMarginRightMM = margins.right();
   result.hardMarginBottomMM = margins.bottom();
 
-  result.output = ImageLoader::load(ctx.outFileNameGen.filePathFor(pageId), 0);
+  result.output = ImageLoader::loadOwnFile(ctx.outFileNameGen.filePathFor(pageId), 0);
   if (result.output.isNull()) {
     fail("the output stage wrote no readable file for " + ctx.outFileNameGen.filePathFor(pageId));
   }

@@ -32,7 +32,7 @@ class ProjectFilesDialog::Item {
 
   void setStatus(Status status) { m_status = status; }
 
-  /// Set together with STATUS_TOO_LARGE: "too large: W x H px" or "page N too large: ...".
+  /// Set together with STATUS_TOO_LARGE: "too large: W × H px" or "page N too large: ...".
   const QString& tooLargeText() const { return m_tooLargeText; }
 
   void setTooLargeText(const QString& text) { m_tooLargeText = text; }

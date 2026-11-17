@@ -19,11 +19,9 @@ class ImageLoader {
    * which is far above anything the application writes, so a refusal only happens for a forged file and makes the
    * page regenerate. Qt's own allocation limit still applies to formats other than TIFF.
    */
-  static QImage load(const QString& filePath, int pageNum = 0);
+  static QImage loadOwnFile(const QString& filePath, int pageNum = 0);
 
-  static QImage load(const ImageId& imageId);
-
-  static QImage load(QIODevice& ioDev, int pageNum);
+  static QImage loadOwnFile(QIODevice& ioDev, int pageNum);
 
   /**
    * Loads an image from the user's source scans, which are untrusted: a header that claims more than
