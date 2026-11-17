@@ -1704,8 +1704,8 @@ void TestMacQt::testBatchAlarmUsesBeep() {
 }
 
 void TestMacQt::testNoDontUseNativeDialog() {
-  // Options that force Qt's own file dialog, and the menu-bar and key rules of D-00b. The control proves the search
-  // finds them.
+  // Options that force Qt's own file dialog, and the menu-bar and key rules of a native Mac app (Cmd stays the primary
+  // modifier, the native menu bar stays). The control proves the search finds them.
   const QStringList forbidden{"DontUseNativeDialog", "AA_DontUseNativeDialogs", "AA_DontUseNativeMenuBar",
                               "setNativeMenuBar(false)", "AA_MacDontSwapCtrlAndMeta"};
   const auto firstForbidden = [&forbidden](const QString& text) {

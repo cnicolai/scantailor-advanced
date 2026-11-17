@@ -31,7 +31,7 @@ TextValues parseText(const QByteArray& data, bool* ok);
 bool textRoundTrips(const TextValues& values, QString* offendingKey);
 
 /**
- * Per-key tolerance by key suffix: _deg, _px and _mm are numbers compared with the D-14 limits from Tolerances.h
+ * Per-key tolerance by key suffix: _deg, _px and _mm are numbers compared with the text-golden limits in Tolerances.h
  * (a non-numeric value fails), every other key must match exactly.  Metric names are "text:<key>"; a key present on
  * one side only fails with the metric "key:<name>".
  */

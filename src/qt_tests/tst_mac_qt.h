@@ -7,7 +7,7 @@
 #include <QObject>
 
 /**
- * Offscreen checks of the Mac menus and shortcuts (Phase 5): a real MainWindow is built, shown and driven with
+ * Offscreen checks of the Mac menus and shortcuts: a real MainWindow is built, shown and driven with
  * synthesised key events. The offscreen platform has no native menu bar, so these tests cover roles, texts, key
  * sequences and enabled states; the live Mac check covers the native application menu.
  */

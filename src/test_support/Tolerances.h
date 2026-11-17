@@ -4,11 +4,11 @@
 #ifndef SCANTAILOR_TEST_SUPPORT_TOLERANCES_H_
 #define SCANTAILOR_TEST_SUPPORT_TOLERANCES_H_
 
-// The one place for comparator limits (D-12).  The image-kind limits are frozen (plan 02-09): each is the smallest
-// step of its grid strictly above the largest Release/Debug spread measured over all recorded goldens, and never
-// above the D-12 ceiling.  The measurement and the rule are in
+// The one place for comparator limits.  They are measured (Release against Debug) and capped by ceilings.  Each
+// image-kind limit is the smallest step of its grid strictly above the largest Release/Debug spread measured over all
+// recorded goldens, and never above its ceiling.  The measurement and the rule are in
 // .planning/phases/02-golden-baselines/records/tolerance-spread.md.  A test that overrides a limit must say why in a
-// comment next to the override (D-12).
+// comment next to the override.
 
 namespace test_support {
 namespace tolerance {
@@ -28,11 +28,11 @@ constexpr double kColorMaxAbsError = 1.0;
 /// Shift check: offsets in [-r, r]^2 are tried, in pixels.  The shift metric limit is 0 for every kind.
 constexpr int kShiftSearchRadius = 2;
 
-/// Text goldens, keys ending in _deg (D-14).
+/// Text goldens of the stage decisions, keys ending in _deg.
 constexpr double kGeometryAngleDeg = 0.01;
-/// Text goldens, keys ending in _px (D-14).
+/// Text goldens of the stage decisions, keys ending in _px.
 constexpr double kGeometryPx = 1.0;
-/// Text goldens, keys ending in _mm (D-14).
+/// Text goldens of the stage decisions, keys ending in _mm.
 constexpr double kGeometryMm = 0.05;
 /// Text goldens: slack for the binary representation of decimal text, so that "10.0500" vs "10.0000" passes the
 /// 0.05 limit.

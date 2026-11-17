@@ -51,7 +51,7 @@ static bool fuzzyCompare(const QImage& img1, const QImage& img2) {
 // Exact area-average reference: every output pixel is the mean of the input pixels its footprint covers, each
 // weighted by the covered area, computed in double precision and rounded half up.  QImage::scaled() is not a
 // usable reference any more: since Qt 6 its smooth scaling is about one level darker on average and up to 28 levels
-// off on an 80x80 downscale (records/unit-tests.md, "D-17 TestScale investigation").
+// off on an 80x80 downscale (.planning/phases/02-golden-baselines/records/unit-tests.md, the TestScale investigation).
 static QImage areaAverageReference(const QImage& src, const QSize& dstSize) {
   QImage dst(dstSize, QImage::Format_Grayscale8);
   const double scaleX = double(src.width()) / dstSize.width();

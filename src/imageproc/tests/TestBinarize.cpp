@@ -25,7 +25,7 @@ using namespace utils;
 namespace {
 
 // Ground truth for every binarizer: the share of truth ink pixels the binarized page gets wrong, tolerant at edges
-// (truthMismatchFraction with radius 1, offset 0), must stay within the bound.  Starting bound (D-15) is 0.5% of the
+// (truthMismatchFraction with radius 1, offset 0), must stay within the bound.  The start bound is 0.5% of the
 // ink area; "measured" is the worst case over the fixtures of the case, in Release, see
 // .planning/phases/02-golden-baselines/records/unit-tests.md.
 constexpr double kStartBound = 0.005;
@@ -124,9 +124,9 @@ void checkOnEvenPage(const char* method,
   checkRegistration(method, binarized);
 }
 
-// D-15 tightening: every binarizer measured 0 mismatched ink pixels on both pages (Release, recorded in
-// records/unit-tests.md), so each bound is twice the worst case rounded up to the step of 0.05 percentage points,
-// and never below one step: 0.05% of the ink area.
+// Tightened from the measured worst case: every binarizer measured 0 mismatched ink pixels on both pages (Release,
+// recorded in .planning/phases/02-golden-baselines/records/unit-tests.md), so each bound is twice the worst case
+// rounded up to the step of 0.05 percentage points, and never below one step: 0.05% of the ink area.
 constexpr double kTightBound = 0.0005;
 
 // Bounds per binarizer on the evenly lit page (measured worst case 0 for all nine).

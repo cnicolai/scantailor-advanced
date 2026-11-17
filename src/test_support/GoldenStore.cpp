@@ -35,7 +35,7 @@ QString invalidNameMessage(const QString& suite, const QString& name) {
       .arg(suite, name);
 }
 
-/// One line per failing metric, then the artifact folder (D-08).
+/// One line per failing metric, then the artifact folder with the expected, actual and diff images.
 QString failureMessage(const QString& suite,
                        const QString& name,
                        const std::vector<MetricResult>& metrics,
@@ -165,7 +165,8 @@ class SuiteManifest {
   SuiteManifest(const QString& goldenRoot, const QString& suite, std::set<QString>& handled)
       : m_path(goldenRoot + "/" + suite + "/" + kManifestFile), m_suite(suite), m_handled(handled) {}
 
-  /// Normal run, first check of the suite: toolchain differences against the recording become warnings (D-09).
+  /// Normal run, first check of the suite: toolchain differences against the recording become warnings only; a
+  /// difference never fails.
   void warnOnDifferences(QStringList* warnings) {
     if (!m_handled.insert(m_suite).second) {
       return;

@@ -38,8 +38,9 @@ class NeverCancelled : public TaskStatus {
 constexpr double kGlyphHeightPx = 35.0;
 constexpr double kLinePitchPx = 55.0;
 
-// D-15: the starting bound is one line pitch.  The bottom curve measured 5.18 px in Release (records/unit-tests.md),
-// at most half the starting bound, so its bound is twice that rounded up to the step of 0.5 px.
+// The start bound is one line pitch.  The bottom curve measured 5.18 px in Release
+// (.planning/phases/02-golden-baselines/records/unit-tests.md), at most half the start bound, so its bound is twice
+// that rounded up to the step of 0.5 px.
 constexpr double kStartBoundPx = kLinePitchPx;
 constexpr double kBottomBoundPx = 10.5;
 

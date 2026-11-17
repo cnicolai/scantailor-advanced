@@ -15,7 +15,8 @@
 
 namespace test_support {
 
-/// Whether a freshly produced result may be recorded as a golden (D-05).  `reason` says what is wrong when not.
+/// Whether a freshly produced result may be recorded as a golden: only after the sanity checks pass.  `reason` says
+/// what is wrong when not.
 struct Sanity {
   bool ok;
   QString reason;

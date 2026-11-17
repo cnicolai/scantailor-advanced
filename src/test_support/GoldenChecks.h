@@ -13,7 +13,8 @@
 // Boost.Test reporting for GoldenStore outcomes.  Header-only and for test sources only: the .cpp files of
 // test_support never include Boost.Test.
 //
-// Log lines (message level), one per metric of every comparison, passing or failing, parsed by plan 02-09:
+// Log lines (message level), one per metric of every comparison, passing or failing, parsed by the tolerance
+// measurement:
 //   GOLDEN-METRIC suite=<s> name=<n> kind=<bilevel|color|text> metric=<m> value=<v> limit=<l> result=<pass|fail>
 // and, when they apply:
 //   TOOLCHAIN DIFFERS suite=<s>: <entry>

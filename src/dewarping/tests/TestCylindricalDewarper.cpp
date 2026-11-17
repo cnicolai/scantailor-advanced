@@ -41,8 +41,8 @@ std::vector<QPointF> makeArc(const double x0,
 const double kDepthPerception = 2.0;
 // Smallest residual of the drawn line before dewarping that counts as visibly curved.
 const double kMinInputCurvaturePx = 3.0;
-// D-15 start bound for dewarped lines at 300 dpi is 1.5 px; the worst case measured is recorded in
-// records/unit-tests.md and the bound is twice that rounded up to the step of 0.5 px.
+// Start bound for dewarped lines at 300 dpi is 1.5 px, then tightened from the measured worst case, recorded in
+// .planning/phases/02-golden-baselines/records/unit-tests.md; the bound is twice that rounded up to the step of 0.5 px.
 const double kRasterStraightnessBoundPx = 0.5;
 
 struct Surface {

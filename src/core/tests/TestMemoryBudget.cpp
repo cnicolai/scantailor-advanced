@@ -24,7 +24,7 @@ PageInfo page(const char* path, const ImageMetadata& meta) {
   return PageInfo(PageId(ImageId(path, 0), PageId::SINGLE_PAGE), meta, 1, false, false);
 }
 
-// Source size and dpi of the reference pages and the D-08 run page.
+// Source size and dpi of the reference pages and the page of the measured batch memory run.
 struct Reference {
   int width;
   int height;
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(test_page_pixel_estimate) {
   BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(metadata(7016, 9921, 600)), 69605736);
   BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(metadata(14031, 19843, 1200)), 278417133);
   BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(metadata(8000, 9200, 2400)), 73600000);
-  // The D-08 run page.
+  // The page of the measured batch memory run.
   BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(metadata(12000, 13800, 3600)), 165600000);
   BOOST_CHECK_EQUAL(MemoryBudget::pagePixelEstimate(ImageMetadata(QSize(1000, 1000), Dpi(300, 600))), 2000000);
   // A missing dpi counts as 300.

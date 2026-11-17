@@ -15,7 +15,7 @@ namespace {
 const char kSeparator[] = " = ";
 const int kSeparatorLength = 3;
 
-/// Tolerance for the numeric key suffixes of D-14; false for keys that must match exactly.
+/// Tolerance for the numeric key suffixes of the text goldens; false for keys that must match exactly.
 bool numericTolerance(const QString& key, double* tolerance) {
   if (key.endsWith("_deg")) {
     *tolerance = tolerance::kGeometryAngleDeg;

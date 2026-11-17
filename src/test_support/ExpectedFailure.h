@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-// Trip-wire for a defect of the unmodified code that a later phase will fix (D-18).
+// Trip-wire for a defect of the unmodified code that a later phase will fix.
 //
 //   XFAIL_CHECK(condition, "tag");
 //
