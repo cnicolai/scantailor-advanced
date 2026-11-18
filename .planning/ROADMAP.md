@@ -339,7 +339,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 **Goal:** Every open v1.0 milestone-audit tech-debt item and every review finding of Phases 1 to 6 that can be closed without changing output is closed: no finding in any `*-REVIEW-DISPOSITION.md` stays `open` (each is `fixed`, or `skipped`/`deferred` with a one-line reason), comments under `src/` carry no bare planning IDs (each explains its reason in plain words), and every commit passes the Phase 3 gate with goldens unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 6
-**Plans:** 11/12 plans executed
+**Plans:** 12/12 plans executed
 
 Plans:
 **Wave 1**
@@ -376,7 +376,7 @@ Plans:
 - [x] 06.1-11-PLAN.md — UBSan fixes, strict macos-asan and new macos-asan-collect presets (D-10), SANITIZE validation (D-06), small CMake findings (P1 IN-02/IN-04, P3 WR-02); full strict ASan run
 
 **Wave 12** *(blocked on Wave 11 completion)*
-- [ ] 06.1-12-PLAN.md — fp-contract measurement (D-13), Boost config targets deferred (D-07, user decision 2026-11-17), closing checks and last stale notes
+- [x] 06.1-12-PLAN.md — fp-contract measurement (D-13), Boost config targets deferred (D-07, user decision 2026-11-17), closing checks and last stale notes
 
 **Cross-cutting constraints:** <!-- gsd:generated -->
 - Both commits pass the gate with empty command diffs and unchanged goldens (D-00a)

@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
-status: executing
-stopped_at: Completed 06.1-11-PLAN.md
-last_updated: "2026-11-18T09:57:06.111Z"
+status: verifying
+stopped_at: Completed 06.1-12-PLAN.md
+last_updated: "2026-11-18T10:09:52.134Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: b4e45db9bf5437e9c0b2d93cd7e3e2697e6ac00a
+state_head: 161dac3ad19b0772a652daca2434b60625935857
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 77
-  completed_plans: 76
+  completed_plans: 77
 milestone_name: macOS
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
 Plan: 12 of 12
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
 Progress: [██████████] 100%
@@ -138,6 +138,7 @@ Progress: [██████████] 100%
 | Phase 06.1 P09 | 25 min | 2 tasks | 12 files |
 | Phase 06.1 P10 | 18min | 2 tasks | 26 files |
 | Phase 06.1 P11 | 45 min | 3 tasks | 11 files |
+| Phase 06.1 P12 | 12 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -278,6 +279,8 @@ Recent decisions affecting current work:
 - [Phase 06.1]: Plan 06.1-11: no suppression file; the fresh inventory found only the 9 known project locations, none in Qt, libtiff, libpng, libjpeg or Boost
 - [Phase 06.1]: Plan 06.1-11: CMAKE_OSX_ARCHITECTURES=arm64 added to macos-base; the scratch trial changed 0 of 520 command lines
 - [Phase 06.1]: Plan 06.1-11: macos-asan test preset halts on the first report (halt_on_error=1), macos-asan-collect keeps the collect values; full strict run 7/7 at dec6a64c (input key 644c473c)
+- [Phase 06.1]: Plan 06.1-12: -ffp-contract=on changes 1 of 35 goldens (curved_300_dewarp, 426 bilevel pixels); default stays off; a control build with off is identical
+- [Phase 06.1]: Plan 06.1-12: strict asan run of 06.1-11 reused by input-key equality; Phase 1 WR-04 deferred by user decision; all review findings of Phases 1 to 6 closed (54 fixed, 4 skipped, 1 deferred)
 
 ### Pending Todos
 
@@ -299,6 +302,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-18T09:57:05.522Z
-Stopped at: Completed 06.1-11-PLAN.md
+Last session: 2026-11-18T10:09:51.521Z
+Stopped at: Completed 06.1-12-PLAN.md
 Resume file: None
