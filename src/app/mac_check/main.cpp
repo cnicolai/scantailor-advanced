@@ -54,6 +54,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFrame>
 #include <QGuiApplication>
 #include <QImage>
@@ -186,9 +187,38 @@ QString shown(QString path, const QString& out) {
   return path;
 }
 
-bool isBelow(const QString& path, const QString& root) {
+// The symlink-resolved form of a path, to compare with the output directory that the harness guard returns already
+// resolved. A part that does not exist yet keeps its cleaned spelling below its deepest existing ancestor. An empty
+// path stays empty, so an unset variable never matches anything.
+QString resolvedPath(const QString& path) {
   const QString cleaned = QDir::cleanPath(path);
-  return !cleaned.isEmpty() && (cleaned == root || cleaned.startsWith(root + "/"));
+  QString head = cleaned;
+  QString rest;
+  while (!head.isEmpty()) {
+    const QString canonical = QFileInfo(head).canonicalFilePath();
+    if (!canonical.isEmpty()) {
+      return rest.isEmpty() ? canonical : QDir::cleanPath(canonical + "/" + rest);
+    }
+    const int slash = head.lastIndexOf('/');
+    if (slash < 0) {
+      break;
+    }
+    rest = rest.isEmpty() ? head.mid(slash + 1) : head.mid(slash + 1) + "/" + rest;
+    head = slash == 0 ? QString("/") : head.left(slash);
+  }
+  return cleaned;
+}
+
+bool samePath(const QString& a, const QString& b) {
+  const QString resolved = resolvedPath(a);
+  return !resolved.isEmpty() && resolved == resolvedPath(b);
+}
+
+bool isBelow(const QString& path, const QString& root) {
+  const QString resolved = resolvedPath(path);
+  const QString resolvedRoot = resolvedPath(root);
+  return !resolved.isEmpty() && !resolvedRoot.isEmpty()
+         && (resolved == resolvedRoot || resolved.startsWith(resolvedRoot + "/"));
 }
 
 QString stripAmpersand(QString text) {
@@ -1510,9 +1540,9 @@ bool runContextSection(Summary& summary) {
 bool homeRedirected(const QString& out) {
   const QString expectedHome = QDir::cleanPath(out + "/home");
   const QString root = QDir::cleanPath(QString::fromUtf8(MAC_CHECK_ROOT));
-  const QString fixedHome = QDir::cleanPath(QString::fromLocal8Bit(qgetenv("CFFIXED_USER_HOME")));
-  const QString envHome = QDir::cleanPath(QString::fromLocal8Bit(qgetenv("HOME")));
-  return QDir(expectedHome).exists() && envHome == expectedHome && fixedHome == expectedHome
+  const QString fixedHome = QString::fromLocal8Bit(qgetenv("CFFIXED_USER_HOME"));
+  const QString envHome = QString::fromLocal8Bit(qgetenv("HOME"));
+  return QDir(expectedHome).exists() && samePath(envHome, expectedHome) && samePath(fixedHome, expectedHome)
          && isBelow(cocoaprobe::homeDirectory(), root) && isBelow(QDir::homePath(), root)
          && isBelow(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), root);
 }
@@ -1888,8 +1918,8 @@ bool runPanelsSection(Summary& summary, const QString& out) {
 int runIdentitySection(const QString& out, int& argc, char** argv) {
   qunsetenv("XDG_CONFIG_HOME");
   const QString expectedHome = QDir::cleanPath(out + "/home");
-  const QString fixedHome = QDir::cleanPath(QString::fromLocal8Bit(qgetenv("CFFIXED_USER_HOME")));
-  if (!QDir(expectedHome).exists() || QDir::homePath() != expectedHome || fixedHome != expectedHome) {
+  const QString fixedHome = QString::fromLocal8Bit(qgetenv("CFFIXED_USER_HOME"));
+  if (!QDir(expectedHome).exists() || !samePath(QDir::homePath(), expectedHome) || !samePath(fixedHome, expectedHome)) {
     std::fprintf(stderr, "mac_check: identity needs HOME and CFFIXED_USER_HOME set to %s/home: home not redirected\n",
                  out.toLocal8Bit().constData());
     return 2;
