@@ -285,16 +285,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 2] Four info findings of the re-review are deferred (IN-01 to IN-04 in `02-REVIEW-DISPOSITION.md`). IN-01 matters if a later phase adds a scan resolution: the generator refuses 400 and 450 dpi for SPREAD, MIXED and CURVED, not only 150 and 225 (`dpiSupported`).
-- [Phase 3] Code review WR-01 (`ui_snapshot` recompiling the GUI sources) was fixed by plan 05-01: the GUI sources compile once into the `app_gui` static library. Six info findings of that review are still open (IN-06 is skipped) and are closed in Phase 06.1 (finding ledger in `06.1-01-PLAN.md`); WR-02 is deferred.
+- [Phase 06.1] All review findings of Phases 1 to 6 are closed: fixed, skipped or deferred with a reason, by Phase 06.1. Phase 1 WR-04 (Boost config targets) is deferred by user decision. Evidence in `phases/06.1-address-tech-debt-post-audit-cleanup/records/closing-check.md`.
 - [Phase 3] Existing build directories still hold stale untracked `.qm`, `.desktop` and CPack files from before the strip; nothing produces them any more. `cmake --fresh --preset <name>` or deleting `build/<preset>` clears them.
 - Build-tool reads for Phases 4 to 6 are approved in `records/access-approval.md` of Phase 2. `.planning/phases/03-qt-6-and-macos-only/gate.sh` gives later phases the same per-commit gate (Release and Debug ctest, goldens, build-command diff).
 - [Phase 4] Review warnings WR-01 to WR-03 were fixed after the review (`04-REVIEW-FIX.md`), so the dangling-iterator risk in `ThumbnailPixmapCache::removeLoadedItemsLocked()` is gone.
 - [Phase 4] A real drag between a 1x and a 2x display is unverified (one display attached; criterion 4 rests on the offscreen two-screen simulation). Thumbnails depend on the `DevicePixelRatioChange` event alone. Re-check procedure: `phases/04-retina-rendering/records/closing-check.md`.
-- [Phase 5] Six info findings of the code review are open (IN-01 to IN-06 in `05-REVIEW-DISPOSITION.md`); none touches a must-have.
 - [Phase 5] At the Filters dock's minimum width (274 pt) the Margins options panel (minimum 316 pt) is cut on the right. Older layout limit, not a Phase 5 change; noted in `05-UAT.md` test 3.
 - Live `mac_check` and `retina_check` runs move the pointer and take focus: run them only on the user's go.
-- [Phase 6] Six info findings of the code reviews are open (IN-01 to IN-06 in `06-REVIEW-DISPOSITION.md`). Two have code consequences: IN-04 (`ImageLoader::load(const ImageId&)` is unused and reads source files without the limit; delete it) and IN-06 (`startBatchProcessing()` dereferences the reset queue for a project with no pages; add `return;`). IN-05: output-folder files are read without a size limit, an accepted decision for this fork.
 
 ### Roadmap Evolution
 
