@@ -16,8 +16,9 @@ class ImageLoader {
   /**
    * Loads an image the application wrote itself: its cached output, the foreground and background layers, the
    * automask and speckles files, the thumbnail files. These are read with the own-file ceiling of ImageSizeLimit,
-   * which is far above anything the application writes, so a refusal only happens for a forged file and makes the
-   * page regenerate. Qt's own allocation limit still applies to formats other than TIFF.
+   * which is far above the outputs of ordinary settings. A refusal happens for a forged file or for an output above
+   * the ceiling (a very high output dpi), and makes the page regenerate. Qt's own allocation limit still applies to
+   * formats other than TIFF.
    */
   static QImage loadOwnFile(const QString& filePath, int pageNum = 0);
 

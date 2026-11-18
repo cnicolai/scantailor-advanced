@@ -41,13 +41,19 @@ class ImageSizeLimit {
 
   /**
    * The ceiling for files the application wrote itself (output, layers, automask, speckles, thumbnails): fewer
-   * than 2^30 px in total. The largest plausible output is a 500 mm side at 1200 dpi, 23622 px per side and about
-   * 558 Mpx for a square page; the ceiling is about 1.9 times that and 3.9 times a real A3 page at 1200 dpi.
-   * A refused own file is regenerated on every visit, so the ceiling is generous on purpose. It is a constant,
-   * the same on every machine, and can be tested with a forged header. 2^30 px as RGB32 is 4 GiB, which no
-   * longer fits an int (byte counts go through qsizetype), so no int assertion applies. A forged header just
-   * inside the ceiling can therefore still cost an allocation of up to about 4 GiB; that is accepted, because
-   * every file the application wrote itself must load.
+   * than 2^30 px in total. The intended outputs are book and document scans at up to 1200 dpi; the largest of
+   * them is a 500 mm side at 1200 dpi, 23622 px per side and about 558 Mpx for a square page. The ceiling is about
+   * 1.9 times that and 3.9 times a real A3 page at 1200 dpi. A refused own file is regenerated on every visit, so
+   * the ceiling is generous on purpose. It is a constant, the same on every machine, and can be tested with a
+   * forged header. 2^30 px as RGB32 is 4 GiB, which no longer fits an int (byte counts go through qsizetype), so
+   * no int assertion applies. A forged header just inside the ceiling can therefore still cost an allocation of
+   * up to about 4 GiB; that is accepted, because the ceiling must stay above every output of the intended settings.
+   *
+   * The output dpi is not bounded by 1200: the Change DPI dialog accepts up to 9999, and no write-side check
+   * compares the output size with this ceiling. An output above it (for example a bilevel A3 page above about
+   * 2360 dpi, 28063 x 39685 px at 2400 dpi) or with a side above kMaxOwnFileSide is still written, then refused
+   * on load and regenerated on every visit. That is accepted, because such dpi values are outside the use of this
+   * fork (book and document scans at up to 1200 dpi).
    */
   static constexpr qint64 kMaxOwnFilePixels = (qint64(1) << 30) - 1;
 
