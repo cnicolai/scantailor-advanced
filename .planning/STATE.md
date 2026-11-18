@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "06.1"
 current_phase_name: "Address tech debt: post-audit cleanup"
 status: executing
-stopped_at: Phase 06.1 plan 11 stopped by user request before its first commit; partial UBSan edits saved in build/scratch/gsd/06.1-11-partial.patch, tree reset to 7b140c31
-last_updated: "2026-11-17T22:55:58.782Z"
+stopped_at: Completed 06.1-11-PLAN.md
+last_updated: "2026-11-18T09:57:06.111Z"
 last_activity: 2026-11-17
 last_activity_desc: Phase 06.1 execution started
-state_head: 7b140c31e48b6f34d27b74c9139fa5c0e697caea
+state_head: b4e45db9bf5437e9c0b2d93cd7e3e2697e6ac00a
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 77
-  completed_plans: 75
+  completed_plans: 76
 milestone_name: macOS
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-11-17)
 ## Current Position
 
 Phase: 06.1 (Address tech debt: post-audit cleanup) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Status: Ready to execute
 Last activity: 2026-11-17 — Phase 06.1 execution started
 
@@ -137,6 +137,7 @@ Progress: [██████████] 100%
 | Phase 06.1 P08 | 20 min | 2 tasks | 13 files |
 | Phase 06.1 P09 | 25 min | 2 tasks | 12 files |
 | Phase 06.1 P10 | 18min | 2 tasks | 26 files |
+| Phase 06.1 P11 | 45 min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -274,6 +275,9 @@ Recent decisions affecting current work:
 - [Phase 06.1]: 06.1-08: include lists of eleven split files pruned by a Release and Debug syntax-only rule; OutputGenerator object code (otool -tV, objdump -s, nm) identical before and after; Phase 6 IN-01 fixed, Phase 6 open 0
 - [Phase 06.1]: 06.1-09: comment-only edits are proven by records/comment_only.py (token streams without comments equal; --strings for the one changed literal), plus gates with diff_lines 0
 - [Phase 06.1]: 06.1-10: only the CONTEXT D-05 regex is checked; bare records pointers in rewritten comments became full .planning paths; HeadlessPipeline.h keeps the PipelineOptions::configure guarantee, the process note is gone
+- [Phase 06.1]: Plan 06.1-11: no suppression file; the fresh inventory found only the 9 known project locations, none in Qt, libtiff, libpng, libjpeg or Boost
+- [Phase 06.1]: Plan 06.1-11: CMAKE_OSX_ARCHITECTURES=arm64 added to macos-base; the scratch trial changed 0 of 520 command lines
+- [Phase 06.1]: Plan 06.1-11: macos-asan test preset halts on the first report (halt_on_error=1), macos-asan-collect keeps the collect values; full strict run 7/7 at dec6a64c (input key 644c473c)
 
 ### Pending Todos
 
@@ -298,6 +302,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-11-17T22:55:58.166Z
-Stopped at: Phase 06.1 plan 11 stopped by user request before its first commit; partial UBSan edits saved in build/scratch/gsd/06.1-11-partial.patch, tree reset to 7b140c31
-Resume file: build/scratch/gsd/06.1-11-partial.patch
+Last session: 2026-11-18T09:57:05.522Z
+Stopped at: Completed 06.1-11-PLAN.md
+Resume file: None
