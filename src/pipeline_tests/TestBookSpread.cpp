@@ -419,7 +419,8 @@ BOOST_AUTO_TEST_CASE(test_book_fixture_fingerprints) {
 // The cache must hand out references that stay valid while it grows.  The case adds at least 16 low-dpi pages that no
 // other case renders, so a container that reallocates when it grows must move the first page inside this case,
 // whatever ran before.  Only addresses are compared before the check: a reallocating container would leave the first
-// pointer dangling.
+// pointer dangling.  Run once on 2026-11-18 against a std::vector cache (no reserve): the case failed with the
+// "moved" message below.
 BOOST_AUTO_TEST_CASE(test_spread_page_cache_keeps_references) {
   const test_support::GeneratedPage* const first = &spreadPage(75);
   int added = 0;
