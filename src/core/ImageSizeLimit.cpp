@@ -10,22 +10,21 @@
 #include "ImageMetadata.h"
 #include "ImageMetadataLoader.h"
 
-bool ImageSizeLimit::exceeds(const QSize& size) {
+bool ImageSizeLimit::exceedsLimits(const QSize& size, const int maxSide, const qint64 maxPixels) {
   const int width = size.width();
   const int height = size.height();
   if (width < 0 || height < 0) {
     return true;
   }
-  return width > kMaxSide || height > kMaxSide || qint64(width) * height > kMaxPixels;
+  return width > maxSide || height > maxSide || qint64(width) * height > maxPixels;
+}
+
+bool ImageSizeLimit::exceeds(const QSize& size) {
+  return exceedsLimits(size, kMaxSide, kMaxPixels);
 }
 
 bool ImageSizeLimit::exceedsOwnFile(const QSize& size) {
-  const int width = size.width();
-  const int height = size.height();
-  if (width < 0 || height < 0) {
-    return true;
-  }
-  return width > kMaxOwnFileSide || height > kMaxOwnFileSide || qint64(width) * height > kMaxOwnFilePixels;
+  return exceedsLimits(size, kMaxOwnFileSide, kMaxOwnFilePixels);
 }
 
 bool ImageSizeLimit::exceeds(const QSize& size, const LimitKind kind) {

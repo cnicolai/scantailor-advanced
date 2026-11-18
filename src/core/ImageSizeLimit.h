@@ -97,6 +97,10 @@ class ImageSizeLimit {
    * oversized page) for a file with several pages. Used where a whole file is accepted or refused.
    */
   static QString oversizedPagesText(const std::vector<ImageMetadata>& pages);
+
+ private:
+  /** The shared test of exceeds() and exceedsOwnFile(), against the given ceilings. */
+  static bool exceedsLimits(const QSize& size, int maxSide, qint64 maxPixels);
 };
 
 static_assert(4 * ImageSizeLimit::kMaxPixels <= std::numeric_limits<int>::max(),
