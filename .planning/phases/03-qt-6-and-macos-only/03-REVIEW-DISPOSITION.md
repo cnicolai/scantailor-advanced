@@ -9,7 +9,7 @@ findings:
     title: "`ui_snapshot` recompiles the entire GUI sources and is built by default"
   - id: WR-02
     severity: warning
-    disposition: deferred
+    disposition: fixed
     title: "Orphaned comment in the top-level CMakeLists refers to a block this phase deleted"
   - id: IN-01
     severity: info
@@ -49,7 +49,7 @@ recorded: 2026-10-24T21:54:44.269Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | fixed by 05-01 (df295683): the GUI sources compile once into the app_gui static library that the app, ui_snapshot, qt_tests and mac_check link; ui_snapshot is still built with the tests but no longer recompiles the GUI |
-| WR-02 | warning | deferred | Kept on purpose: the comment sits in the Clang flag block that D-01 keeps byte-for-byte (Phase 1 D-03, D-08); RESEARCH.md Open Questions resolved to leave it. Revisit when that block is next edited. |
+| WR-02 | warning | fixed | fixed by 06.1-11 (dec6a64c): the warning-set comment stands alone; this commit was the next touch of the block |
 | IN-01 | info | fixed | fixed by 06.1-03 (f6ef6bcc): unused Application.h and QLocale includes removed, main.cpp includes QTimer and memory itself |
 | IN-02 | info | fixed | fixed by 06.1-03 (f6ef6bcc): MainWindow::changeEvent deleted, the UI is English only |
 | IN-03 | info | fixed | fixed by 06.1-03 (1f1f21ed, f6ef6bcc): UNC branch proven unreachable by TestRelinkablePath and deleted, the four Windows comments reworded |
