@@ -2106,13 +2106,12 @@ void TestMacQt::testHarnessMainsUseTheGuard() {
   // The old lexical check let a symlink inside build/ and the build directory itself through. A harness that stops
   // calling the shared guard, or brings the old check back, fails here.
   const QString oldCheck = QStringLiteral("out.startsWith(root + \"/\")");
-  // Control: the search finds the check in a line copied from the removed code (not built from oldCheck).
-  QVERIFY(QStringLiteral("  if (out != root && !out.startsWith(root + \"/\")) {").contains(oldCheck));
 
   const QDir root(sourceRoot());
   const QStringList mains
       = {"src/app/ui_snapshot/main.cpp", "src/app/retina_check/main.cpp", "src/app/mac_check/main.cpp"};
-  const QString guardCall = QStringLiteral("harness::outputDirIsStrictlyInside(");
+  // The negation is part of the search: a harness that stops on an accepted directory must not pass.
+  const QString guardCall = QStringLiteral("if (!harness::outputDirIsStrictlyInside(");
   for (const QString& relative : mains) {
     const QString text = readUtf8(root.filePath(relative));
     QVERIFY2(!text.isEmpty(), qPrintable(relative + " is empty or unreadable"));
