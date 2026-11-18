@@ -189,9 +189,13 @@ QString shown(QString path, const QString& out) {
 
 // The symlink-resolved form of a path, to compare with the output directory that the harness guard returns already
 // resolved. A part that does not exist yet keeps its cleaned spelling below its deepest existing ancestor. An empty
-// path stays empty, so an unset variable never matches anything.
+// or relative path gives an empty result, so an unset variable or a path that depends on the working directory never
+// matches anything.
 QString resolvedPath(const QString& path) {
   const QString cleaned = QDir::cleanPath(path);
+  if (!QDir::isAbsolutePath(cleaned)) {
+    return QString();
+  }
   QString head = cleaned;
   QString rest;
   while (!head.isEmpty()) {
