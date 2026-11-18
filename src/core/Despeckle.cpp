@@ -325,6 +325,8 @@ bool canBeAttachedTo(const Component& comp, const Component& target, uint32_t sq
   return false;
 }
 
+// The squared-distance updates double vec.x by multiplication: vec.x is often negative and a left shift of a
+// negative value is undefined. The result is the same.
 void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
   const int width = cmap.size().width() + 2;
   const int height = cmap.size().height() + 2;
@@ -343,7 +345,7 @@ void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
   prevSqdistLine[0] = distLine[0].sqdist();
   for (int x = 1; x < width; ++x) {
     distLine[x].vec.x = static_cast<int16_t>(distLine[x - 1].vec.x - 1);
-    prevSqdistLine[x] = prevSqdistLine[x - 1] - (int(distLine[x - 1].vec.x) << 1) + 1;
+    prevSqdistLine[x] = prevSqdistLine[x - 1] - (int(distLine[x - 1].vec.x) * 2) + 1;
   }
 
   // Top to bottom scan.
@@ -365,7 +367,7 @@ void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
       // Propagate from left.
       Distance leftDist = distLine[x - 1];
       uint32_t sqdistLeft = thisSqdistLine[x - 1];
-      sqdistLeft += 1 - (int(leftDist.vec.x) << 1);
+      sqdistLeft += 1 - (int(leftDist.vec.x) * 2);
       // Propagate from top.
       Distance topDist = distLine[x - width];
       uint32_t sqdistTop = prevSqdistLine[x];
@@ -389,7 +391,7 @@ void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
       // Propagate from right.
       Distance rightDist = distLine[x + 1];
       uint32_t sqdistRight = thisSqdistLine[x + 1];
-      sqdistRight += 1 + (int(rightDist.vec.x) << 1);
+      sqdistRight += 1 + (int(rightDist.vec.x) * 2);
 
       if (sqdistRight < thisSqdistLine[x]) {
         thisSqdistLine[x] = sqdistRight;
@@ -415,7 +417,7 @@ void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
       // Propagate from right.
       Distance rightDist = distLine[x + 1];
       uint32_t sqdistRight = thisSqdistLine[x + 1];
-      sqdistRight += 1 + (int(rightDist.vec.x) << 1);
+      sqdistRight += 1 + (int(rightDist.vec.x) * 2);
       // Propagate from bottom.
       Distance bottomDist = distLine[x + width];
       uint32_t sqdistBottom = prevSqdistLine[x];
@@ -443,7 +445,7 @@ void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
       // Propagate from left.
       Distance leftDist = distLine[x - 1];
       uint32_t sqdistLeft = thisSqdistLine[x - 1];
-      sqdistLeft += 1 - (int(leftDist.vec.x) << 1);
+      sqdistLeft += 1 - (int(leftDist.vec.x) * 2);
 
       if (sqdistLeft < thisSqdistLine[x]) {
         thisSqdistLine[x] = sqdistLeft;
@@ -458,6 +460,7 @@ void voronoi(ConnectivityMap& cmap, std::vector<Distance>& dist) {
   }
 }  // voronoi
 
+// Doubles vec.x by multiplication as voronoi() does.
 void voronoiSpecial(ConnectivityMap& cmap, std::vector<Distance>& dist, const Distance specialDistance) {
   const int width = cmap.size().width() + 2;
   const int height = cmap.size().height() + 2;
@@ -473,7 +476,7 @@ void voronoiSpecial(ConnectivityMap& cmap, std::vector<Distance>& dist, const Di
   prevSqdistLine[0] = distLine[0].sqdist();
   for (int x = 1; x < width; ++x) {
     distLine[x].vec.x = static_cast<int16_t>(distLine[x - 1].vec.x - 1);
-    prevSqdistLine[x] = prevSqdistLine[x - 1] - (int(distLine[x - 1].vec.x) << 1) + 1;
+    prevSqdistLine[x] = prevSqdistLine[x - 1] - (int(distLine[x - 1].vec.x) * 2) + 1;
   }
 
   // Top to bottom scan.
@@ -495,7 +498,7 @@ void voronoiSpecial(ConnectivityMap& cmap, std::vector<Distance>& dist, const Di
       Distance leftDist = distLine[x - 1];
       if (leftDist != specialDistance) {
         uint32_t sqdistLeft = thisSqdistLine[x - 1];
-        sqdistLeft += 1 - (int(leftDist.vec.x) << 1);
+        sqdistLeft += 1 - (int(leftDist.vec.x) * 2);
         if (sqdistLeft < thisSqdistLine[x]) {
           thisSqdistLine[x] = sqdistLeft;
           --leftDist.vec.x;
@@ -528,7 +531,7 @@ void voronoiSpecial(ConnectivityMap& cmap, std::vector<Distance>& dist, const Di
       Distance rightDist = distLine[x + 1];
       if (rightDist != specialDistance) {
         uint32_t sqdistRight = thisSqdistLine[x + 1];
-        sqdistRight += 1 + (int(rightDist.vec.x) << 1);
+        sqdistRight += 1 + (int(rightDist.vec.x) * 2);
         if (sqdistRight < thisSqdistLine[x]) {
           thisSqdistLine[x] = sqdistRight;
           ++rightDist.vec.x;
@@ -561,7 +564,7 @@ void voronoiSpecial(ConnectivityMap& cmap, std::vector<Distance>& dist, const Di
       Distance rightDist = distLine[x + 1];
       if (rightDist != specialDistance) {
         uint32_t sqdistRight = thisSqdistLine[x + 1];
-        sqdistRight += 1 + (int(rightDist.vec.x) << 1);
+        sqdistRight += 1 + (int(rightDist.vec.x) * 2);
         if (sqdistRight < thisSqdistLine[x]) {
           thisSqdistLine[x] = sqdistRight;
           ++rightDist.vec.x;
@@ -594,7 +597,7 @@ void voronoiSpecial(ConnectivityMap& cmap, std::vector<Distance>& dist, const Di
       Distance leftDist = distLine[x - 1];
       if (leftDist != specialDistance) {
         uint32_t sqdistLeft = thisSqdistLine[x - 1];
-        sqdistLeft += 1 - (int(leftDist.vec.x) << 1);
+        sqdistLeft += 1 - (int(leftDist.vec.x) * 2);
         if (sqdistLeft < thisSqdistLine[x]) {
           thisSqdistLine[x] = sqdistLeft;
           --leftDist.vec.x;

@@ -46,7 +46,8 @@ void SlicedHistogram::processHorizontalLines(const BinaryImage& image, const QRe
   const int firstWordIdx = area.left() >> 5;
   const int lastWordIdx = area.right() >> 5;  // area.right() is within area
   const uint32_t firstWordMask = ~uint32_t(0) >> (area.left() & 31);
-  const int lastWordUnusedBits = (lastWordIdx << 5) + 31 - area.right();
+  // Multiplication, not a shift: lastWordIdx is negative for a null area and shifting a negative value is undefined.
+  const int lastWordUnusedBits = lastWordIdx * 32 + 31 - area.right();
   const uint32_t lastWordMask = ~uint32_t(0) << lastWordUnusedBits;
   const uint32_t* line = image.data() + top * wpl;
 

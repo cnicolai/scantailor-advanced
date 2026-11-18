@@ -126,8 +126,9 @@ void InfluenceMap::init(const ConnectivityMap& cmap, const BinaryImage* mask) {
     assert(cell->label != 0);
     assert(cell->label <= m_maxLabel);
 
-    const int32_t dx2 = cell->vec.x << 1;
-    const int32_t dy2 = cell->vec.y << 1;
+    // Doubling by multiplication: a left shift of a negative value is undefined.
+    const int32_t dx2 = cell->vec.x * 2;
+    const int32_t dy2 = cell->vec.y * 2;
 
     // North-western neighbor.
     Cell* nbh = cell - width - 1;

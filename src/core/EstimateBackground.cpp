@@ -240,7 +240,9 @@ imageproc::PolynomialSurface estimateBackground(const GrayImage& input,
   // Check each horizontal line.  If it's mostly
   // white (ignored), then make it completely white.
   const int lastWordIdx = (width - 1) >> 5;
-  const uint32_t lastWordMask = ~uint32_t(0) << (32 - width - (lastWordIdx << 5));
+  // Unused bits of the last 32-bit word, 0 to 31; a negative or too large shift exponent is undefined.
+  const int unusedBits = (lastWordIdx + 1) * 32 - width;
+  const uint32_t lastWordMask = ~uint32_t(0) << unusedBits;
   maskLine = maskData;
   for (int y = 0; y < height; ++y, maskLine += maskStride) {
     int blackCount = 0;

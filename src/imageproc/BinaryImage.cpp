@@ -1040,8 +1040,8 @@ void BinaryImage::SharedData::unref() const {
 }
 
 void* BinaryImage::SharedData::operator new(size_t, const NumWords numWords) {
-  SharedData* sd = nullptr;
-  void* addr = malloc(((char*) &sd->m_data[0] - (char*) sd) + numWords.numWords * 4);
+  // offsetof gives the header size without a member access through a null pointer.
+  void* addr = malloc(offsetof(SharedData, m_data) + numWords.numWords * 4);
   if (!addr) {
     throw std::bad_alloc();
   }
