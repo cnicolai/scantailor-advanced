@@ -49,11 +49,11 @@ class ImageSizeLimit {
    * no int assertion applies. A forged header just inside the ceiling can therefore still cost an allocation of
    * up to about 4 GiB; that is accepted, because the ceiling must stay above every output of the intended settings.
    *
-   * The output dpi is not bounded by 1200: the Change DPI dialog accepts up to 9999, and no write-side check
-   * compares the output size with this ceiling. An output above it (for example a bilevel A3 page above about
-   * 2360 dpi, 28063 x 39685 px at 2400 dpi) or with a side above kMaxOwnFileSide is still written, then refused
-   * on load and regenerated on every visit. That is accepted, because such dpi values are outside the use of this
-   * fork (book and document scans at up to 1200 dpi).
+   * The output dpi is not bounded by 1200 everywhere: the Change DPI dialog refuses more, but the default parameters
+   * dialog accepts up to 9999, and no write-side check compares the output size with this ceiling. An output above it
+   * (for example a bilevel A3 page above about 2360 dpi, 28063 x 39685 px at 2400 dpi) or with a side above
+   * kMaxOwnFileSide is still written, then refused on load and regenerated on every visit. That is accepted, because
+   * such dpi values are outside the use of this fork (book and document scans at up to 1200 dpi).
    */
   static constexpr qint64 kMaxOwnFilePixels = (qint64(1) << 30) - 1;
 
