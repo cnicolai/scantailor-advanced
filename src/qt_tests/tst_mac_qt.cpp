@@ -2106,16 +2106,22 @@ void TestMacQt::testHarnessMainsUseTheGuard() {
   // The old lexical check let a symlink inside build/ and the build directory itself through. A harness that stops
   // calling the shared guard, or brings the old check back, fails here.
   const QString oldCheck = QStringLiteral("out.startsWith(root + \"/\")");
-  QVERIFY(QStringLiteral("if (out != root && !%1) {").arg(oldCheck).contains(oldCheck));  // the search finds it
+  // Control: the search finds the check in a line copied from the removed code (not built from oldCheck).
+  QVERIFY(QStringLiteral("  if (out != root && !out.startsWith(root + \"/\")) {").contains(oldCheck));
 
   const QDir root(sourceRoot());
   const QStringList mains
       = {"src/app/ui_snapshot/main.cpp", "src/app/retina_check/main.cpp", "src/app/mac_check/main.cpp"};
+  const QString guardCall = QStringLiteral("harness::outputDirIsStrictlyInside(");
   for (const QString& relative : mains) {
     const QString text = readUtf8(root.filePath(relative));
     QVERIFY2(!text.isEmpty(), qPrintable(relative + " is empty or unreadable"));
-    QVERIFY2(text.contains("harness::outputDirIsStrictlyInside("), qPrintable(relative + " lacks the shared guard"));
+    const int call = text.indexOf(guardCall);
+    QVERIFY2(call >= 0, qPrintable(relative + " lacks the shared guard"));
     QVERIFY2(!text.contains(oldCheck), qPrintable(relative + " keeps the lexical check"));
+    // A refused directory must stop the harness: "return 2;" within the lines after the call.
+    const QStringList followingLines = text.mid(call).split('\n').mid(0, 5);
+    QVERIFY2(followingLines.join('\n').contains("return 2;"), qPrintable(relative + " does not stop on a refusal"));
   }
   const QString snapshot = readUtf8(root.filePath("src/app/ui_snapshot/main.cpp"));
   QVERIFY2(snapshot.contains("harness::parseSnapshotArgs("),
