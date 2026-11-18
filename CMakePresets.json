@@ -11,10 +11,22 @@
       "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": "/opt/homebrew",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "BUILD_TESTS": "ON",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "ON"
+        },
+        "BUILD_TESTS": {
+          "type": "BOOL",
+          "value": "ON"
+        },
         "CMAKE_FIND_FRAMEWORK": "LAST"
       }
     },
@@ -78,6 +90,15 @@
     },
     {
       "name": "macos-asan",
+      "inherits": "macos-test-base",
+      "configurePreset": "macos-asan",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0:halt_on_error=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      }
+    },
+    {
+      "name": "macos-asan-collect",
       "inherits": "macos-test-base",
       "configurePreset": "macos-asan",
       "environment": {

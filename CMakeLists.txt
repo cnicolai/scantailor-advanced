@@ -35,19 +35,34 @@ if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # Clang counterpart of the GNU warning set above (-Wpedantic left out, D-08).
+  # Warning set for Clang; -Wpedantic is left out because Qt and Boost headers are not pedantic-clean under Clang.
   # Outside the cache guard so that every configure applies it.
   add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-Werror=return-type;-Wno-unused>")
-  # FP contraction frozen so results do not depend on build type or code layout; fixed before Phase 2 baselines (D-03).
+  # FP contraction is frozen for Clang, the only compiler of this project, so results do not depend on build type or
+  # code layout and match the recorded goldens.
   add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-ffp-contract=off>")
 endif()
 
-set(SANITIZE "" CACHE STRING "Value for -fsanitize=, e.g. address,undefined. Empty disables.")
+# Sanitizers that SANITIZE accepts. Clang cannot combine address with thread.
+set(ST_KNOWN_SANITIZERS address undefined thread)
+set(SANITIZE "" CACHE STRING "Sanitizers for -fsanitize=, comma separated: address, undefined, thread. Empty disables.")
 if (SANITIZE)
-  add_compile_options(-fsanitize=${SANITIZE} -fno-omit-frame-pointer)
-  add_link_options(-fsanitize=${SANITIZE})
-  if (SANITIZE MATCHES "address")
-    # Keep running after a finding so one run collects every report.
+  string(REPLACE "," ";" _sanitizers "${SANITIZE}")
+  foreach (_name IN LISTS _sanitizers)
+    if (NOT _name IN_LIST ST_KNOWN_SANITIZERS)
+      message(FATAL_ERROR
+          "SANITIZE: unknown sanitizer '${_name}'; use address, undefined or thread (comma separated).")
+    endif()
+  endforeach()
+  if ("address" IN_LIST _sanitizers AND "thread" IN_LIST _sanitizers)
+    message(FATAL_ERROR "SANITIZE: address and thread cannot be combined.")
+  endif()
+  list(JOIN _sanitizers "," _sanitize_arg)
+  add_compile_options("-fsanitize=${_sanitize_arg}" -fno-omit-frame-pointer)
+  add_link_options("-fsanitize=${_sanitize_arg}")
+  if ("address" IN_LIST _sanitizers)
+    # Lets the macos-asan-collect test preset keep running after a finding; the macos-asan test preset halts at run
+    # time (halt_on_error=1), so the same build serves both.
     add_compile_options(-fsanitize-recover=address)
   endif()
 endif()

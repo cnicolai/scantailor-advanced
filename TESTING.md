@@ -8,6 +8,7 @@ The project has seven ctest suites. All of them run through the CMake presets, f
 ctest --preset macos-release
 ctest --preset macos-debug
 ctest --preset macos-asan
+ctest --preset macos-asan-collect
 ```
 
 Each preset needs its own build first (`cmake --preset <preset>` and `cmake --build --preset <preset>`). A run is good when ctest prints `100% tests passed out of 7`. Release and Debug must both pass before a code change is committed; Debug is the slow one, mostly because of `pipeline_tests`.
@@ -103,21 +104,28 @@ A large run of either memory probe uses gigabytes of memory (the 12000 x 13800 p
 
 ## Sanitizer build
 
-The `macos-asan` preset is a Debug build with `SANITIZE=address,undefined`. Its test preset sets `ASAN_OPTIONS=detect_leaks=0:halt_on_error=0` and `UBSAN_OPTIONS=print_stacktrace=1`.
+The `macos-asan` configure preset is a Debug build with `SANITIZE=address,undefined`. `SANITIZE` takes a comma-separated list of `address`, `undefined` and `thread`; any other name, or `address` together with `thread`, stops the configure step with an error.
+
+Two test presets run that one build:
+
+- `macos-asan` stops at the first ASan or UBSan report (`ASAN_OPTIONS=detect_leaks=0:halt_on_error=1`, `UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1`). A report fails its test even when the test's own checks pass, so a green run means no report at all.
+- `macos-asan-collect` runs the same build to the end and collects every report (`ASAN_OPTIONS=detect_leaks=0:halt_on_error=0`, `UBSAN_OPTIONS=print_stacktrace=1`). Use it to find all locations at once.
 
 ```sh
 cmake --preset macos-asan
 cmake --build --preset macos-asan
 ctest --preset macos-asan
+ctest --preset macos-asan-collect -V
 ```
 
-ctest hides the sanitizer reports of tests that pass. To see them, run `ctest --preset macos-asan -V`, or run a test executable directly with the same environment:
+ctest hides the sanitizer reports of tests that pass; `-V` shows them. A test executable also runs directly with either environment:
 
 ```sh
+ASAN_OPTIONS=detect_leaks=0:halt_on_error=1 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1 build/macos-asan/pipeline_tests --log_level=test_suite
 ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1 build/macos-asan/pipeline_tests --log_level=test_suite
 ```
 
-The reports known so far are in `.planning/phases/02-golden-baselines/records/sanitizer-findings.md`. They are recorded, not fixed.
+The undefined behaviour that earlier runs reported was fixed in code. The list of the last inventory is in `.planning/phases/06.1-address-tech-debt-post-audit-cleanup/records/sanitizer-inventory.md`.
 
 ## UI snapshot tool
 
